@@ -55,12 +55,16 @@ class DWChannel:
 		self.inbuf += data
 		self.inmutex.release()
 		if self.inCb:
+			notify = True
 			l = len(data)
 			if self.lineMode:
 				i = self.inbuf.find(self.lineChr)
 				if i >=0:
 					l=i
-			self.inCb(l)
+				else:
+					notify = False
+			if notify:
+				self.inCb(l)
 		return len(data)
 
 	# read data from inbuf
