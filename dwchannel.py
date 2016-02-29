@@ -1,7 +1,9 @@
+import threading
 from threading import Lock
 import copy
 from dwcommand import DWParser
 import time
+from dwsocket import DWSocket
 
 # DWChannel is a bi-directional pipe between the client and the service
 # Client interface: read,write,inWaiting,outWaiting
@@ -87,8 +89,10 @@ class DWChannel:
 		return len(data)
 
 class DWSerialChannel(DWChannel):
-	def __init__(self, server, conn=None):
+	def __init__(self, server, channel, conn=None):
 		DWChannel.__init__(self)
+		self.server = server
+		self.channel = channel
 		self.commandMode = True
 		self.dataMode = False
 		self.inCb = self.notify
@@ -100,10 +104,37 @@ class DWSerialChannel(DWChannel):
 		data = self.get(num).strip()
 		print "notify: %s" % data
 		res = self.parser.parse(data)
-		if res:
+		if isinstance(res, DWSocket):
+			sockChan = DWSocketChannel(self.server, self.channel, res)	
+			self.server.channels[self.channel]=sockChan
+			self.put("O OK\n")
+		elif res:
 			self.put(str(res))
 			#while self.outWaiting():
 			#	time.sleep(1)
 			self.connected=False
 			
-		
+class DWSocketChannel(DWChannel):
+	def __init__(self, server, channel, socket):
+		DWChannel.__init__(self)
+		self.server = server		
+		self.channel = channel		
+		self.lineMode = False
+		self.sock = socket
+		self.rt = threading.Thread(target=self._reader, args=())
+		self.rt.daemon = True
+		self.rt.start()
+		#self.wt = threading.Thread(target=self._writer, args=())
+		#self.wt.start()
+
+	def _reader(self):
+		while True:
+			data=self.sock.read()
+			if data:
+				self.put(data)
+
+	def notify(self, num):
+		data = self.get(num)
+		if data:
+			sock.write(data)
+			

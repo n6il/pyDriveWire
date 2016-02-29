@@ -1,6 +1,7 @@
 import threading
 import traceback
 import subprocess
+from dwsocket import DWSocket
 
 class DWParser:
 	def __init__(self, server):
@@ -56,6 +57,15 @@ class DWParser:
 		#out.append('')
 		return '\n\r'.join(out)
 
+	def doConnect(self, data):
+		(host,port) = data.split(' ')
+		print "host (%s)" % host
+		print "port (%s)" % port
+		if not host and not port:
+			raise Exception("list: Bad Path")
+		sock = DWSocket(host=host, port=port)
+		sock.connect()
+		return sock
 
 	def parse(self, data):
 		try:
@@ -82,6 +92,10 @@ class DWParser:
 			nxti = data.find(" ", i)
 			if i >= 0 and nxti > 0:
 				return self.doList(data[nxti+1:])
+			i = data.find("connect")
+			nxti = data.find(" ", i)
+			if i >= 0 and nxti > 0:
+				return self.doConnect(data[nxti+1:])
 			raise Exception("Unknown Command: %s" % data)
 		except Exception as ex:
 			traceback.print_exc()

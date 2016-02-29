@@ -9,6 +9,7 @@ class DWIO:
 
 		self.wqueue = Queue.Queue()
 		self.wt = threading.Thread(target=self._writeHandler, args=())
+		self.wt.daemon = True
 		self.wt.start()
 
 	def write(self, data):
@@ -29,9 +30,9 @@ class DWIO:
 		written = 0
 		bs=16
 		while (written < wlen):
-			ow = self.ser.outWaiting()
-			while ow>0:
-				print "ow: %d" % ow
+			#ow = self.ser.outWaiting()
+			#while ow>0:
+			#	print "ow: %d" % ow
 			e=min(written+bs,wlen)
 			d=data[written:e]
 			wrote = self._write(d)

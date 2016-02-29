@@ -4,16 +4,20 @@ import threading
 from dwio import DWIO
 
 class DWSocket(DWIO):
-	def __init__(self, port=6809):
+	def __init__(self, host='localhost', port=6809):
 		DWIO.__init__(self)
-		self.port = port
+		self.host = host
+		self.port = int(port)
 		self.sock = socket.socket( socket.AF_INET, socket.SOCK_STREAM)
-		self.sock.bind('0,0,0,0', self.port)
-		self.sock.listen(0)
 		self.conn = None
 		self.addr = None
 
 	def connect(self):
+		self.sock.connect((self.host, self.port))
+
+	def accept(self):
+		self.sock.bind('0,0,0,0', self.port)
+		self.sock.listen(0)
 		(self.conn, self.addr) = self.sock.accept()
 		print( "Accepted Connection: %s" % str(self.addr))
 		return

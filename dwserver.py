@@ -230,7 +230,7 @@ class DWServer:
 
 	def cmdSerInit(self, cmd):
 		channel = self.conn.read(1)
-		self.channels[channel] = DWSerialChannel(self)
+		self.channels[channel] = DWSerialChannel(self, channel)
 		print("cmd=%0x cmdSerInit channel=%d" % (ord(cmd),ord(channel)))
 
 	def cmdSerTerm(self, cmd):
