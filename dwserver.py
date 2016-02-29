@@ -148,23 +148,40 @@ class DWServer:
 		print "cmd=%0x cmdWrite disk=%d lsn=%d rc=%d" % (ord(cmd), disk, lsn, rc)
 		#print "   rc=%d" % rc
 
-	# XXX
+	# XXX Java version will return oldest data first
 	def cmdSerRead(self, cmd):
-		channel = chr(1)
-		ow = 0
 		data = NULL * 2
-		if channel in self.channels:
+		#msg = "NoData"
+		msg = ""
+		for channel in self.channels:
+			nchannel = ord(channel)
 			ow = self.channels[channel].outWaiting()
-		if ow>0:
-			data = chr(18)
-			data += chr(ow)
-		elif ow<0:
-			# Channel is closing
-			data = chr(16)
-			data += chr(1)
+			if ow<0:
+				# Channel is closing
+				data = chr(16)
+				data += channel
+				msg = "channel=%d Closing" % nchannel
+				break
+			elif ow==0:
+				continue
+			elif ow<3:
+				data = channel
+				data += self.channels[channel].read(1)
+				msg = "channel=%d ByteWaiting=(%s)" % (nchannel, data[1])
+				break
+			else:
+				data = chr(17+nchannel)
+				data += chr(ow)
+				msg = "channel=%d BytesWaiting=%d" % (nchannel, ow)
+				break
+		#elif ow<0:
+		#	# Channel is closing
+		#	data = chr(16)
+		#	data += chr(1)
 	
 		self.conn.write(data)
-		print "cmd=%0x serRead channel=%d ow=%d" % ( ord(cmd), ord(channel), ow )
+		if msg:
+			print "cmd=%0x serRead %s" % ( ord(cmd), msg )
 
 	# XXX
 	def cmdReset(self, cmd):
@@ -232,7 +249,7 @@ class DWServer:
 		num = self.conn.read(1)
 		data = self.channels[channel].read(ord(num))
 		self.conn.write(data)	
-		print("cmd=%0x cmdSerReadM channel=%d num=%0x" % (ord(cmd),ord(channel), ord(num)))
+		print("cmd=%0x cmdSerReadM channel=%d num=%d" % (ord(cmd),ord(channel), ord(num)))
 
 	def cmdSerWrite(self, cmd):
 		channel = self.conn.read(1)
