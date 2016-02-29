@@ -12,8 +12,8 @@ mapped to 921,600 baud:
 
 Supported DW Commands
 ---------------------
-dw show   ->  dw disk show
-dw insert <d> <p> ->  dw disk insert <d> <p>
-dw eject <d> -> dw disk eject <p>
-dw dir <p> -> dw server dir <p>
-dw list <p> -> dw server list <p>
+* `dw show`   ->  `dw disk show`
+* `dw insert <d> <p>` ->  `dw disk insert <d> <p>`
+* `dw eject <d>` -> `dw disk eject <p>`
+* `dw dir <p>` -> `dw server dir <p>`
+* `dw list <p>` -> `dw server list <p>`
