@@ -6,10 +6,14 @@ import traceback
 from dwconstants import *
 from dwchannel import DWSerialChannel
 
+
+Nulldata = NULL * SECSIZ
+
 def dwCrc16(data):
 	checksum = 0
-	for c in data:
-		checksum = c_ushort(checksum + ord(c)).value	
+	#for c in data:
+	#	checksum = c_ushort(checksum + ord(c)).value	
+	checksum = sum(bytearray(data))
 	return pack(">H", checksum)
 
 class DWServer:
@@ -39,8 +43,8 @@ class DWServer:
 		rc = E_OK
 		info = self.conn.read(INFOSIZ)
 		(disk, lsn) = unpack(">BI", info[0]+NULL+info[1:])
-		print "cmd=%0x cmdRead disk=%d lsn=%d" % (ord(cmd), disk, lsn)
-		data = NULL * SECSIZ
+		#print "cmd=%0x cmdRead disk=%d lsn=%d" % (ord(cmd), disk, lsn)
+		data = Nulldata
 		if self.files[disk] == None:
 			rc = E_NOTRDY
 		if rc == E_OK:
@@ -49,20 +53,20 @@ class DWServer:
 				assert(self.files[disk].tell() == (lsn*SECSIZ))
 			except:
 				rc = E_SEEK
-				data = NULL * SECSIZ
+				data = Nulldata
 				print "   rc=%d" % rc
 		if rc == E_OK:
 			try:
 				data = self.files[disk].read(SECSIZ)
 				if len(data)==0:
-					data = NULL * SECSIZ
+					data = Nulldata
 					flags += 'E'
 			except:
 				rc = E_READ
 		self.conn.write(chr(rc))
 		self.conn.write(dwCrc16(data))
 		self.conn.write(data)
-		print "   rc=%d" % rc
+		#print "   rc=%d" % rc
 
 	def cmdReRead(self, cmd):
 		self.cmdRead(cmd, 'R')
@@ -72,14 +76,14 @@ class DWServer:
 		flags=''
 		info = self.conn.read(INFOSIZ)
 		(disk, lsn) = unpack(">BI", info[0]+NULL+info[1:])
-		data = NULL * SECSIZ
+		data = Nulldata
 		if self.files[disk] == None:
 			rc = E_NOTRDY
 			#print "   rc=%d" % rc
 		if rc == E_OK:
 			try:
 				self.files[disk].seek(lsn*SECSIZ)
-				assert(self.files[disk].tell() == (lsn*SECSIZ))
+				#assert(self.files[disk].tell() == (lsn*SECSIZ))
 			except:
 				rc = E_SEEK
 				#print "   rc=%d" % rc
@@ -92,13 +96,13 @@ class DWServer:
 				#print "cmdReadEx read %d" % len(data)
 				if len(data)==0:
 					# Seek past EOF, just return 0'ed data
-					data = NULL * SECSIZ
+					data = Nulldata
 					flags += 'E'
 					#print "cmdReadEx eof read %d" % len(data)
 				
 			except:
 				rc = E_READ
-				data = NULL * SECSIZ
+				data = Nulldata
 				#print "   rc=%d" % rc
 				traceback.print_exc()
 		#print "cmdReadEx sending %d" % len(data)
@@ -112,7 +116,7 @@ class DWServer:
 			if crc != dwCrc16(data):
 				rc = E_CRC
 		self.conn.write(chr(rc))
-		print "cmd=%0x cmdReadEx disk=%d lsn=%d rc=%d f=%s" % (ord(cmd), disk, lsn, rc, flags)
+		#print "cmd=%0x cmdReadEx disk=%d lsn=%d rc=%d f=%s" % (ord(cmd), disk, lsn, rc, flags)
 		#print "   rc=%d" % rc
 
 	def cmdReReadEx(self, cmd):
@@ -242,7 +246,7 @@ class DWServer:
 		channel = ord(cmd)-0x80
 		byte = self.conn.read(1)
 		self.channels[chr(channel)].write(byte)
-		print("cmd=%0x cmdFastWrite channel=%d byte=%0x" % (ord(cmd),channel,ord(byte)))
+		print("cmd=%0x cmdFastWrite channel=%d byte=%0x (%c)" % (ord(cmd),channel,ord(byte), byte if byte>=' ' and byte <='~' else '.'))
 
 	def cmdSerReadM(self, cmd):
 		channel = self.conn.read(1)

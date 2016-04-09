@@ -20,7 +20,7 @@ if __name__ == '__main__':
 	conn.connect()
 
 	dws = DWServer(conn)
-	dwr = DWRepl(dws)
+	#dwr = DWRepl(dws)
 	
 	def cleanup():
 		#print "main: Closing serial port."

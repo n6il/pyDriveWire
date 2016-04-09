@@ -126,15 +126,18 @@ class DWSocketChannel(DWChannel):
 		self.rt.start()
 		#self.wt = threading.Thread(target=self._writer, args=())
 		#self.wt.start()
+		self.inCb = self.notify
 
 	def _reader(self):
 		while True:
 			data=self.sock.read()
 			if data:
+				print "dwsocket _reader: "+data
 				self.put(data)
 
 	def notify(self, num):
 		data = self.get(num)
 		if data:
-			sock.write(data)
+			print "dwsocket notify: "+data
+			self.sock.write(data)
 			

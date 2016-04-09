@@ -8,14 +8,14 @@ class DWIO:
 		self.Abort = False
 
 		self.wqueue = Queue.Queue()
-		self.wt = threading.Thread(target=self._writeHandler, args=())
-		self.wt.daemon = True
-		self.wt.start()
+		#self.wt = threading.Thread(target=self._writeHandler, args=())
+		#self.wt.daemon = True
+		#self.wt.start()
 
 	def write(self, data):
 		#print "write %d" % len(data)
-		self.wqueue.put(data)
-		#self._writer(data)
+		#self.wqueue.put(data)
+		self._writer(data)
 
 	def _writeHandler(self):
 		while True and not self.Abort:

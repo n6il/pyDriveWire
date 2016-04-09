@@ -14,6 +14,7 @@ class DWSocket(DWIO):
 
 	def connect(self):
 		self.sock.connect((self.host, self.port))
+		print('connected to %s:%d' %  (self.host,self.port))
 
 	def accept(self):
 		self.sock.bind('0,0,0,0', self.port)
@@ -23,9 +24,12 @@ class DWSocket(DWIO):
 		return
 
 	def _read(self, count):
-		return self.conn.recv(count)
+		data = self.conn.recv(count)
+		print('net recv: %s' % data)
+		return data
 
 	def _write(self, data):
+		print('net send: %s' % data)
 		return self.sock.send(data)
 
 	def _in_waiting(self):
