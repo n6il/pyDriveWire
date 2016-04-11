@@ -10,11 +10,14 @@ class DWSerial(DWIO):
 		self.ser = None
 
 	def connect(self):
-		self.ser = serial.Serial(self.port, self.speed, timeout=1)
+		self.ser = serial.Serial(self.port, self.speed, timeout=None)
 		return
 
-	def _read(self, count):
-		return self.ser.read(count)
+	def _read(self, count=None):
+		if count:
+			return self.ser.read(count)
+		else:
+			return self.ser.read()
 
 	def _write(self, data):
 		return self.ser.write(data)
@@ -46,9 +49,9 @@ if __name__ == '__main__':
 		while True:
 			wdata = raw_input()
 			ser.write(wdata)
-			#print "main: Wrote %d bytes" % len(wdata)
+			print "main: Wrote %d bytes" % len(wdata)
 			rdata = ser.read(len(wdata))
-			#print "main: Read %d bytes" % len(rdata)
+			print "main: Read %d bytes" % len(rdata)
 			print rdata
 	finally:
 		cleanup()
