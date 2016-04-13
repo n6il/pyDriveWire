@@ -1,6 +1,7 @@
 #!/usr/local/bin/python
 import serial
 from dwserial import DWSerial
+from dwsocket import DWSocket
 from dwserver import DWServer
 from dwcommand import DWRepl
 import traceback
@@ -16,9 +17,14 @@ if __name__ == '__main__':
 		sys.exit(1)
 
 	(_, port, speed, file) = sys.argv
-	conn = DWSerial(port, speed)
-	conn.connect()
+	if port == "accept":
+		conn = DWSocket(port=speed)
+		conn.accept()
+	else:
+		conn = DWSerial(port, speed)
+		conn.connect()
 
+	print conn.__class__
 	dws = DWServer(conn)
 	dwr = DWRepl(dws)
 	

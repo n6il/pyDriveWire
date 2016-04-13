@@ -1,6 +1,7 @@
 import threading
 import traceback
 import subprocess
+from dwsocket import DWSocket
 
 class DWParser:
 	def __init__(self, server):
@@ -13,6 +14,17 @@ class DWParser:
 		drive = data.split(' ')[0]
 		self.server.close(int(drive))
 		return "close(%d)" % (int(drive))
+	def doInstance(self, data):
+		out = ['','']
+		out.append( "Inst.  Type" )
+		out.append( "-----  --------------------------------------" )
+		#i=0
+		#for f in self.server.files:
+		out.append( "%d      %s" % (0, self.server.conn.__class__))
+		#	i += 1
+		
+		out.append('')
+		return '\n\r'.join(out)
 	def doShow(self, data):
 		out = ['','']
 		out.append( "Drive  File" )
@@ -56,6 +68,15 @@ class DWParser:
 		#out.append('')
 		return '\n\r'.join(out)
 
+	def doConnect(self, data):
+		(host,port) = data.split(' ')
+		print "host (%s)" % host
+		print "port (%s)" % port
+		if not host and not port:
+			raise Exception("list: Bad Path")
+		sock = DWSocket(host=host, port=port)
+		sock.connect()
+		return sock
 
 	def parse(self, data):
 		try:
@@ -82,6 +103,14 @@ class DWParser:
 			nxti = data.find(" ", i)
 			if i >= 0 and nxti > 0:
 				return self.doList(data[nxti+1:])
+			i = data.find("connect")
+			nxti = data.find(" ", i)
+			if i >= 0 and nxti > 0:
+				return self.doConnect(data[nxti+1:])
+			i = data.find("instance")
+			nxti = data.find(" ", i)
+			if i >= 0:
+				return self.doInstance('')
 			raise Exception("Unknown Command: %s" % data)
 		except Exception as ex:
 			traceback.print_exc()
@@ -92,6 +121,7 @@ class DWRepl:
 		self.server = server
 		self.parser = DWParser(self.server)
 		self.rt = threading.Thread(target=self.doRepl, args=())
+		self.rt.daemon = True
 		self.rt.start()
 
 	def doRepl(self):
