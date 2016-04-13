@@ -4,7 +4,7 @@ from dwio import DWIO
 
 class DWSerial(DWIO):
 	def __init__(self, port, speed):
-		DWIO.__init__(self)
+		DWIO.__init__(self, blocking=True)
 		self.port = port
 		self.speed = speed
 		self.ser = None
