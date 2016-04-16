@@ -3,6 +3,7 @@ import traceback
 import subprocess
 from dwsocket import DWSocket
 import os
+import sys
 
 class ParseNode:
 	def __init__(self, name, nodes=None):
@@ -227,7 +228,7 @@ class DWRepl:
 				print "ERROR"
 				traceback.print_exc()
 
-		self.server.conn.close()
+		self.server.conn.cleanup()
 		i=0
 		for f in self.server.files:
 			if f:

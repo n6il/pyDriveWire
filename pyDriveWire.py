@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 import serial
 from dwserial import DWSerial
-from dwsocket import DWSocket
+from dwsocket import DWSocketServer
 from dwserver import DWServer
 from dwcommand import DWRepl
 import traceback
@@ -18,22 +18,22 @@ if __name__ == '__main__':
 
 	(_, port, speed, file) = sys.argv
 	if port == "accept":
-		conn = DWSocket(port=speed)
+		conn = DWSocketServer(port=speed)
 		#conn.accept()
 	else:
 		conn = DWSerial(port, speed)
 		conn.connect()
 
-	print conn.__class__
-	dws = DWServer(conn)
-	dwr = DWRepl(dws)
-	
 	def cleanup():
 		#print "main: Closing serial port."
 		dws.close(drive)
-		conn.close()
+		conn.cleanup()
 	import atexit
 	atexit.register(cleanup)
+	print conn.__class__
+
+	dws = DWServer(conn)
+	dwr = DWRepl(dws)
 
 	try:
 		drive = 0

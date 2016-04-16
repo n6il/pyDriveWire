@@ -86,11 +86,17 @@ class DWIO:
 	def close(self):
 		self.abort = True
 		self._close()
-		print "Shutting down async io threads..."
-		if self.rt.is_alive():
-			self.rt.join()
-		if self.wt.is_alive():
-			self.wt.join()
+		#print "Shutting down async io threads..."
+		#if self.rt.is_alive():
+		#	self.rt.join()
+		#if self.wt.is_alive():
+		#	self.wt.join()
+
+	def cleanup(self):
+		self._cleanup()
+
+	def _cleanup(self):
+		pass
 
 	def _readHandler(self):
 		while not self.abort:
