@@ -3,6 +3,7 @@ import socket
 import threading
 from dwio import DWIO
 import time
+import select
 
 class DWSocket(DWIO):
 	def __init__(self, host='localhost', port=6809):
@@ -18,22 +19,29 @@ class DWSocket(DWIO):
 		self.sock.connect((self.host, self.port))
 
 	def accept(self):
-		self.sock.listen(0)
-		(self.conn, self.addr) = self.sock.accept()
-		print( "Accepted Connection: %s" % str(self.addr))
-		return
+		while not self.abort:
+			r = self.sock.listen(0)
+			(self.conn, self.addr) = self.sock.accept()
+			print( "Accepted Connection: %s" % str(self.addr))
+			break
 
 	def _read(self, count=256):
-		data = ''
+		data = None
 		if not self.conn:
 			self.accept()
+		ri = []
 		try:
-			#print "waiting..."
-			data = self.conn.recv(count)
+			(ri, _, _) = select.select([self.conn.fileno()], [], [], 1)
 		except Exception as e:
 			print str(e)
-			time.sleep(0.1)
-		if not data:
+			print "Connection closed"
+			self.conn=None
+		if any(ri):
+			#print "reading"
+			data = self.conn.recv(count)
+		#else:
+			#print "waiting"
+		if data == '':
 			print "Connection closed"
 			self.conn=None
 		#if data:
@@ -44,7 +52,7 @@ class DWSocket(DWIO):
 		n = 0
 		try:
 			if self.conn:
-				#print "w",data
+				#print "w",len(data)
 				n = self.conn.send(data)
 		except Exception as e:
 			print str(e)
@@ -55,8 +63,11 @@ class DWSocket(DWIO):
 		return False
 		#return self.sock.in_waiting
 		
-	def close(self):
-		self.sock.close()
+	def _close(self):
+		if self.conn:
+			print "Closing socket"
+			self.conn.shutdown(socket.SHUT_WR)
+		#self.sock.shutdown(socket.SHUT_RDWR)
 
 if __name__ == '__main__':
 	import sys

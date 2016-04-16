@@ -10,16 +10,24 @@ class DWSerial(DWIO):
 		self.ser = None
 
 	def connect(self):
-		self.ser = serial.Serial(self.port, self.speed, timeout=None)
+		self.ser = serial.Serial(self.port, self.speed, timeout=1)
 		return
 
+	def _close(self):
+		pass
+		#self.ser.close()
+
 	def _read(self, count=None):
+		if self.abort:
+			return ''
 		if count:
 			return self.ser.read(count)
 		else:
 			return self.ser.read()
 
 	def _write(self, data):
+		if self.abort:
+			return -1
 		return self.ser.write(data)
 
 	def _in_waiting(self):

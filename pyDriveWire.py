@@ -19,7 +19,7 @@ if __name__ == '__main__':
 	(_, port, speed, file) = sys.argv
 	if port == "accept":
 		conn = DWSocket(port=speed)
-		conn.accept()
+		#conn.accept()
 	else:
 		conn = DWSerial(port, speed)
 		conn.connect()

@@ -7,10 +7,8 @@ from dwconstants import *
 from dwchannel import DWSerialChannel
 
 def dwCrc16(data):
-	checksum = 0
-	for c in data:
-		checksum = c_ushort(checksum + ord(c)).value	
-	return pack(">H", checksum)
+	checksum = sum(bytearray(data))
+	return pack(">H", c_ushort(checksum).value)
 
 class DWServer:
 	def __init__(self, conn):
@@ -109,6 +107,7 @@ class DWServer:
 		#(crc,) = unpack(">H", info)
 		
 		if rc == E_OK:
+			#print hex(unpack(">H",crc)[0]), hex(unpack(">H",dwCrc16(data))[0])
 			if crc != dwCrc16(data):
 				rc = E_CRC
 		self.conn.write(chr(rc))
@@ -230,7 +229,7 @@ class DWServer:
 
 	def cmdSerInit(self, cmd):
 		channel = self.conn.read(1)
-		self.channels[channel] = DWSerialChannel(self)
+		self.channels[channel] = DWSerialChannel(self, channel)
 		print("cmd=%0x cmdSerInit channel=%d" % (ord(cmd),ord(channel)))
 
 	def cmdSerTerm(self, cmd):

@@ -85,7 +85,10 @@ class DWParser:
 		self.setupParser()
 
 	def doInsert(self, data):
-		(drive, path) = data.split(' ')
+		spc = data.find(' ')
+		drive = data[:spc]
+		path = data[spc+1:]
+		#(drive, path) = data.split(' ')
 		self.server.open(int(drive), path)
 		return "open(%d, %s)" % (int(drive), path)
 	def doEject(self, data):
@@ -165,7 +168,7 @@ class DWParser:
 		u = data.upper()
 		if u.startswith("AT"):
 			tokens=["AT"]
-			t2 = data[2:].upper()
+			t2 = u[2:]
 			if t2:
 				tokens.append(t2)
 			else:
