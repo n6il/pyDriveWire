@@ -4,22 +4,80 @@ import Queue
 #from collections import deque
 from time import sleep
 
+class QPC:
+	def __init__(self, init=0):
+		self.counter = init
+		self.lock = threading.Lock()
+
+	def add(self, i):
+		self.lock.acquire()
+		self.counter += i
+		r = self.counter
+		self.lock.release()
+		return r
+		
+	def sub(self, i):
+		self.lock.acquire()
+		if i > self.counter:
+			self.counter=0
+		else:
+			self.counter -= i
+		r = self.counter
+		self.lock.release()
+		return r
+	
+	def get(self):
+		self.lock.acquire()
+		r = self.counter
+		self.lock.release()
+		return r
+
+	def close(self):
+		self.lock.acquire()
+		self.counter = -1
+		r = self.counter
+		self.lock.release()
+		return r
+
 class DWIO:
-	def __init__(self, rwf=None, inf=None, outf=None, blocking=False):
+	def __init__(self, rwf=None, inf=None, outf=None, threaded=False):
 		self.abort = False
 
 		if rwf:
 			inf = outf = rwf
 		self.inf = inf
 		self.outf = outf
-		self.rt = threading.Thread(target=self._readHandler, args=())
-		self.rt.daemon = True
+		self.threaded = threaded
+		if self.threaded:
+			self.rt = threading.Thread(target=self._readHandler, args=())
+			self.rt.daemon = True
 		self.rq = Queue.Queue()
+		self.rb = QPC()
 		self.rbuf = ''
-		self.wt = threading.Thread(target=self._writeHandler, args=())
-		self.wt.daemon = True
+		if self.threaded:
+			self.wt = threading.Thread(target=self._writeHandler, args=())
+			self.wt.daemon = True
 		self.wq = Queue.Queue()
+		self.connected = False
 	
+
+	def run(self, read=True, write=True):
+		if not self.threaded:
+			return
+		print "%s: Starting threads..." % self
+		self.rt.start()
+		self.wt.start()
+	
+	def isConnected(self):
+		return self.connected
+
+	def outWaiting(self):
+		return self._outWaiting()
+
+	def _outWaiting(self):
+		n = min(214, self.rb.get())
+		#print "outWaiting",n
+		return n
 
 	def readline(self, ifs='\n'):
 		return self.read(readLine=True, ifs=ifs)
@@ -27,9 +85,8 @@ class DWIO:
 	def read(self, rlen=None, readLine=False, ifs='\n'):
 		rdata=''
 		pos=-1
-		#print "dwio read %d" % rlen
-		if not self.rt.is_alive():
-			# Start the background reader thread only
+		#print "dwio read %s" % rlen
+		if self.threaded and not self.rt.is_alive(): # Start the background reader thread only
 			# when someone asks to start reading from it
 			self.rt.start()
 		while not self.abort:
@@ -70,10 +127,11 @@ class DWIO:
 				break
 
 		#print "reading: %d (%s)" %(len(rdata),rdata if ord(rdata)>32 and ord(rdata)<128 else '.')
+		self.rb.sub(len(rdata))
 		return rdata
 
 	def write(self, data):
-		if not self.wt.is_alive():
+		if self.threaded and not self.wt.is_alive():
 			# Start the background reader thread only
 			# when someone asks to start reading from it
 			self.wt.start()
@@ -84,7 +142,9 @@ class DWIO:
 		pass
 
 	def close(self):
+		print "Closing connection: %s" % self
 		self.abort = True
+		self.rb.close()
 		self._close()
 		#print "Shutting down async io threads..."
 		#if self.rt.is_alive():
@@ -99,10 +159,12 @@ class DWIO:
 		pass
 
 	def _readHandler(self):
+		print "%s: Starting _readHandler..." % self
 		while not self.abort:
 			d=self._read()
 			if d:
 				#print "put: (%s)" % d
+				self.rb.add(len(d))
 				self.rq.put(d)
 
 	def _read(self, rlen=None):
@@ -117,6 +179,7 @@ class DWIO:
 		return data
 
 	def _writeHandler(self):
+		print "%s: Starting _writeHandler..." % self
 		while not self.abort:
 			d = ''
 			try:

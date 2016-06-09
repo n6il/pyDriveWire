@@ -1,7 +1,8 @@
 import threading
 import traceback
 import subprocess
-from dwsocket import DWSocket
+from dwsocket import *
+from dwtelnet import DWTelnet
 import os
 import sys
 
@@ -34,7 +35,11 @@ class ATParseNode(ParseNode):
 
 	def lookup(self, key):
 		k = key[0]
-		return ParseNode.lookup(self, k)
+		r =  ParseNode.lookup(self, k)
+		if not r:
+			k = key[0:1]
+			r =  ParseNode.lookup(self, k)
+		return r
 
 	def help(self):
 		#if self.name:
@@ -69,12 +74,20 @@ class DWParser:
 		dwParser.add("server", serverParser)
 
 		tcpParser=ParseNode("tcp")
+		tcpParser.add("connect", ParseAction(self.doConnect))
+		tcpParser.add("listen", ParseAction(self.doListen))
+		tcpParser.add("join", ParseAction(self.doJoin))
+		tcpParser.add("kill", ParseAction(self.doKill))
 
 		atParser=ATParseNode("AT")
 		atParser.add("", ParseAction(lambda x: "OK"))
 		atParser.add("Z", ParseAction(lambda x: "OK"))
-		atParser.add("D", ParseAction(lambda x: "OK"))
-		atParser.add("I", ParseAction(lambda x: "pyDriveWire\nOK"))
+		atParser.add("D", ParseAction(self.doDial))
+		atParser.add("DT", ParseAction(self.doDial1))
+		atParser.add("I", ParseAction(lambda x: "pyDriveWire\r\nOK"))
+		atParser.add("O", ParseAction(lambda x: {'reply': 'OK', 'self.online': True}))
+		atParser.add("H", ParseAction(lambda x: {'reply': 'OK', 'self.online': False}))
+		atParser.add("E", ParseAction(lambda x: {'reply': 'OK', 'self.echo': True, 'self.online': True }))
 
 		self.parseTree=ParseNode("")
 		self.parseTree.add("dw", dwParser)
@@ -86,10 +99,10 @@ class DWParser:
 		self.setupParser()
 
 	def doInsert(self, data):
-		spc = data.find(' ')
-		drive = data[:spc]
-		path = data[spc+1:]
-		#(drive, path) = data.split(' ')
+		opts = data.split(' ')
+		if len(opts) != 2:
+			raise Exception("dw disk insert <drive> <path>")
+		(drive, path) = opts
 		self.server.open(int(drive), path)
 		return "open(%d, %s)" % (int(drive), path)
 	def doEject(self, data):
@@ -125,8 +138,8 @@ class DWParser:
 		#if nxti != -1:
 		#	path = data[nxti+1:].split(' ')[0]
 		#	cmd.append(path)
-		if not data:
-			raise Exception("dir: Bad data")
+		#if not data:
+		#	raise Exception("dir: Bad data")
 		if data:
 			cmd.append(data)
 		print cmd
@@ -155,17 +168,63 @@ class DWParser:
 		#out.append('')
 		return '\n\r'.join(out)
 
+	def doDial1(self, data):
+		return self.doDial(data[1:])
+
+	def doDial(self, data):
+		i = index(data,':')
+		if i >= 0:
+			data[i] = ' '
+		self.doConnect(data)
+
 	def doConnect(self, data):
-		(host,port) = data.split(' ')
+		r = data.split(':')
+		if len(r)==1:
+			r = data.split(' ')
+		if len(r)==1:
+			r.append('23')
+		(host,port) = r
 		print "host (%s)" % host
 		print "port (%s)" % port
 		if not host and not port:
 			raise Exception("list: Bad Path")
-		sock = DWSocket(host=host, port=port)
-		sock.connect()
+		try:
+			sock = DWSocket(host=host, port=port)
+			#sock = DWTelnet(host=host, port=port)
+			sock.connect()
+		except Exception as ex:
+			sock = "FAIL %s" % str(ex)
 		return sock
 
-	def parse(self, data):
+	def doListen(self, data):
+		r = data.split(' ')
+		port = r[0]
+		return DWSocketListener(port=port)
+
+	def doKill(self, data):
+		#r = data.split(':')
+		conn = self.server.connections.get(data,None)
+		if not conn:
+			raise Exception("Invalid connection: %s" % data)
+		res =  "OK killing connection %s\r\n" % data
+		print res
+		conn.binding = None
+		conn.close()
+		del self.server.connections[r]
+		return res
+
+	def doJoin(self, data):
+		#r = data.split(':')
+		
+		conn = self.server.connections.get(data,None)
+		print "Binding %s to %s" % (conn, data)
+		if not conn:
+			raise Exception("Invalid connection: %s" % data)
+		conn.binding = data
+		return conn
+		
+		
+	def parse(self, data, interact=False):
 		u = data.upper()
 		if u.startswith("AT"):
 			tokens=["AT"]
@@ -173,7 +232,7 @@ class DWParser:
 			if t2:
 				tokens.append(t2)
 			else:
-				return "OK"
+				return {'res': "OK", 'self.online':True}
 		else:
 			tokens = data.split(' ')
 		p = self.parseTree
@@ -188,14 +247,24 @@ class DWParser:
 				p = v
 			elif isinstance(v, ParseAction):
 				callData = data[i:]
-				#print callData
-				return v.call(callData)	
+				print callData
+				res = ''
+				try:
+					res=v.call(callData)	
+				except Exception as ex:
+					if interact:
+						raise
+					res="FAIL %s" % str(ex)
+				return res
 			else:
 				break
 
+		msg = []
 		if t:
-			print "%s: Invalid command: %s" % (p.name, t)
-		return p.help()
+			msg.append("%s: Invalid command: %s" % (p.name, t))
+		msg.append(p.help())
+		#msg.append('')
+		return '\n\r'.join(msg)
 		# raise Exception("%s: Invalid" % data)
 		
 class DWRepl:
@@ -223,9 +292,9 @@ class DWRepl:
 				break
 			
 			try:
-				print self.parser.parse(wdata)
-			except:
-				print "ERROR"
+				print self.parser.parse(wdata, True)
+			except Exception as ex:
+				print "ERROR:: %s" % str(ex)
 				traceback.print_exc()
 
 		self.server.conn.cleanup()

@@ -5,18 +5,24 @@ from dwsocket import DWSocketServer
 from dwserver import DWServer
 from dwcommand import DWRepl
 import traceback
+import logging
+
 
 if __name__ == '__main__':
 	import sys
 
+	logging.basicConfig(stream=sys.stdout, level=logging.INFO,
+		format='%(asctime)s %(levelname)s %(module)s:%(lineno)s.%(funcName)s %(message)s')
 	if len(sys.argv) < 3:
 		print("Usage: %s <port> <speed> <file>" % (sys.argv[0]))
 		print('')
 		print('\t%s /dev/tty.usbserial-FTF4ZN9S 19200' % sys.argv[0])
+		print('\t%s accept <port>' % sys.argv[0])
 		print('')
 		sys.exit(1)
 
-	(_, port, speed, file) = sys.argv
+	(port, speed) = sys.argv[1:3]
+	files = sys.argv[3:]
 	if port == "accept":
 		conn = DWSocketServer(port=speed)
 		#conn.accept()
@@ -37,7 +43,9 @@ if __name__ == '__main__':
 
 	try:
 		drive = 0
-		dws.open(drive, file)
+		for f in files:
+			dws.open(drive, f)
+			drive += 1
 		dws.main()
 	except:
 		traceback.print_exc()

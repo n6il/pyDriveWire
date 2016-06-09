@@ -1,7 +1,12 @@
+import threading
+import Queue
 from threading import Lock
 import copy
 from dwcommand import DWParser
 import time
+from dwlib import canonicalize
+from dwio import DWIO
+from dwsocket import *
 
 # DWChannel is a bi-directional pipe between the client and the service
 # Client interface: read,write,inWaiting,outWaiting
@@ -86,7 +91,7 @@ class DWChannel:
 			self.outCb.notify(len(data))
 		return len(data)
 
-class DWSerialChannel(DWChannel):
+class DWVModem2(DWChannel):
 	def __init__(self, server, conn=None):
 		DWChannel.__init__(self)
 		self.commandMode = True
@@ -106,4 +111,210 @@ class DWSerialChannel(DWChannel):
 			#	time.sleep(1)
 			self.connected=False
 			
+
+class DWVModem(DWIO):
+	def __init__(self, server, channel, conn=None):
+		print "DWVModem __init__"
+		DWIO.__init__(self, threaded=False)
+		self.server=server
+		self.channel=channel
+		self.conn=conn
+		self.online = False
+		self.wbuf = ''
+		self.parser = DWParser(server)
+		self.connected = True
+		self.cq = Queue.Queue()
+		self.cmdThread = threading.Thread(target=self._cmdWorker)
+		self.cmdThread.daemon = True
+		#self.cmdThread.start()
+		self.eatTwo = False
+		self.listeners = []
+		self.echo = False
 		
+
+	def _acceptCb(self, conn):
+		print "%s: accpet callback called" % self
+		n = self.server.registerConn(conn)
+		r = "%s %s %s" % (n, conn.port, conn.addr[0])
+		reply = r + "\r" #+ r + "\r\n"
+		print "reply: (%s)" % reply
+		self.rq.put(reply)
+		self.rb.add(len(reply))
+	
+	def _cmdWorker(self):
+			#while True:
+			if self.cq.empty():
+				return
+			cmd = self.cq.get(True)
+			print "parser",cmd
+			res = self.parser.parse(cmd)
+			exact = False
+			reply = "0 OK\r"
+			if isinstance(res, str):
+				if res.startswith("FAIL") or res.startswith("ERROR"):
+					reply = res
+				else:
+					reply += res
+				if not self.online:
+					self.connected = False
+			elif isinstance(res, dict):
+				for k,v in res.items():
+					if isinstance(v, str):
+						v = "'%s'" % v
+					e = '%s=%s' % (k,v)
+					print(e)
+					exec(e)
+			elif isinstance(res, DWSocketListener):
+				self.online = True
+				self.connected = True
+				print "%s: registar callback: %s" % (res, self._acceptCb)
+				res.registerCb(self._acceptCb)
+				res.at.start()
+				self.listeners.append(res)	
+				r = "OK listening on port %s" % res.port
+				exact = True
+				reply = r + "\r" #+ r + "\r\n"
+			elif isinstance(res, DWIO):
+				self.online = True
+				self.conn = res
+				b = self.conn.binding
+				if b:
+					reply = "OK attaching to connection %s\r" % (b)
+				else:
+					r = "OK connected to %s:%s" % (self.conn.host, self.conn.port)
+					reply = r + "\n" + r + "\r\n"
+					self.eatTwo = True
+				self.conn.run()
+				exact = True
+			if self.online and not exact:
+				reply = '\r\n' + reply + '\r\n'
+			print "reply: (%s)" % reply
+			self.rb.add(len(reply))
+			self.rq.put(reply)
+			#while reply:
+			#	self.rq.put(reply[:214])
+			#	reply = reply[214:]
+			#if isinstance(res, str):
+		
+			#elif res:
+			#	res = "0 OK\r"+res#+'\r\n'
+			#	print "res",res
+			#	self.rq.put(res)
+			#	self.rb.add(len(res))
+			#	self.connected = False
+
+	def write(self, data, ifs='\r'):
+		print "ch: write:",canonicalize(data)
+		wdata = ''
+		w=0
+		pos=-1
+		#print "dwio read %d" % rlen
+		#if not self.wt.is_alive():
+		#	# Start the background reader thread only
+		#	# when someone asks to start reading from it
+		#	self.wt.start()
+
+		if not self.eatTwo and self.online and self.conn:
+			if self.wbuf:
+				w += self.conn.write(self.wbuf)
+				self.wbuf = ''
+			w +=  self.conn.write(data)
+		else:
+			if self.echo:
+				self.rq.put(data)
+				self.rb.add(len(data))
+			self.wbuf += data
+			pos = self.wbuf.find(ifs)
+			if pos < 0:
+				w += len(data)
+			#while pos >= 0:
+			else:
+				
+				if self.eatTwo:
+					print "ch: eating: %s" % canonicalize(self.wbuf[:pos+1])
+				if self.echo:
+					self.rq.put("\r")
+					self.rb.add(1)
+				wdata = self.wbuf[:pos]
+				self.wbuf = self.wbuf[pos+1:]
+				w += pos + 1	
+				print "wdata=(%s) wbuf=(%s)" % (wdata, self.wbuf)
+				if self.eatTwo:
+					self.eatTwo=False
+					
+				else:
+					self.cq.put(wdata)
+				#self._cmdWorker()
+				#print "parser",wdata
+				#res = self.parser.parse(wdata)
+				#if isinstance(res, DWIO):
+				#	self.conn = res
+				#elif res:
+				#	res = "0 OK\r"+res#+'\r\n'
+				#	print "res",res
+				#	self.rq.put(res)
+				#	self.rb.add(len(res))
+				#	self.connected = False
+				#pos = self.wbuf.find(ifs)
+
+			#pos = data.find(ifs)
+			#if pos >= 0:
+			#	wdata = self.wbuf + data[:pos]
+			#	self.wbuf = data[pos+1:]
+			#	w = pos + 1
+			#if wdata:
+			#	res = self.parser.parse(wdata)
+			#	if isinstance(res, DWIO):
+			#		self.conn = res
+			#	elif res:
+			#		self.rq.put(res)
+			#		self.rb.add(len(res))
+			#else:
+			#	self.wbuf += data
+			#	w = len(data)
+		return w
+
+	#def _readHandler(self):
+	def read(self, rlen=None):
+		d = ''
+		if self._outWaiting()>0:
+			d +=  DWIO.read(self, rlen)
+			#d += self.rq.get()
+			#self.rb.sub(len(d))
+			if d:
+				print "ch:i: read:",canonicalize(d)
+		#elif self.connected == False:
+		#	self.rb.close()
+		#elif self.conn and self.conn.outWaiting()>0:
+		elif self.conn:
+			d += self.conn.read(rlen)
+			if d:
+				print "ch:c: read:",canonicalize(d)
+		#print "d: (%s)" % d
+		return d
+
+	def outWaiting(self):
+		d = self._outWaiting()
+		if d == 0 and self.connected == False:
+			print "channel closing"
+			self.rb.close()
+		#if not self.conn:
+		d=self._outWaiting()
+		print "ch: ow:i=%d" % d
+		#if d>=0 and self.conn:
+		if d==0 and self.conn:
+		#else:
+			d = self.conn.outWaiting()
+			print "ch: ow:c=%d" % d
+			if d <= 0 and not self.conn.isConnected():
+				self.rb.close()
+				self.conn = None
+				self.online = False
+				self.connected = False
+		return d
+
+	def _close(self):
+		if self.conn:
+			self.conn.close()
+		for c in self.lsteners:
+			c.close()

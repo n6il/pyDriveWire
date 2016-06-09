@@ -4,19 +4,28 @@ import threading
 from dwio import DWIO
 import time
 import select
+from dwlib import canonicalize
 
 class DWSocket(DWIO):
-	def __init__(self, host='localhost', port=6809):
-		DWIO.__init__(self, blocking=True)
+	def __init__(self, host='localhost', port=6809, conn=None, addr=None):
+		DWIO.__init__(self, threaded=True)
 		self.host = host
 		self.port = int(port)
-		self.sock = socket.socket( socket.AF_INET, socket.SOCK_STREAM)
-		self.conn = None
-		self.addr = None
+		self.conn = conn
+		if self.conn:
+			self.sock = self.conn
+		else:
+			self.sock = socket.socket( socket.AF_INET, socket.SOCK_STREAM)
+		self.addr = addr
+		self.binding = None
+
+	def isConnected(self):
+		return self.conn != None
 
 	def connect(self):
 		self.sock = socket.socket( socket.AF_INET, socket.SOCK_STREAM)
 		self.sock.connect((self.host, self.port))
+		print "socket: %s: connecting to %s:%s" % (self, self.host, self.port)
 		self.conn = self.sock
 
 	def _read(self, count=256):
@@ -40,6 +49,8 @@ class DWSocket(DWIO):
 			self._close()
 		#if data:
 		#	print "r",data
+		#if data != None:
+		#	print "socket read:",self,canonicalize(data)
 		return data
 
 	def _write(self, data):
@@ -57,6 +68,7 @@ class DWSocket(DWIO):
 		if any(wi):
 			try:
 				n = self.conn.send(data)
+				#print "socket write:",self,canonicalize(data)
 			except Exception as e:
 				print str(e)
 				self._close()
@@ -72,7 +84,7 @@ class DWSocket(DWIO):
 			(ri, _, _) = select.select([self.conn.fileno()], [], [], 1)
 		except Exception as e:
 			print str(e)
-			print "Connection closed"
+			print "Connection closed",self
 			self._close()
 		return any(ri)
 		#return self.sock.in_waiting
@@ -88,7 +100,7 @@ class DWSocket(DWIO):
 			#print str(e)
 			#print "Connection closed"
 		if any(ri+wi):
-			print "Closing: connection"
+			print "Closing: connection",self
 			try:
 				#self.conn.shutdown(socket.SHUT_RDWR)
 				self.conn.close()
@@ -107,7 +119,7 @@ class DWSocket(DWIO):
 		self.abort = True
 		self._close()
 		if self.sock:
-			print "Closing: socket"
+			print "Closing: socket",self
 			try:
 				self.sock.close()
 			except:
@@ -141,6 +153,50 @@ class DWSocketServer(DWSocket):
 		return DWSocket._read(self, count)
 
 
+class DWSocketListener(DWSocket):
+	def __init__(self, host='localhost', port=6809, acceptCb=None):
+		DWSocket.__init__(self, host=host, port=port)
+		self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+		self.sock.bind(('0.0.0.0', self.port))
+		self.connections = []
+		self.at = threading.Thread(target=self._accept, args=())
+		self.at.daemon = True
+
+
+	def registerCb(self, cb):
+		print "%s: Callback registration: %s" % (self, cb)
+		self.acceptCb = cb
+
+	def accept(self):
+		raise Exception("Oppps, don't call me")
+
+	def _accept(self):
+		while not self.abort:
+			self.conn = None
+			try:
+				print( "%s: Listening on: %s" % (self, self.port))
+				r = self.sock.listen(0)
+				(sock, addr) = self.sock.accept()
+				print( "%s: Accepted Connection: %s" % (self, str(addr)))
+				conn = DWSocket(conn=sock, port=self.port, addr=addr)
+				self.connections.append(conn)
+				if self.acceptCb:
+					self.acceptCb(conn)
+				
+			except Exception as ex:
+				print("Server Aborted", str(ex))
+			
+			if self.conn:
+				break
+			print "looping"
+
+
+	def _close(self):
+		self.connected = False
+		self.abort = True
+		for c in self.connections:
+			c.close()
+
 if __name__ == '__main__':
 	import sys
 
@@ -148,7 +204,7 @@ if __name__ == '__main__':
 	sock = DWSocketServer()
 	
 	def cleanup():
-		#print "main: Closing sockial port."
+		print "main: Closing sockial port."
 		sock.close()
 	import atexit
 	atexit.register(cleanup)

@@ -4,7 +4,7 @@ from ctypes import *
 import traceback
 
 from dwconstants import *
-from dwchannel import DWSerialChannel
+from dwchannel import DWVModem, DWVModem2
 
 def dwCrc16(data):
 	checksum = sum(bytearray(data))
@@ -15,7 +15,22 @@ class DWServer:
 		self.conn = conn
 		self.files = [None, None, None, None]
 		self.channels = {}
+		self.connections = {}
 
+	def registerConn(self, conn):
+		n = None
+		i = 0
+		si = "1"
+		while i<=len(self.connections):	
+			n = self.connections.get(si, None)
+			if not n:
+				break
+			i += 1
+			si = "%d" % (i+1)
+		self.connections[si] = conn
+		return si
+
+				
 	def open(self, disk, fileName):
 		self.files[disk] = open(fileName,"r+")
 		print('Opened: %s' % fileName)
@@ -150,8 +165,8 @@ class DWServer:
 	# XXX Java version will return oldest data first
 	def cmdSerRead(self, cmd):
 		data = NULL * 2
-		#msg = "NoData"
-		msg = ""
+		msg = "NoData"
+		#msg = ""
 		for channel in self.channels:
 			nchannel = ord(channel)
 			ow = self.channels[channel].outWaiting()
@@ -164,7 +179,7 @@ class DWServer:
 			elif ow==0:
 				continue
 			elif ow<3:
-				data = channel
+				data = chr(1+nchannel)
 				data += self.channels[channel].read(1)
 				msg = "channel=%d ByteWaiting=(%s)" % (nchannel, data[1])
 				break
@@ -229,7 +244,7 @@ class DWServer:
 
 	def cmdSerInit(self, cmd):
 		channel = self.conn.read(1)
-		self.channels[channel] = DWSerialChannel(self, channel)
+		self.channels[channel] = DWVModem(self, channel)
 		print("cmd=%0x cmdSerInit channel=%d" % (ord(cmd),ord(channel)))
 
 	def cmdSerTerm(self, cmd):
@@ -242,6 +257,7 @@ class DWServer:
 		byte = self.conn.read(1)
 		self.channels[chr(channel)].write(byte)
 		print("cmd=%0x cmdFastWrite channel=%d byte=%0x" % (ord(cmd),channel,ord(byte)))
+		self.channels[chr(channel)]._cmdWorker()
 
 	def cmdSerReadM(self, cmd):
 		channel = self.conn.read(1)
@@ -255,6 +271,7 @@ class DWServer:
 		byte = self.conn.read(1)
 		self.channels[channel].write(byte)
 		print("cmd=%0x cmdSerWrite channel=%d byte=%0x" % (ord(cmd),channel,ord(byte)))
+		self.channels[chr(channel)]._cmdWorker()
 
 
 	def cmdErr(self, cmd):
@@ -284,6 +301,18 @@ class DWServer:
 		OP_SERINIT: cmdSerInit,
 		OP_SERTERM: cmdSerTerm,
 		OP_FASTWRITE1: cmdFastWrite,
+		OP_FASTWRITE2: cmdFastWrite,
+		OP_FASTWRITE3: cmdFastWrite,
+		OP_FASTWRITE4: cmdFastWrite,
+		OP_FASTWRITE5: cmdFastWrite,
+		OP_FASTWRITE6: cmdFastWrite,
+		OP_FASTWRITE7: cmdFastWrite,
+		OP_FASTWRITE8: cmdFastWrite,
+		OP_FASTWRITE9: cmdFastWrite,
+		OP_FASTWRITE10: cmdFastWrite,
+		OP_FASTWRITE11: cmdFastWrite,
+		OP_FASTWRITE12: cmdFastWrite,
+		OP_FASTWRITE13: cmdFastWrite,
 		OP_SERREADM: cmdSerReadM,
 		OP_SERWRITE: cmdSerWrite,
 	}
