@@ -1,6 +1,7 @@
 #!/usr/local/bin/python
 import serial
 from dwio import DWIO
+import dwlib
 
 class DWSerial(DWIO):
 	def __init__(self, port, speed):
@@ -20,14 +21,21 @@ class DWSerial(DWIO):
 	def _read(self, count=None):
 		if self.abort:
 			return ''
+		data = ''
 		if count:
-			return self.ser.read(count)
+			data = self.ser.read(count)
 		else:
-			return self.ser.read()
+			data = self.ser.read()
+
+		if self.debug and data:
+			print "serread: len=%d %s"%(len(data),dwlib.canonicalize(data))
+		return data
 
 	def _write(self, data):
 		if self.abort:
 			return -1
+		if self.debug and data:
+			print "serwrite: len=%d %s"%(len(data),dwlib.canonicalize(data))
 		return self.ser.write(data)
 
 	def _in_waiting(self):

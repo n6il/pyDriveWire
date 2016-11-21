@@ -29,6 +29,7 @@ class DWSocket(DWIO):
 		self.conn = self.sock
 
 	def _read(self, count=256):
+		print "dwsocket._read: %s" % self
 		data = None
 		if self.abort or not self.conn:
 			return ''
@@ -49,8 +50,8 @@ class DWSocket(DWIO):
 			self._close()
 		#if data:
 		#	print "r",data
-		#if data != None:
-		#	print "socket read:",self,canonicalize(data)
+		if self.debug and data != None:
+			print "socket read:",self,canonicalize(data)
 		return data
 
 	def _write(self, data):
@@ -68,7 +69,8 @@ class DWSocket(DWIO):
 		if any(wi):
 			try:
 				n = self.conn.send(data)
-				#print "socket write:",self,canonicalize(data)
+				if self.debug:
+					print "socket write:",self,canonicalize(data)
 			except Exception as e:
 				print str(e)
 				self._close()
@@ -113,6 +115,7 @@ class DWSocket(DWIO):
 		#	except:
 		#		pass
 		self.conn = None
+		#self.abort = True
 		#self.sock.shutdown(socket.SHUT_RDWR)
 
 	def _cleanup(self):

@@ -61,6 +61,7 @@ class DWParser:
 	def setupParser(self):
 		diskParser=ParseNode("disk")
 		diskParser.add("insert", ParseAction(self.doInsert))
+		diskParser.add("reset", ParseAction(self.doReset))
 		diskParser.add("eject", ParseAction(self.doEject))
 		diskParser.add("show", ParseAction(self.doShow))
 
@@ -68,10 +69,22 @@ class DWParser:
 		serverParser.add("instance", ParseAction(self.doInstance))
 		serverParser.add("dir", ParseAction(self.doDir))
 		serverParser.add("list", ParseAction(self.doList))
+		serverParser.add("dump", ParseAction(self.dumpstacks))
+		serverParser.add("debug", ParseAction(self.doDebug))
+		serverParser.add("timeout", ParseAction(self.doTimeout))
+		connParser=ParseNode("conn")
+		connParser.add("debug", ParseAction(self.doConnDebug))
+		serverParser.add("conn", connParser)
+
+		portParser=ParseNode("port")
+		portParser.add("show", ParseAction(self.doPortShow))
+		portParser.add("close", ParseAction(self.doPortClose))
+		portParser.add("debug", ParseAction(self.doPortDebug))
 
 		dwParser=ParseNode("dw")
 		dwParser.add("disk", diskParser)
 		dwParser.add("server", serverParser)
+		dwParser.add("port", portParser)
 
 		tcpParser=ParseNode("tcp")
 		tcpParser.add("connect", ParseAction(self.doConnect))
@@ -80,14 +93,14 @@ class DWParser:
 		tcpParser.add("kill", ParseAction(self.doKill))
 
 		atParser=ATParseNode("AT")
-		atParser.add("", ParseAction(lambda x: "OK"))
-		atParser.add("Z", ParseAction(lambda x: "OK"))
+		atParser.add("", ParseAction(lambda x: {'reply': 'OK', 'self.cmdAutoclose': False}))
+		atParser.add("Z", ParseAction(lambda x: {'reply': 'OK', 'self.cmdAutoclose': False}))
 		atParser.add("D", ParseAction(self.doDial))
 		atParser.add("DT", ParseAction(self.doDial1))
-		atParser.add("I", ParseAction(lambda x: "pyDriveWire\r\nOK"))
-		atParser.add("O", ParseAction(lambda x: {'reply': 'OK', 'self.online': True}))
-		atParser.add("H", ParseAction(lambda x: {'reply': 'OK', 'self.online': False}))
-		atParser.add("E", ParseAction(lambda x: {'reply': 'OK', 'self.echo': True, 'self.online': True }))
+		atParser.add("I", ParseAction(lambda x: {'reply': 'pyDriveWire\r\nOK', 'self.cmdAutoclose': False}))
+		atParser.add("O", ParseAction(lambda x: {'reply': 'OK', 'self.cmdAutoclose': False, 'self.online': True}))
+		atParser.add("H", ParseAction(lambda x: {'reply': 'OK', 'self.cmdAutoclose': False, 'self.online': False}))
+		atParser.add("E", ParseAction(lambda x: {'reply': 'OK', 'self.cmdAutoclose': False, 'self.echo': True}))
 
 		self.parseTree=ParseNode("")
 		self.parseTree.add("dw", dwParser)
@@ -105,6 +118,14 @@ class DWParser:
 		(drive, path) = opts
 		self.server.open(int(drive), path)
 		return "open(%d, %s)" % (int(drive), path)
+
+	def doReset(self, data):
+		drive = int(data.split(' ')[0])
+		path = self.server.files[drive].name
+		self.server.close(drive)
+		self.server.open(drive, path)
+		return "reset(%d, %s)" % (int(drive), path)
+
 	def doEject(self, data):
 		drive = data.split(' ')[0]
 		self.server.close(int(drive))
@@ -120,6 +141,47 @@ class DWParser:
 		
 		out.append('')
 		return '\n\r'.join(out)
+
+	def doPortClose(self, data):
+		channel = data.lstrip().rstrip()
+		if not chr(int(channel)) in self.server.channels:
+			return "Invalid port %s" % channel
+		ch = self.server.channels[channel]
+		ch._close()
+		return "Port=n%s closing" % channel
+
+	def doPortShow(self, data):
+		out = ['','']
+		out.append( "Port   Status" )
+		out.append( "-----  --------------------------------------" )
+		i=0
+		for i,ch in self.server.channels.items():
+			co=ch.conn	
+			connstr = " Online" if ch.online else "Offline"
+			if co:
+				direction = " In" if ch.inbound else "Out"
+				connstr = "%s %s %s:%s" % (connstr, direction, co.host, co.port)
+			out.append( "N%d      %s" % (int(ord(i)), connstr))
+		
+		out.append('')
+		return '\n\r'.join(out)
+
+	def doPortDebug(self, data):
+		dv = data.split(' ')
+		cn = dv[0]
+		channel = chr(int(cn))
+		if not chr(int(channel)) in self.server.channels:
+			return "Invalid port %s" % cn
+		state = None
+		if len(dv)>1:
+			state = dv[1]	
+		ch = self.server.channels[channel]
+		if state.startswith(('1','on','t','T','y', 'Y')):
+			ch.debug = True
+		if state.startswith(('0','off','f','F','n', 'N')):
+			ch.debug = False
+		return "Port=N%s debug=%s" % (cn, ch.debug)
+
 	def doShow(self, data):
 		out = ['','']
 		out.append( "Drive  File" )
@@ -131,6 +193,28 @@ class DWParser:
 		
 		out.append('')
 		return '\n\r'.join(out)
+
+	def doConnDebug(self, data):
+		if data.startswith(('1','on','t','T','y', 'Y')):
+			self.server.debug = True
+		if data.startswith(('0','off','f','F','n', 'N')):
+			self.server.debug = False
+		return "debug=%s" % (self.server.conn.debug)
+
+	def doTimeout(self, data):
+		opts = data.split(' ')
+		if opts:
+			timeout = float(opts[0])
+			self.server.timeout = timeout
+		return "debug=%s" % (self.server.timeout)
+			
+	def doDebug(self, data):
+		if data.startswith(('1','on','t','T','y', 'Y')):
+			self.server.debug = True
+		if data.startswith(('0','off','f','F','n', 'N')):
+			self.server.debug = False
+		return "debug=%s" % (self.server.debug)
+			
 	#def doDir(self, data, nxti):
 	def doDir(self, data):
 		out = ['']
@@ -169,13 +253,14 @@ class DWParser:
 		return '\n\r'.join(out)
 
 	def doDial1(self, data):
-		return self.doDial(data[1:])
+		return self.doConnect(data[1:])
+		#return self.doDial(data[1:])
 
 	def doDial(self, data):
-		i = index(data,':')
-		if i >= 0:
-			data[i] = ' '
-		self.doConnect(data)
+		#i = data.index(':')
+		#if i >= 0:
+		#	data[i] = ' '
+		return self.doConnect(data)
 
 	def doConnect(self, data):
 		r = data.split(':')
@@ -223,8 +308,22 @@ class DWParser:
 		conn.binding = data
 		return conn
 		
+
+	def dumpstacks(self, data):
+            import threading, sys, traceback
+	    id2name = dict([(th.ident, th.name) for th in threading.enumerate()])
+	    code = []
+	    for threadId, stack in sys._current_frames().items():
+		code.append("\n# Thread: %s(%d)" % (id2name.get(threadId,""), threadId))
+		for filename, lineno, name, line in traceback.extract_stack(stack):
+		    code.append('File: "%s", line %d, in %s' % (filename, lineno, name))
+		    if line:
+			code.append("  %s" % (line.strip()))
+	    print "\n".join(code)
+
 		
 	def parse(self, data, interact=False):
+		data = data.lstrip().strip()
 		u = data.upper()
 		if u.startswith("AT"):
 			tokens=["AT"]
@@ -246,7 +345,10 @@ class DWParser:
 			if isinstance(v, ParseNode):
 				p = v
 			elif isinstance(v, ParseAction):
-				callData = data[i:]
+				if tokens[0] == "AT":
+					callData = data[3:].lstrip()
+				else:
+					callData = data[i:]
 				print callData
 				res = ''
 				try:

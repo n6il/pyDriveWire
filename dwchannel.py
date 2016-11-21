@@ -18,7 +18,7 @@ from dwsocket import *
 #   The service must register inCb
 #   The service is notified via inCb that the client has written new data
 class DWChannel:
-	def __init__(self):
+	def __init__(self, debug=False):
 		self.connected = True
 		self.inbuf = ''
 		self.inmutex = Lock()
@@ -29,6 +29,7 @@ class DWChannel:
 		self.lineMode = True
 		self.lineChr = chr(0x0d)
 		self.outsize = 255
+		self.debug = debug
 
 	def inWaiting(self):
 		self.inmutex.acquire()
@@ -113,12 +114,16 @@ class DWVModem2(DWChannel):
 			
 
 class DWVModem(DWIO):
-	def __init__(self, server, channel, conn=None):
+	def __init__(self, server, channel, conn=None, debug=False):
 		print "DWVModem __init__"
 		DWIO.__init__(self, threaded=False)
 		self.server=server
 		self.channel=channel
 		self.conn=conn
+		self.inbound=False
+		if self.conn:
+			self.inbound=True
+		self.debug = debug
 		self.online = False
 		self.wbuf = ''
 		self.parser = DWParser(server)
@@ -130,6 +135,7 @@ class DWVModem(DWIO):
 		self.eatTwo = False
 		self.listeners = []
 		self.echo = False
+		self.cmdAutoClose = True
 		
 
 	def _acceptCb(self, conn):
@@ -137,7 +143,8 @@ class DWVModem(DWIO):
 		n = self.server.registerConn(conn)
 		r = "%s %s %s" % (n, conn.port, conn.addr[0])
 		reply = r + "\r" #+ r + "\r\n"
-		print "reply: (%s)" % reply
+		if self.debug:
+			print "reply: (%s)" % reply
 		self.rq.put(reply)
 		self.rb.add(len(reply))
 	
@@ -146,7 +153,8 @@ class DWVModem(DWIO):
 			if self.cq.empty():
 				return
 			cmd = self.cq.get(True)
-			print "parser",cmd
+			if self.debug:
+				print "parser",cmd
 			res = self.parser.parse(cmd)
 			exact = False
 			reply = "0 OK\r"
@@ -155,19 +163,21 @@ class DWVModem(DWIO):
 					reply = res
 				else:
 					reply += res
-				if not self.online:
+				if self.cmdAutoClose and not self.online:
 					self.connected = False
 			elif isinstance(res, dict):
 				for k,v in res.items():
 					if isinstance(v, str):
 						v = "'%s'" % v
 					e = '%s=%s' % (k,v)
-					print(e)
+					if self.debug:
+						print(e)
 					exec(e)
 			elif isinstance(res, DWSocketListener):
 				self.online = True
 				self.connected = True
-				print "%s: registar callback: %s" % (res, self._acceptCb)
+				if self.debug:
+					print "%s: register callback: %s" % (res, self._acceptCb)
 				res.registerCb(self._acceptCb)
 				res.at.start()
 				self.listeners.append(res)	
@@ -183,12 +193,14 @@ class DWVModem(DWIO):
 				else:
 					r = "OK connected to %s:%s" % (self.conn.host, self.conn.port)
 					reply = r + "\n" + r + "\r\n"
-					self.eatTwo = True
+					#self.eatTwo = True
 				self.conn.run()
 				exact = True
-			if self.online and not exact:
+			# if self.online and not exact:
+			if not exact:
 				reply = '\r\n' + reply + '\r\n'
-			print "reply: (%s)" % reply
+			if self.debug:
+				print "reply: (%s)" % reply
 			self.rb.add(len(reply))
 			self.rq.put(reply)
 			#while reply:
@@ -204,7 +216,8 @@ class DWVModem(DWIO):
 			#	self.connected = False
 
 	def write(self, data, ifs='\r'):
-		print "ch: write:",canonicalize(data)
+		if self.debug:
+			print "ch: write:",canonicalize(data)
 		wdata = ''
 		w=0
 		pos=-1
@@ -231,14 +244,16 @@ class DWVModem(DWIO):
 			else:
 				
 				if self.eatTwo:
-					print "ch: eating: %s" % canonicalize(self.wbuf[:pos+1])
+					if self.debug:
+						print "ch: eating: %s" % canonicalize(self.wbuf[:pos+1])
 				if self.echo:
 					self.rq.put("\r")
 					self.rb.add(1)
 				wdata = self.wbuf[:pos]
 				self.wbuf = self.wbuf[pos+1:]
 				w += pos + 1	
-				print "wdata=(%s) wbuf=(%s)" % (wdata, self.wbuf)
+				if self.debug:
+					print "wdata=(%s) wbuf=(%s)" % (wdata, self.wbuf)
 				if self.eatTwo:
 					self.eatTwo=False
 					
@@ -282,30 +297,35 @@ class DWVModem(DWIO):
 			#d += self.rq.get()
 			#self.rb.sub(len(d))
 			if d:
-				print "ch:i: read:",canonicalize(d)
+				if self.debug:
+					print "ch:i: read:",canonicalize(d)
 		#elif self.connected == False:
 		#	self.rb.close()
 		#elif self.conn and self.conn.outWaiting()>0:
 		elif self.conn:
 			d += self.conn.read(rlen)
 			if d:
-				print "ch:c: read:",canonicalize(d)
+				if self.debug:
+					print "ch:c: read:",canonicalize(d)
 		#print "d: (%s)" % d
 		return d
 
 	def outWaiting(self):
 		d = self._outWaiting()
 		if d == 0 and self.connected == False:
-			print "channel closing"
+			if self.debug:
+				print "channel closing"
 			self.rb.close()
 		#if not self.conn:
 		d=self._outWaiting()
-		print "ch: ow:i=%d" % d
+		if self.debug:
+			print "ch:%d ow:i=%d" % (ord(self.channel), d)
 		#if d>=0 and self.conn:
 		if d==0 and self.conn:
 		#else:
 			d = self.conn.outWaiting()
-			print "ch: ow:c=%d" % d
+			if self.debug:
+				print "ch:%d ow:c=%d" % (ord(self.channel), d)
 			if d <= 0 and not self.conn.isConnected():
 				self.rb.close()
 				self.conn = None
@@ -316,5 +336,9 @@ class DWVModem(DWIO):
 	def _close(self):
 		if self.conn:
 			self.conn.close()
-		for c in self.lsteners:
+		for c in self.listeners:
 			c.close()
+		self.rb.close()
+		self.conn = None
+		self.online = False
+		self.connected = False

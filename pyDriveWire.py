@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 import serial
 from dwserial import DWSerial
-from dwsocket import DWSocketServer
+from dwsocket import DWSocketServer, DWSocket
 from dwserver import DWServer
 from dwcommand import DWRepl
 import traceback
@@ -18,14 +18,24 @@ if __name__ == '__main__':
 		print('')
 		print('\t%s /dev/tty.usbserial-FTF4ZN9S 19200' % sys.argv[0])
 		print('\t%s accept <port>' % sys.argv[0])
+		print('\t%s connect <host> <port>' % sys.argv[0])
 		print('')
 		sys.exit(1)
 
 	(port, speed) = sys.argv[1:3]
 	files = sys.argv[3:]
+	print port, speed, files
 	if port == "accept":
 		conn = DWSocketServer(port=speed)
 		#conn.accept()
+	elif port == "connect":
+		(host, port) = sys.argv[2:4]
+		files = sys.argv[4:]
+		print "host",host,"port",port,"files",files
+		conn = DWSocket(port=port,host=host)
+		conn.connect()
+		conn.run()
+		#exit(0)
 	else:
 		conn = DWSerial(port, speed)
 		conn.connect()

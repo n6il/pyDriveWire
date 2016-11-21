@@ -51,14 +51,19 @@ class DWIO:
 		if self.threaded:
 			self.rt = threading.Thread(target=self._readHandler, args=())
 			self.rt.daemon = True
+		else:
+			self.rt = None
 		self.rq = Queue.Queue()
 		self.rb = QPC()
 		self.rbuf = ''
 		if self.threaded:
 			self.wt = threading.Thread(target=self._writeHandler, args=())
 			self.wt.daemon = True
+		else:
+			self.wt = None
 		self.wq = Queue.Queue()
 		self.connected = False
+		self.debug = False
 	
 
 	def run(self, read=True, write=True):
@@ -76,15 +81,19 @@ class DWIO:
 
 	def _outWaiting(self):
 		n = min(214, self.rb.get())
+		#n = min(127, self.rb.get())
 		#print "outWaiting",n
 		return n
 
 	def readline(self, ifs='\n'):
 		return self.read(readLine=True, ifs=ifs)
 
-	def read(self, rlen=None, readLine=False, ifs='\n'):
+	def read(self, rlen=None, timeout=None, readLine=False, ifs='\n'):
 		rdata=''
 		pos=-1
+		_t = timeout
+		if not _t:
+			_t=1
 		#print "dwio read %s" % rlen
 		if self.threaded and not self.rt.is_alive(): # Start the background reader thread only
 			# when someone asks to start reading from it
@@ -96,10 +105,13 @@ class DWIO:
 				self.rbuf = ''
 			else:
 				try:
-					d = self.rq.get(True, 1)
+
+					d = self.rq.get(True, _t)
 				except Exception as e:
+					if timeout:
+						print str(e)
+						return ''
 					pass
-					#print str(e)
 			available = len(d)
 			required = available
 			#print rlen, len(rdata), available, len(self.rbuf)
@@ -147,9 +159,11 @@ class DWIO:
 		self.rb.close()
 		self._close()
 		#print "Shutting down async io threads..."
-		#if self.rt.is_alive():
+		#if self.rt and self.rt.is_alive():
+		#	self.rt.abort = True
 		#	self.rt.join()
-		#if self.wt.is_alive():
+		#if self.wt and self.wt.is_alive():
+		#	self.wt.abort = True
 		#	self.wt.join()
 
 	def cleanup(self):
@@ -168,12 +182,13 @@ class DWIO:
 				self.rq.put(d)
 
 	def _read(self, rlen=None):
+		print "dwio._read %s" % self
 		data = ''
 		ri = []
 		try:
 			(ri, _, _) = select.select([inf.fileno()], [], [], 1)
 		except:
-			pass
+			raise
 		if any(ri):
 			data = self.inf.read(rlen)
 		return data
