@@ -80,8 +80,9 @@ class DWIO:
 		return self._outWaiting()
 
 	def _outWaiting(self):
+		if self.rt and self.rt._Thread__stopped and self.rq.empty():
+			self.rb.close()
 		n = min(214, self.rb.get())
-		#n = min(127, self.rb.get())
 		#print "outWaiting",n
 		return n
 
@@ -94,11 +95,13 @@ class DWIO:
 		_t = timeout
 		if not _t:
 			_t=1
-		#print "dwio read %s" % rlen
-		if self.threaded and not self.rt.is_alive(): # Start the background reader thread only
+		if self.threaded and not self.abort and self.rt and not self.rt.is_alive() and not self.rt._Thread__stopped:
+			# Start the background reader thread only
 			# when someone asks to start reading from it
 			self.rt.start()
-		while not self.abort:
+		if self.rt and self.rt._Thread__stopped and self.rq.empty():
+			self.rb.close()
+		while not self.rq.empty() or not self.abort:
 			d = ''
 			if self.rbuf:
 				d = self.rbuf
@@ -139,14 +142,22 @@ class DWIO:
 				break
 
 		#print "reading: %d (%s)" %(len(rdata),rdata if ord(rdata)>32 and ord(rdata)<128 else '.')
+		if self.rt and self.rt._Thread__stopped:
+			self.rb.close()
 		self.rb.sub(len(rdata))
 		return rdata
 
 	def write(self, data):
-		if self.threaded and not self.wt.is_alive():
+		#print "write"
+		if self.abort:
+			print "w: abort"
+			return 0
+		if self.threaded and not self.abort and self.wt and not self.wt.is_alive() and not self.wt._Thread__stopped:
 			# Start the background reader thread only
 			# when someone asks to start reading from it
 			self.wt.start()
+		if self.wt and self.wt._Thread__stopped:
+			return 0
 		self.wq.put(data)
 		return len(data)
 
@@ -154,17 +165,20 @@ class DWIO:
 		pass
 
 	def close(self):
-		print "Closing connection: %s" % self
+		print "%s: Closing connection" % self
 		self.abort = True
 		self.rb.close()
 		self._close()
-		#print "Shutting down async io threads..."
-		#if self.rt and self.rt.is_alive():
-		#	self.rt.abort = True
-		#	self.rt.join()
-		#if self.wt and self.wt.is_alive():
-		#	self.wt.abort = True
-		#	self.wt.join()
+		if self.rt and self.rt.is_alive() and not self.rt._Thread__stopped:
+			print "%s: Shutting down async read thread: %s" % (self, self.rt)
+			self.rt.abort = True
+			self.rt.join()
+			self.rt = None
+		if self.wt and self.wt.is_alive() and not self.wt._Thread__stopped:
+			print "%s: Shutting down async write thread: %s" % (self, self.wt)
+			self.wt.abort = True
+			self.wt.join()
+			self.wt = None
 
 	def cleanup(self):
 		self._cleanup()
@@ -175,14 +189,18 @@ class DWIO:
 	def _readHandler(self):
 		print "%s: Starting _readHandler..." % self
 		while not self.abort:
-			d=self._read()
+			try:
+				d=self._read()
+			except Exception as e:
+				print str(e)
+				break
 			if d:
 				#print "put: (%s)" % d
 				self.rb.add(len(d))
 				self.rq.put(d)
+		print "%s: Exiting _readHandler..." % self
 
 	def _read(self, rlen=None):
-		print "dwio._read %s" % self
 		data = ''
 		ri = []
 		try:
@@ -206,8 +224,10 @@ class DWIO:
 			if d:
 				#"wh: %d" % len(d)
 				self._write(d)
+		print "%s: Exiting _writeHandler..." % self
 
 	def _write(self, data):
+		#print "dwio._write %s" % self
 		return self.outf.write(data)
 
 

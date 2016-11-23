@@ -229,6 +229,7 @@ class DWServer:
 				data = chr(16)
 				data += channel
 				msg = "channel=%d Closing" % nchannel
+				self.channels[channel].close()
                                 del self.channels[channel]
 				break
 			elif ow==0:
@@ -313,7 +314,7 @@ class DWServer:
 		#	return
 		elif code == SS_Close:
 			#del self.channels[channel]
-			self.channels[channel]._close()
+			self.channels[channel].close()
 			if self.debug:
 				print("cmd=%0x SS_Close channel=%d" % (ord(cmd),ord(channel)))
 		if self.debug:
@@ -354,7 +355,7 @@ class DWServer:
 		if channel not in self.channels:
 			print("cmd=%0x cmdSerTerm bad channel=%d" % (ord(cmd),ord(channel)))
 			return
-		self.channels[channel]._close()
+		self.channels[channel].close()
 		del self.channels[channel]
 		if self.debug:
 			print("cmd=%0x cmdSerTerm channel=%d" % (ord(cmd),ord(channel)))

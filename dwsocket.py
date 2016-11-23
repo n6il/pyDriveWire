@@ -29,7 +29,6 @@ class DWSocket(DWIO):
 		self.conn = self.sock
 
 	def _read(self, count=256):
-		print "dwsocket._read: %s" % self
 		data = None
 		if self.abort or not self.conn:
 			return ''
@@ -38,7 +37,7 @@ class DWSocket(DWIO):
 			(ri, _, _) = select.select([self.conn.fileno()], [], [], 1)
 		except Exception as e:
 			print str(e)
-			print "Connection closed"
+			raise Exception("Connection closed")
 			self._close()
 		if any(ri):
 			#print "reading"
@@ -46,7 +45,7 @@ class DWSocket(DWIO):
 		#else:
 			#print "waiting"
 		if data == '':
-			print "Connection closed"
+			raise Exception("Connection closed")
 			self._close()
 		#if data:
 		#	print "r",data
@@ -63,7 +62,7 @@ class DWSocket(DWIO):
 			(_, wi, _) = select.select([], [self.conn.fileno()], [], 1)
 		except Exception as e:
 			print str(e)
-			print "Connection closed"
+			raise ("Connection closed")
 			self._close()
 			n = -1
 		if any(wi):
@@ -115,7 +114,7 @@ class DWSocket(DWIO):
 		#	except:
 		#		pass
 		self.conn = None
-		#self.abort = True
+		self.abort = True
 		#self.sock.shutdown(socket.SHUT_RDWR)
 
 	def _cleanup(self):
@@ -153,8 +152,14 @@ class DWSocketServer(DWSocket):
 		data = None
 		if not self.conn:
 			self.accept()
-		return DWSocket._read(self, count)
-
+		data = ''
+		try:
+			data = DWSocket._read(self, count)
+		except Exception as e:
+			print(str(e))
+			self.conn.close()
+			self.conn = None
+		return data
 
 class DWSocketListener(DWSocket):
 	def __init__(self, host='localhost', port=6809, acceptCb=None):

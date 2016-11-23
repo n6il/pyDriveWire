@@ -215,7 +215,7 @@ class DWVModem(DWIO):
 			#	self.rb.add(len(res))
 			#	self.connected = False
 
-	def write(self, data, ifs='\r'):
+	def write(self, data, ifs=('\r','\n')):
 		if self.debug:
 			print "ch: write:",canonicalize(data)
 		wdata = ''
@@ -226,7 +226,6 @@ class DWVModem(DWIO):
 		#	# Start the background reader thread only
 		#	# when someone asks to start reading from it
 		#	self.wt.start()
-
 		if not self.eatTwo and self.online and self.conn:
 			if self.wbuf:
 				w += self.conn.write(self.wbuf)
@@ -237,7 +236,10 @@ class DWVModem(DWIO):
 				self.rq.put(data)
 				self.rb.add(len(data))
 			self.wbuf += data
-			pos = self.wbuf.find(ifs)
+			for c in ifs:
+				pos = self.wbuf.find(c)
+				if pos >= 0:
+					break
 			if pos < 0:
 				w += len(data)
 			#while pos >= 0:
@@ -258,7 +260,9 @@ class DWVModem(DWIO):
 					self.eatTwo=False
 					
 				else:
-					self.cq.put(wdata)
+					wdata = wdata.lstrip().rstrip()
+					if wdata:
+						self.cq.put(wdata)
 				#self._cmdWorker()
 				#print "parser",wdata
 				#res = self.parser.parse(wdata)

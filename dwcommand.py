@@ -319,7 +319,7 @@ class DWParser:
 		    code.append('File: "%s", line %d, in %s' % (filename, lineno, name))
 		    if line:
 			code.append("  %s" % (line.strip()))
-	    print "\n".join(code)
+	    return "\r\n".join(code)
 
 		
 	def parse(self, data, interact=False):
