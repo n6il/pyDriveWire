@@ -169,12 +169,14 @@ class DWIO:
 		self.abort = True
 		self.rb.close()
 		self._close()
-		if self.rt and self.rt.is_alive() and not self.rt._Thread__stopped:
-			print "%s: Shutting down async read thread: %s" % (self, self.rt)
+		#if self.wt and self.wt.is_alive() and not self.wt._Thread__stopped:
+		if self.rt:
 			self.rt.abort = True
+			print "%s: Shutting down async read thread: %s" % (self, self.rt)
 			self.rt.join()
 			self.rt = None
-		if self.wt and self.wt.is_alive() and not self.wt._Thread__stopped:
+		#if self.wt and self.wt.is_alive() and not self.wt._Thread__stopped:
+		if self.wt:
 			print "%s: Shutting down async write thread: %s" % (self, self.wt)
 			self.wt.abort = True
 			self.wt.join()
