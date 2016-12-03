@@ -35,7 +35,7 @@ greatly increased speed
 
 Installation
 ------------
-* Download Latest: [https://github.com/n6il/pyDriveWire/releases]()
+* Download Latest: [https://github.com/n6il/pyDriveWire/releases](https://github.com/n6il/pyDriveWire/releases)
 * Mac: `brew install pypy; pypy -m pip install pyserial`
 * Ubuntu: `apt-get install pypy; pypy -m pip install pyserial`
 
