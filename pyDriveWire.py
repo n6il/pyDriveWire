@@ -14,11 +14,11 @@ if __name__ == '__main__':
 	logging.basicConfig(stream=sys.stdout, level=logging.INFO,
 		format='%(asctime)s %(levelname)s %(module)s:%(lineno)s.%(funcName)s %(message)s')
 	if len(sys.argv) < 3:
-		print("Usage: %s <port> <speed> <file>" % (sys.argv[0]))
+		print("Usage: %s <port> <speed> [<file>] [...]" % (sys.argv[0]))
 		print('')
-		print('\t%s /dev/tty.usbserial-FTF4ZN9S 19200' % sys.argv[0])
-		print('\t%s accept <port>' % sys.argv[0])
-		print('\t%s connect <host> <port>' % sys.argv[0])
+		print('\t%s /dev/tty.usbserial-FTF4ZN9S 115200 ...' % sys.argv[0])
+		print('\t%s accept <port> ...' % sys.argv[0])
+		print('\t%s connect <host> <port> ...' % sys.argv[0])
 		print('')
 		sys.exit(1)
 
@@ -61,13 +61,4 @@ if __name__ == '__main__':
 		traceback.print_exc()
 	finally:
 		cleanup()
-#	try:
-#		while True:
-#			wdata = raw_input()
-#			conn.write(wdata)
-#			#print "main: Wrote %d bytes" % len(wdata)
-#			rdata = conn.read(len(wdata))
-#			#print "main: Read %d bytes" % len(rdata)
-#			print rdata
-#	finally:
-#		cleanup()
+
