@@ -273,6 +273,7 @@ class DWServer:
 			print "cmd=%0x cmdTerm" % ord(cmd)
 
 	def cmdDWInit(self, cmd):
+		clientID = self.conn.read(1, self.timeout)
 		if self.debug:
 			print "cmd=%0x cmdDWInit" % ord(cmd)
 		self.conn.write(chr(0xff))
