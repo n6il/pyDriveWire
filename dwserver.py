@@ -391,6 +391,24 @@ class DWServer:
 		if self.debug:
 			print("cmd=%0x cmdSerReadM channel=%d num=%d" % (ord(cmd),ord(channel), ord(num)))
 
+	def cmdSerWriteM(self, cmd):
+		channel = self.conn.read(1, self.timeout)
+		if not channel:
+			print("cmd=%0x cmdSerWriteM timout getting channel" % (ord(cmd)))
+			return
+		if channel not in self.channels:
+			print("cmd=%0x cmdSerWriteM bad channel=%d" % (ord(cmd),ord(channel)))
+			return
+		num = self.conn.read(1, self.timeout)
+		if not num:
+			print("cmd=%0x cmdSerWriteM channel=%d timeout getting count" % (ord(cmd),ord(channel)))
+			return
+		data = self.conn.read(ord(num), self.timeout)
+		self.channels[channel].write(data)
+		if self.debug:
+			print("cmd=%0x cmdSerWriteM channel=%d num=%d" % (ord(cmd),ord(channel), ord(num)))
+		self.channels[channel]._cmdWorker()
+
 	def cmdSerWrite(self, cmd):
 		channel = self.conn.read(1, self.timeout)
 		if not channel:
@@ -451,6 +469,7 @@ class DWServer:
 		OP_FASTWRITE13: cmdFastWrite,
 		OP_SERREADM: cmdSerReadM,
 		OP_SERWRITE: cmdSerWrite,
+		OP_SERWRITEM: cmdSerWriteM,
 	}
 
 	def main(self):
