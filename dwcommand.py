@@ -16,7 +16,7 @@ class ParseNode:
 		self.nodes[key]=val
 
 	def lookup(self, key):
-		return self.nodes.get(key, None)
+		return self.nodes.get(key.lower(), None)
 
 	def repr(self):
 		return str(nodes)
@@ -38,7 +38,7 @@ class ATParseNode(ParseNode):
 		r =  ParseNode.lookup(self, k)
 		if not r:
 			k = key[0:1]
-			r =  ParseNode.lookup(self, k)
+			r =  ParseNode.lookup(self, k.upper())
 		return r
 
 	def help(self):
