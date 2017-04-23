@@ -1,7 +1,7 @@
 # pyDriveWire
 Python Implementation of DriveWire 4
 
-pyDriveWire is a Python implementation of the DriveWire 4 protocol.  The goal is to eventually implement all of the features available.  The server also implements additional features that are not available in DriveWire4.
+PyDriveWire is a nearly complete DriveWire4 Server written in Python.  The goal is to eventually implement all of the features available.  The server also implements additional features that are not available in DriveWire4.
 
 Features
 --------
@@ -32,8 +32,15 @@ pypy.  pypy is a Python interpreter that does JIT compilation and results in
 greatly increased speed
 * pyserial -- Install using pip
 
+Supported Operating Systems
+---------------------------
+* Any OS where you can run Python, including but not limited to:
+* Linux
+* macOS
+* Windows support is _PRELIMINARY_.  Minimal testing has been done but it should work
 
-Installation
+
+Installation (Linux/macOS/UNIX)
 ------------
 * Download Latest: [https://github.com/n6il/pyDriveWire/releases](https://github.com/n6il/pyDriveWire/releases)
 * Mac: `brew install pypy; pypy -m pip install pyserial`
@@ -42,11 +49,11 @@ Installation
 
 Run It
 ------
-    Usage: ./pyDriveWire.py <port> <speed> [<file>] [...]
+    Usage: ./pyDriveWire <port> <speed> [<file>] [...]
 
-	    ./pyDriveWire.py /dev/tty.usbserial-FTF4ZN9S 115200 ...
-	    ./pyDriveWire.py accept <port> ...
-	    ./pyDriveWire.py connect <host> <port> ...
+	    ./pyDriveWire /dev/tty.usbserial-FTF4ZN9S 115200 ...
+	    ./pyDriveWire accept <port> ...
+	    ./pyDriveWire connect <host> <port> ...
 
 
 Supported DW Commands
