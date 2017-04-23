@@ -1,0 +1,25 @@
+#!/bin/bash
+
+python=$(which pypy)
+if [ "X$python"  == "X" ]; then
+	echo "WARNING: pypy was not found.  It is recommended for maximum performance"
+	python=$(which python)
+fi
+if [ "X$python"  == "X" ]; then
+	echo "ERROR: python was not found"
+	exit 1
+fi
+
+${python} <<EOF
+try:
+ import pyserial
+except:
+ exit(1)
+EOF
+if [ $? != 0 ]; then
+	echo "ERROR: pyserial is required!"
+	echo "Run: pip install pyserial"
+	exit 1
+fi
+
+exec ${python} "$0.py"
