@@ -12,13 +12,13 @@ fi
 
 ${python} <<EOF
 try:
- import pyserial
+ import serial
 except:
  exit(1)
 EOF
 if [ $? != 0 ]; then
 	echo "ERROR: pyserial is required!"
-	echo "Run: pip install pyserial"
+	echo "Run: pypy -m pip install pyserial"
 	exit 1
 fi
 
