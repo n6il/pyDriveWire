@@ -110,7 +110,7 @@ class DWParser:
 		uiSFileParser.add("xdir", ParseAction(self.doUSFxdir))
 
 		uiServerParser=ParseNode("server")
-                uiParser.add("file", uiSFileParser)
+                uiServerParser.add("file", uiSFileParser)
 
 		uiParser=ParseNode("ui")
                 uiParser.add("server", uiServerParser)
@@ -334,6 +334,21 @@ class DWParser:
 		    if line:
 			code.append("  %s" % (line.strip()))
 	    return "\r\n".join(code)
+
+        def doUSFdefaultdir(self, data):
+            raise Exception("Command not implemented")
+
+        def doUSFdir(self, data):
+            raise Exception("Command not implemented")
+
+        def doUSFinfo(self, data):
+            raise Exception("Command not implemented")
+
+        def doUSFroots(self, data):
+            raise Exception("Command not implemented")
+
+        def doUSFxdir(self, data):
+            raise Exception("Command not implemented")
 
 		
 	def parse(self, data, interact=False):
