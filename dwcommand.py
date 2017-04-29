@@ -102,10 +102,24 @@ class DWParser:
 		atParser.add("H", ParseAction(lambda x: {'reply': 'OK', 'self.cmdAutoclose': False, 'self.online': False}))
 		atParser.add("E", ParseAction(lambda x: {'reply': 'OK', 'self.cmdAutoclose': False, 'self.echo': True}))
 
+		uiSFileParser=ParseNode("file")
+		uiSFileParser.add("defaultdir", ParseAction(self.doUSFdefaultdir))
+		uiSFileParser.add("dir", ParseAction(self.doUSFdir))
+		uiSFileParser.add("info", ParseAction(self.doUSFinfo))
+		uiSFileParser.add("roots", ParseAction(self.doUSFroots))
+		uiSFileParser.add("xdir", ParseAction(self.doUSFxdir))
+
+		uiServerParser=ParseNode("server")
+                uiParser.add("file", uiSFileParser)
+
+		uiParser=ParseNode("ui")
+                uiParser.add("server", uiServerParser)
+
 		self.parseTree=ParseNode("")
 		self.parseTree.add("dw", dwParser)
 		self.parseTree.add("tcp", tcpParser)
 		self.parseTree.add("AT", atParser)
+		self.parseTree.add("ui", uiParser)
 
 	def __init__(self, server):
 		self.server=server
