@@ -22,4 +22,4 @@ if [ $? != 0 ]; then
 	exit 1
 fi
 
-exec ${python} "$0.py"
+exec ${python} "$0.py" $*
