@@ -16,8 +16,27 @@ class ParseNode:
 		self.nodes[key]=val
 
 	def lookup(self, key):
-		return self.nodes.get(key.lower(), None)
-
+                if not key:
+                        return None
+                # exact match
+		r = self.nodes.get(key, None)
+                if r:
+                        return r
+                key = key.lower()
+       		r = self.nodes.get(key, None)
+                if r:
+                    return r
+                # search partial
+                allNodes = self.nodes.keys()
+                for i in range(len(key)+1):
+                    s = key[:i]
+                    nodes = [n for n in allNodes if n.startswith(s)]
+                    print i,"(%s"%s,nodes
+                    if len(nodes) == 1:
+                        key = nodes[0]
+                        return self.nodes.get(key, None)
+                return None       
+                        
 	def repr(self):
 		return str(nodes)
 
