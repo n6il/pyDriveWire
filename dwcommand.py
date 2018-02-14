@@ -354,21 +354,68 @@ class DWParser:
 			code.append("  %s" % (line.strip()))
 	    return "\r\n".join(code)
 
-        def doUSFdefaultdir(self, data):
-            raise Exception("Command not implemented")
-
         def doUSFdir(self, data):
+            r = []
+            if os.path.isdir(data):
+                dd = [os.path.join(data, d) for d in listdir(data)]
+            else:
+                dd = [data]
+            for path in dd:
+                rr = [os.path.sep]
+                rr += [path]
+                rr += [data]
+                s = os.stat(path)
+                rr += ["%d" % s.st_size] 
+                rr += ["%d" % s.st_mtime] 
+                rr += ["true" if os.path.isdir(path) else "false"]  # readable
+                rr += ["false"]  # writable
+                re = '|'.join(rr)
+                r.append(re)
+            return '\n'.join(r)
+
+
+        def doUSFdefaultdir(self, data):
             raise Exception("Command not implemented")
 
         def doUSFinfo(self, data):
             raise Exception("Command not implemented")
 
         def doUSFroots(self, data):
-            raise Exception("Command not implemented")
+            r = []
+            if os.name == 'posix':
+                r += ["/"]
+            else:
+                from win32com.client import Dispatch
+                fso = Dispatch('scripting.filesystemobject')
+                for i in fso.Drives:
+                        r += [i]
+            return "\n".join(r)
 
         def doUSFxdir(self, data):
-            raise Exception("Command not implemented")
-
+            import stuct
+            r = []
+            if os.path.isdir(data):
+                dd = [os.path.join(data, d) for d in listdir(data)]
+            else:
+                dd = [data]
+            for path in dd:
+                s = os.stat(data)
+                mt = time.localtime(s.st_mtime)
+                e = struct.pack(
+                    ">IBBBBBBBB",
+                    s.st_size&0xffffffff,
+                    mt[0], # tm_year
+                    mt[1], # tm_mon
+                    mt[2], # tm_mday
+                    mt[3], # tm_hour
+                    mt[4], # tm_min
+                    os.path.isdir(path),
+                    os.access(path, W_OK),
+                    len(data)
+                )
+                e += data
+                r += [e] 
+            return '\n'.join(r)
 		
 	def parse(self, data, interact=False):
 		data = data.lstrip().strip()
