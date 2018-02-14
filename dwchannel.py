@@ -53,23 +53,55 @@ class DWVModem(DWIO):
 				print "parser",cmd
 			res = self.parser.parse(cmd)
 			exact = False
-			reply = "0 OK\r"
-			if isinstance(res, str):
-				if res.startswith("FAIL") or res.startswith("ERROR"):
+			reply = "0 OK command successful\r\n"
+                        obj = None
+                        msg = None
+			if isinstance(res, dict):
+				for k,v in res.items():
+                                        if k=='obj':
+                                            obj = v
+                                        elif k=='msg':
+                                            msg = v
+                                        #if k=='reply' and isinstance(v, DWIO):
+                                        #    reply = v
+                                        #elif k=='reply' and isinstance(v, str):
+                                        #    msg = v
+                                        else:
+                                            if isinstance(v, str):
+                                                    v = "'%s'" % v
+                                            e = '%s=%s' % (k,v)
+                                            if self.debug:
+                                                    print(e)
+                                            exec(e)
+                                #if isinstance(reply, DWIO):
+                                #res = reply
+			if isinstance(res, str) or msg:
+                                if msg:
+                                    reply = msg
+                                #print res
+				elif res.startswith("FAIL") or res.startswith("ERROR") or res.startswith("OK"):
 					reply = res
 				else:
 					reply += res
 				if self.cmdAutoClose and not self.online:
 					self.connected = False
-			elif isinstance(res, dict):
-				for k,v in res.items():
-					if isinstance(v, str):
-						v = "'%s'" % v
-					e = '%s=%s' % (k,v)
-					if self.debug:
-						print(e)
-					exec(e)
-			elif isinstance(res, DWSocketListener):
+			#elif isinstance(res, dict):
+			#	for k,v in res.items():
+			#		if isinstance(v, str):
+			#			v = "'%s'" % v
+			#		e = '%s=%s' % (k,v)
+			#		if self.debug:
+			#			print(e)
+                        #                print(e)
+                        #                if k=='reply' and isinstance(v, DWIO):
+                        #                    reply = v
+                        #                else:
+                        #                    exec(e)
+                        #        if isinstance(reply, DWIO):
+                        #            res = reply
+			if isinstance(res, DWSocketListener) or isinstance(obj, DWSocketListener):
+                                if obj:
+                                    res = obj
 				self.online = True
 				self.connected = True
 				if self.debug:
@@ -80,15 +112,21 @@ class DWVModem(DWIO):
 				r = "OK listening on port %s" % res.port
 				exact = True
 				reply = r + "\r" #+ r + "\r\n"
-			elif isinstance(res, DWIO):
+			if isinstance(res, DWIO) or isinstance(obj, DWIO):
+                                if obj:
+                                    res = obj
 				self.online = True
 				self.conn = res
 				b = self.conn.binding
 				if b:
 					reply = "OK attaching to connection %s\r" % (b)
 				else:
-					r = "OK connected to %s:%s" % (self.conn.host, self.conn.port)
-					reply = r + "\n" + r + "\r\n"
+                                        if not msg:
+                                            r = "OK connected to %s:%s" % (self.conn.host, self.conn.port)
+                                            reply = r + "\n" + r + "\r\n"
+                                        else:
+                                            reply = msg + "\r\n"
+
 					#self.eatTwo = True
 				self.conn.run()
 				exact = True
@@ -215,7 +253,8 @@ class DWVModem(DWIO):
 		if d == 0 and self.connected == False:
 			if self.debug:
 				print "channel closing"
-			self.rb.close()
+                        if self.cmdAutoClose:
+                            self.rb.close()
 		#if not self.conn:
 		d=self._outWaiting()
 		if self.debug:
@@ -224,21 +263,47 @@ class DWVModem(DWIO):
 		if d==0 and self.conn:
 		#else:
 			d = self.conn.outWaiting()
+                        if not self.cmdAutoClose and not self.conn.isConnected() and self.online:
+                            reply = "\r\nNO CARRIER\r\n"
+                            self.rb.add(len(reply))
+                            self.rq.put(reply)
+                            self.online = False
 			if self.debug:
 				print "ch:%d ow:c=%d" % (ord(self.channel), d)
 			if d <= 0 and not self.conn.isConnected():
-				self.rb.close()
 				self.conn = None
 				self.online = False
-				self.connected = False
+                                if self.cmdAutoClose:
+                                    self.rb.close()
+                                    self.connected = False
+                                else:
+                                    d = 0
+                if d <= 0 and not self.cmdAutoClose:
+                    d = 0
 		return d
 
 	def _close(self):
+                print("%s: closing" % self)
 		if self.conn:
 			self.conn.close()
+                #if not self.cmdAutoClose and self.online:
+                #    reply = "\r\nNO CARRIER\r\n"
+                #    self.rb.add(len(reply))
+                #    self.rq.put(reply)
 		for c in self.listeners:
 			c.close()
-		self.rb.close()
 		self.conn = None
 		self.online = False
-		self.connected = False
+                if self.cmdAutoClose:
+                    self.rb.close()
+                    self.connected = False
+
+        def isConnected(self):
+            state = self.connected
+            if self.conn:
+                state = self.conn.isConnected()
+            if not self.cmdAutoClose:
+                # hack
+                state = True
+            return state
+                
