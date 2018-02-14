@@ -424,8 +424,8 @@ class DWServer:
 			return
 		self.channels[channel].write(byte)
 		if self.debug:
-			print("cmd=%0x cmdSerWrite channel=%d byte=%0x" % (ord(cmd),channel,ord(byte)))
-		self.channels[chr(channel)]._cmdWorker()
+			print("cmd=%0x cmdSerWrite channel=%d byte=%0x" % (ord(cmd),ord(channel),ord(byte)))
+		self.channels[channel]._cmdWorker()
 
 
 	def cmdErr(self, cmd):
