@@ -286,16 +286,18 @@ class DWParser:
 		return '\n\r'.join(out)
 
 	def doDial1(self, data):
-		return self.doConnect(data[1:])
+		return self.doConnect(data[1:], telnet=True)
 		#return self.doDial(data[1:])
 
 	def doDial(self, data):
+                if data.startswith('T'):
+                    data = data[1:]
 		#i = data.index(':')
 		#if i >= 0:
 		#	data[i] = ' '
-		return self.doConnect(data)
+		return self.doConnect(data, telnet=True)
 
-	def doConnect(self, data):
+	def doConnect(self, data, telnet=False):
 		r = data.split(':')
 		if len(r)==1:
 			r = data.split(' ')
@@ -305,14 +307,18 @@ class DWParser:
 		print "host (%s)" % host
 		print "port (%s)" % port
 		if not host and not port:
-			raise Exception("list: Bad Path")
+                    raise Exception("telnet: Bad Host/Port: %s" % data)
 		try:
-			sock = DWSocket(host=host, port=port)
-			#sock = DWTelnet(host=host, port=port)
+			if telnet:
+				sock = DWTelnet(host=host, port=port)
+                                res = {'msg': '\r\nCONNECTED', 'obj': sock, 'self.cmdAutoClose': False, 'self.online': True}
+			else:
+				sock = DWSocket(host=host, port=port)
+                                res = sock
 			sock.connect()
 		except Exception as ex:
-			sock = "FAIL %s" % str(ex)
-		return sock
+			res = "FAIL %s" % str(ex)
+		return res
 
 	def doListen(self, data):
 		r = data.split(' ')
