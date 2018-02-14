@@ -10,11 +10,17 @@ class DWSerial(DWIO):
 		self.speed = speed
 		self.ser = None
 
+	def isConnected(self):
+		return self.ser != None
+
 	def connect(self):
 		self.ser = serial.Serial(self.port, self.speed, timeout=1)
+		self.connected = True
 		return
 
 	def _close(self):
+		self.ser = None
+		self.connected = False
 		pass
 		#self.ser.close()
 
@@ -22,6 +28,7 @@ class DWSerial(DWIO):
 		if self.abort:
 			return ''
 		data = ''
+		#print "dwserial: read"
 		if count:
 			data = self.ser.read(count)
 		else:
