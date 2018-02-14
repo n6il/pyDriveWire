@@ -229,9 +229,9 @@ class DWParser:
 
 	def doConnDebug(self, data):
 		if data.startswith(('1','on','t','T','y', 'Y')):
-			self.server.debug = True
+			self.server.conn.debug = True
 		if data.startswith(('0','off','f','F','n', 'N')):
-			self.server.debug = False
+			self.server.conn.debug = False
 		return "debug=%s" % (self.server.conn.debug)
 
 	def doTimeout(self, data):
