@@ -436,7 +436,7 @@ class DWRepl:
 				break
 			
 			# basic stuff
-			if wdata.find(chr(4)) == 0 or wdata.find("exit") == 0:
+			if wdata.find(chr(4)) == 0 or wdata.lower() in ["exit", "quit"] :
 				# XXX Do some cleanup... how?
 				print "Bye!"
 				break
