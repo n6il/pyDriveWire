@@ -40,10 +40,10 @@ class DWSocket(DWIO):
 			raise Exception("Connection closed")
 			self._close()
 		if any(ri):
-			#print "reading"
+			#print "dwsocket: reading"
 			data = self.conn.recv(count)
 		#else:
-			#print "waiting"
+			#print "dwsocket: waiting"
 		if data == '':
 			raise Exception("Connection closed")
 			self._close()
