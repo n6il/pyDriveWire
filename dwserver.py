@@ -6,6 +6,8 @@ import traceback
 from dwconstants import *
 from dwchannel import DWVModem
 
+NULL_SECTOR = NULL * SECSIZ
+
 def dwCrc16(data):
 	checksum = sum(bytearray(data))
 	return pack(">H", c_ushort(checksum).value)
@@ -68,7 +70,7 @@ class DWServer:
 		(disk, lsn) = unpack(">BI", info[0]+NULL+info[1:])
 		if self.debug:
 			print "cmd=%0x cmdRead disk=%d lsn=%d" % (ord(cmd), disk, lsn)
-		data = NULL * SECSIZ
+		data = NULL_SECTOR
 		if rc == E_OK:
 			if self.files[disk] == None:
 				rc = E_NOTRDY
@@ -78,13 +80,13 @@ class DWServer:
 				assert(self.files[disk].tell() == (lsn*SECSIZ))
 			except:
 				rc = E_SEEK
-				data = NULL * SECSIZ
+				data = NULL_SECTOR
 				print "   rc=%d" % rc
 		if rc == E_OK:
 			try:
 				data = self.files[disk].read(SECSIZ)
 				if len(data)==0:
-					data = NULL * SECSIZ
+					data = NULL_SECTOR
 					flags += 'E'
 			except:
 				rc = E_READ
@@ -110,7 +112,7 @@ class DWServer:
 			#rc = E_CRC # force a re-read
 		if rc == E_OK:
 			(disk, lsn) = unpack(">BI", info[0]+NULL+info[1:])
-		data = NULL * SECSIZ
+		data = NULL_SECTOR
 		if self.files[disk] == None:
 			rc = E_NOTRDY
 			#print "   rc=%d" % rc
@@ -130,16 +132,17 @@ class DWServer:
 				#print "cmdReadEx read %d" % len(data)
 				if len(data)==0:
 					# Seek past EOF, just return 0'ed data
-					data = NULL * SECSIZ
+					data = NULL_SECTOR
 					flags += 'E'
 					#print "cmdReadEx eof read %d" % len(data)
 				
 			except:
 				rc = E_READ
-				data = NULL * SECSIZ
+				data = NULL_SECTOR
 				#print "   rc=%d" % rc
 				traceback.print_exc()
 		#print "cmdReadEx sending %d" % len(data)
+		dataCrc = dwCrc16(data)
 		self.conn.write(data)
 
 		crc = self.conn.read(CRCSIZ, 1)
@@ -151,8 +154,8 @@ class DWServer:
 		#(crc,) = unpack(">H", info)
 		
 		if rc == E_OK:
-			#print hex(unpack(">H",crc)[0]), hex(unpack(">H",dwCrc16(data))[0])
-			if crc != dwCrc16(data):
+			if crc != dataCrc:
+				print "CRC: read",hex(unpack(">H",crc)[0]), "expected",hex(unpack(">H",dataCrc)[0])
 				rc = E_CRC
 		self.conn.write(chr(rc))
 		if self.debug or rc != E_OK:
