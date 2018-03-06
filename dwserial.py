@@ -14,7 +14,7 @@ class DWSerial(DWIO):
 		return self.ser != None
 
 	def connect(self):
-		self.ser = serial.Serial(self.port, self.speed, timeout=1)
+		self.ser = serial.Serial(self.port, self.speed, timeout=1, rtscts=True)
 		self.connected = True
 		return
 
