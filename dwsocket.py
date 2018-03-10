@@ -16,6 +16,7 @@ class DWSocket(DWIO):
 			self.sock = self.conn
 		else:
 			self.sock = socket.socket( socket.AF_INET, socket.SOCK_STREAM)
+			self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
 		self.addr = addr
 		self.binding = None
 
@@ -24,6 +25,7 @@ class DWSocket(DWIO):
 
 	def connect(self):
 		self.sock = socket.socket( socket.AF_INET, socket.SOCK_STREAM)
+		self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
 		self.sock.connect((self.host, self.port))
 		print "socket: %s: connecting to %s:%s" % (self, self.host, self.port)
 		self.conn = self.sock
