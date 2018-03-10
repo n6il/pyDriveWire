@@ -5,12 +5,10 @@ import traceback
 
 from dwconstants import *
 from dwchannel import DWVModem
+from dwfile import DWFile
+from dwutil import *
 
 NULL_SECTOR = NULL * SECSIZ
-
-def dwCrc16(data):
-	checksum = sum(bytearray(data))
-	return pack(">H", c_ushort(checksum).value)
 
 class DWServer:
 	def __init__(self, conn):
@@ -36,15 +34,15 @@ class DWServer:
 
 				
 	def open(self, disk, fileName):
-		self.files[disk] = open(fileName,"r+")
+		self.files[disk] = DWFile(fileName,"rb+")
 		print('Opened: %s' % fileName)
-		self.files[disk].seek(0)
+		self.files[disk].file.seek(0)
 
 	def close(self, disk):
 		d = self.files[disk]
 		if d:
 			print('Closing: %s' % d.name)
-			d.close()
+			d.file.close()
 			self.files[disk] = None
 
 	def cmdStat(self, cmd):
@@ -74,17 +72,22 @@ class DWServer:
 		if rc == E_OK:
 			if self.files[disk] == None:
 				rc = E_NOTRDY
+                # XXX: Not needed if set on open and updated on write
+                #if rc == E_OK and lsn == 0:
+                #        self.files[disk].guessMaxLsn()
+                if rc == E_OK and lsn >= self.files[disk].maxLsn:
+                        rc = E_EOF
 		if rc == E_OK:
 			try:
-				self.files[disk].seek(lsn*SECSIZ)
-				assert(self.files[disk].tell() == (lsn*SECSIZ))
+				self.files[disk].file.seek(lsn*SECSIZ)
+				assert(self.files[disk].file.tell() == (lsn*SECSIZ))
 			except:
 				rc = E_SEEK
 				data = NULL_SECTOR
 				print "   rc=%d" % rc
 		if rc == E_OK:
 			try:
-				data = self.files[disk].read(SECSIZ)
+				data = self.files[disk].file.read(SECSIZ)
 				if len(data)==0:
 					data = NULL_SECTOR
 					flags += 'E'
@@ -116,17 +119,22 @@ class DWServer:
 		if self.files[disk] == None:
 			rc = E_NOTRDY
 			#print "   rc=%d" % rc
+                # XXX: not needed if it's set on open and updated on write
+                #if rc == E_OK and lsn == 0:
+                #        self.files[disk].guessMaxLsn()
+                if rc == E_OK and lsn >= self.files[disk].maxLsn:
+                        rc = E_EOF
 		if rc == E_OK:
 			try:
-				self.files[disk].seek(lsn*SECSIZ)
-				assert(self.files[disk].tell() == (lsn*SECSIZ))
+				self.files[disk].file.seek(lsn*SECSIZ)
+				assert(self.files[disk].file.tell() == (lsn*SECSIZ))
 			except:
 				rc = E_SEEK
 				#print "   rc=%d" % rc
 				traceback.print_exc()
 		if rc == E_OK:
 			try:
-				data = self.files[disk].read(SECSIZ)
+				data = self.files[disk].file.read(SECSIZ)
 				#if data:
 				#	pass
 				#print "cmdReadEx read %d" % len(data)
@@ -197,18 +205,26 @@ class DWServer:
 		if rc == E_OK and self.files[disk] == None:
 			rc = E_NOTRDY
 		if rc == E_OK:
+                    # Note: Write is allowed for non-os9 images
+                    if self.files[disk].os9Image and lsn >= self.files[disk].maxLsn:
+                        rc = E_EOF
+		if rc == E_OK:
 			try:
-				self.files[disk].seek(lsn*SECSIZ)
+				self.files[disk].file.seek(lsn*SECSIZ)
 			except:
 				traceback.print_exc()
 				rc = E_SEEK
+
 		if rc == E_OK:
 			try:
-				self.files[disk].write(data)
-				self.files[disk].flush()
+				self.files[disk].file.write(data)
+				self.files[disk].file.flush()
 			except:
 				rc = E_WRITE
 				print traceback.print_exc()
+                if rc == E_OK:
+                    if (lsn == 0) or (not self.files[disk].os9Image and lsn >= self.files[disk].maxLsn):
+                       files[disk].guessMaxLsn() 
 		#if crc != dwCrc16(data):
 		#	rc=E_CRC
 		self.conn.write(chr(rc))

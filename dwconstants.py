@@ -43,6 +43,7 @@ OP_SERTERM = chr(0xC5)
 
 
 E_OK = 0
+E_EOF = 211
 E_CRC = 243
 E_READ = 244
 E_WRITE = 245

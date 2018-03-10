@@ -154,7 +154,7 @@ class DWParser:
 
 	def doReset(self, data):
 		drive = int(data.split(' ')[0])
-		path = self.server.files[drive].name
+		path = self.server.files[drive].file.name
 		self.server.close(drive)
 		self.server.open(drive, path)
 		return "reset(%d, %s)" % (int(drive), path)
