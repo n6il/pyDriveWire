@@ -4,17 +4,18 @@ from dwio import DWIO
 import dwlib
 
 class DWSerial(DWIO):
-	def __init__(self, port, speed):
+	def __init__(self, port, speed, rtscts=False):
 		DWIO.__init__(self, threaded=True)
 		self.port = port
 		self.speed = speed
+		self.rtscts = rtscts
 		self.ser = None
 
 	def isConnected(self):
 		return self.ser != None
 
 	def connect(self):
-		self.ser = serial.Serial(self.port, self.speed, timeout=1, rtscts=True)
+		self.ser = serial.Serial(self.port, self.speed, timeout=1, rtscts=self.rtscts)
 		self.connected = True
 		return
 

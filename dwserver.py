@@ -11,13 +11,14 @@ from dwutil import *
 NULL_SECTOR = NULL * SECSIZ
 
 class DWServer:
-	def __init__(self, conn):
+	def __init__(self, conn, version):
 		self.conn = conn
 		self.files = [None, None, None, None]
 		self.channels = {}
 		self.connections = {}
 		self.debug = False
 		self.timeout = 5.0
+		self.version = version
 
 	def registerConn(self, conn):
 		n = None

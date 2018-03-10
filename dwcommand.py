@@ -31,7 +31,7 @@ class ParseNode:
                 for i in range(len(key)+1):
                     s = key[:i]
                     nodes = [n for n in allNodes if n.startswith(s)]
-                    print i,"(%s"%s,nodes
+                    #print i,"(%s"%s,nodes
                     if len(nodes) == 1:
                         key = nodes[0]
                         return self.nodes.get(key, None)
@@ -116,7 +116,7 @@ class DWParser:
 		atParser.add("Z", ParseAction(lambda x: {'msg': 'OK', 'self.cmdAutoClose': False}))
 		atParser.add("D", ParseAction(self.doDial))
 		atParser.add("DT", ParseAction(self.doDial1))
-		atParser.add("I", ParseAction(lambda x: {'msg': 'pyDriveWire\r\nOK', 'self.cmdAutoClose': False}))
+		atParser.add("I", ParseAction(lambda x: {'msg': 'pyDriveWire %s\r\nOK'%self.server.version, 'self.cmdAutoClose': False}))
 		atParser.add("O", ParseAction(lambda x: {'msg': 'OK', 'self.cmdAutoClose': False, 'self.online': True}))
 		atParser.add("H", ParseAction(lambda x: {'msg': 'OK', 'self.cmdAutoClose': False, 'self.online': False}))
 		atParser.add("E", ParseAction(lambda x: {'msg': 'OK', 'self.cmdAutoClose': False, 'self.echo': True}))
