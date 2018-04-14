@@ -221,7 +221,10 @@ class DWParser:
 		out.append( "-----  --------------------------------------" )
 		i=0
 		for f in self.server.files:
-			out.append( "%d      %s" % (i, f.name if f else f) )
+			name = f.name if f else f
+			if f and f.remote:
+				name += '(%s)' % f.file.name
+			out.append( "%d      %s" % (i, name) )
 			i += 1
 		
 		out.append('')

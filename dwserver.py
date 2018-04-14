@@ -2,6 +2,7 @@ import time
 from struct import *
 from ctypes import *
 import traceback
+import os
 
 from dwconstants import *
 from dwchannel import DWVModem
@@ -48,8 +49,11 @@ class DWServer:
 	def close(self, disk):
 		d = self.files[disk]
 		if d:
+			name = d.file.name
 			print('Closing: %s' % d.name)
 			d.file.close()
+			if d.remote:
+				d._delete()
 			self.files[disk] = None
 
 	def cmdStat(self, cmd):

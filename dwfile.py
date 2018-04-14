@@ -1,8 +1,11 @@
 #!/usr/bin/python
 
 import sys
+import os
 from os import stat
 from struct import *
+import tempfile
+import urllib
 
 COCO_SECTOR_SIZE = 256
 COCO_DEFAULT_DISK_SIZE = 630
@@ -16,15 +19,37 @@ formats = {
         }
 
 
+
 class DWFile:
     def __init__(self, name, mode='r'):
         self.name = name
         self.mode = mode
-        self.file = open(name, mode)
+        self.remote = False
         self.fmt = formats[COCO_DEFAULT_DISK_SIZE]
         self.maxLsn = self.fmt['sides']*self.fmt['tracks']*self.fmt['sectors']
+        self._doOpen()
         self.guessMaxLsn()
         self.os9Image = False
+
+    def _delete(self):
+        print("Deleting temporary file: %s" % self.file.name)
+        os.unlink(self.file.name)
+
+    def _doOpen(self):
+        
+        fileName = self.name
+        try:
+            print self.name
+            n = self.name.index(':')
+            fileName = tempfile.mktemp(prefix=self.name.split('/')[-1].split('.')[0], suffix='.'+self.name.split('.')[-1])
+            print("Downloading: %s" % (self.name))
+            urllib.urlretrieve(self.name, fileName)
+            self.remote = True
+        except ValueError:
+            pass
+        except:
+            raise
+        self.file = open(fileName, self.mode)
 
     def guessMaxLsn(self, data=None):
         self.fmt = self._os9Fmt(data)
@@ -34,7 +59,7 @@ class DWFile:
             #if sectors == 0 and st.st_size > 0:
             #    sectors = COCO_DEFAULT_DISK_SIZE
             self.os9Image = False
-            st = stat(self.name)
+            st = stat(self.file.name)
             img_size = st.st_size
             sectors = img_size / COCO_SECTOR_SIZE
             self.fmt = self._fmtSearch(sectors)
