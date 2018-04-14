@@ -11,7 +11,7 @@ from dwutil import *
 NULL_SECTOR = NULL * SECSIZ
 
 class DWServer:
-	def __init__(self, conn, version):
+	def __init__(self, args, conn, version):
 		self.conn = conn
 		self.files = [None, None, None, None]
 		self.channels = {}
@@ -19,6 +19,12 @@ class DWServer:
 		self.debug = False
 		self.timeout = 5.0
 		self.version = version
+		self.vprinter = None
+		if args.experimental:
+			if ['printer'] in args.experimental:
+                                print("DWServer: Enabling experimental printing support")
+                                from dwprinter import DWPrinter
+				self.vprinter = DWPrinter()
 
 	def registerConn(self, conn):
 		n = None
@@ -447,6 +453,18 @@ class DWServer:
 			print("cmd=%0x cmdSerWrite channel=%d byte=%0x" % (ord(cmd),ord(channel),ord(byte)))
 		self.channels[channel]._cmdWorker()
 
+	def cmdPrint(self, cmd):
+		data = self.conn.read(1, self.timeout)
+		if self.vprinter:
+			self.vprinter.write(data)
+		if self.debug:
+			print("cmd=%0x cmdPrint byte=%0x" % (ord(cmd),ord(byte)))
+
+	def cmdPrintFlush(self, cmd):
+		if self.vprinter:
+			self.vprinter.printFlush()
+		if self.debug:
+			print("cmd=%0x cmdPrintFlush" % (ord(cmd)))
 
 	def cmdErr(self, cmd):
 		print("cmd=%0x cmdErr" % ord(cmd))
@@ -491,6 +509,8 @@ class DWServer:
 		OP_SERREADM: cmdSerReadM,
 		OP_SERWRITE: cmdSerWrite,
 		OP_SERWRITEM: cmdSerWriteM,
+		OP_PRINT: cmdPrint,
+		OP_PRINTFLUSH: cmdPrintFlush,
 	}
 
 	def main(self):

@@ -20,6 +20,7 @@ def ParseArgs():
     parser.add_argument('-H', '--host', dest='host', help='Hostname/IP')
     parser.add_argument('-p', '--port', dest='port', help='Port to use')
     parser.add_argument('-R', '--rtscts', dest='rtscts', action='store_true', help='Serial: Enable RTS/CTS Flow Control')
+    parser.add_argument('-x', dest='experimental', action='append', help='experimental options')
     parser.add_argument('files', metavar='FILE', nargs='+',
                     help='list of files')
 
@@ -61,6 +62,7 @@ if __name__ == '__main__':
 	#(port, speed) = sys.argv[1:3]
 	#files = sys.argv[3:]
 	#print port, speed, files
+
 	if args.accept:
                 print("Accept connection on %s" % args.port)
 		conn = DWSocketServer(port=args.port)
@@ -87,7 +89,7 @@ if __name__ == '__main__':
 	atexit.register(cleanup)
 	#print conn.__class__
 
-	dws = DWServer(conn, VERSION)
+	dws = DWServer(args, conn, VERSION)
 
 	try:
 		drive = 0
