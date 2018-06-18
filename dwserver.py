@@ -22,7 +22,7 @@ class DWServer:
 		self.version = version
 		self.vprinter = None
 		if args.experimental:
-			if ['printer'] in args.experimental:
+			if 'printer' in args.experimental:
                                 print("DWServer: Enabling experimental printing support")
                                 from dwprinter import DWPrinter
 				self.vprinter = DWPrinter()
@@ -462,7 +462,7 @@ class DWServer:
 		if self.vprinter:
 			self.vprinter.write(data)
 		if self.debug:
-			print("cmd=%0x cmdPrint byte=%0x" % (ord(cmd),ord(byte)))
+			print("cmd=%0x cmdPrint byte=%0x" % (ord(cmd),ord(data)))
 
 	def cmdPrintFlush(self, cmd):
 		if self.vprinter:
