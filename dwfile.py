@@ -39,7 +39,7 @@ class DWFile:
         
         fileName = self.name
         try:
-            print self.name
+            #print self.name
             n = self.name.index(':')
             fileName = tempfile.mktemp(prefix=self.name.split('/')[-1].split('.')[0], suffix='.'+self.name.split('.')[-1])
             print("Downloading: %s" % (self.name))

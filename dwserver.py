@@ -43,14 +43,14 @@ class DWServer:
 				
 	def open(self, disk, fileName):
 		self.files[disk] = DWFile(fileName,"rb+")
-		print('Opened: %s' % fileName)
+		print('Opened: disk=%d file=%s' % (disk, fileName))
 		self.files[disk].file.seek(0)
 
 	def close(self, disk):
 		d = self.files[disk]
 		if d:
 			name = d.file.name
-			print('Closing: %s' % d.name)
+			print('Closing: disk=%d file=%s' % (disk, d.name))
 			d.file.close()
 			if d.remote:
 				d._delete()
@@ -290,6 +290,13 @@ class DWServer:
 
 	# XXX
 	def cmdInit(self, cmd):
+		for drive in range(len(self.files)):
+			if not self.files[drive]:
+				continue
+			path = self.files[drive].file.name
+			self.close(drive)
+			self.open(drive, path)
+			print "cmdInit: reset(%d, %s)" % (int(drive), path)
 		if self.debug:
 			print "cmd=%0x cmdInit" % ord(cmd)
 
