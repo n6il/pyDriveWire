@@ -9,18 +9,23 @@ from dwchannel import DWVModem
 from dwfile import DWFile
 from dwutil import *
 
+from cococas import CocoCas
+
 NULL_SECTOR = NULL * SECSIZ
 
 class DWServer:
 	def __init__(self, args, conn, version):
 		self.conn = conn
-		self.files = [None, None, None, None]
+		self.files = [None] * 256
 		self.channels = {}
 		self.connections = {}
 		self.debug = False
 		self.timeout = 5.0
 		self.version = version
 		self.vprinter = None
+
+                self.emCeeDir = []
+                self.emCeeDirIdx = 0
 		if args.experimental:
 			if 'printer' in args.experimental:
                                 print("DWServer: Enabling experimental printing support")
@@ -48,13 +53,14 @@ class DWServer:
 
 	def close(self, disk):
 		d = self.files[disk]
-		if d:
+		if d and isinstance(d, DWFile):
 			name = d.file.name
 			print('Closing: disk=%d file=%s' % (disk, d.name))
 			d.file.close()
 			if d.remote:
 				d._delete()
-			self.files[disk] = None
+                if d:
+                    self.files[disk] = None
 
 	def cmdStat(self, cmd):
 		info = self.conn.read(STATSIZ, self.timeout)
@@ -481,7 +487,305 @@ class DWServer:
 		print("cmd=%0x cmdErr" % ord(cmd))
 		#raise Exception("cmd=%0x cmdErr" % ord(cmd))
 
-	# Command jump table
+        ### EmCee Server ###
+        def _emCeeOpenFile(self, filnum, fname, fmode, ftyp=0, opn=False):
+            error = 0
+            address = 0
+            size = 0
+            checksum = 0
+            if not error:
+                try:
+                    self.files[filnum] = CocoCas(fname)
+                    self.files[filnum].seek()
+                    #self.files[filnum] = MlFileReader(fname, fmode, ftyp)
+                    #if ftyp == 2: # ml file
+                    #        self.files[filnum].readHeader()
+                    #        address = self.files[filnum].addr
+                    #        size = self.files[filnum]#.
+                except:
+                    error = E_MC_IO
+            if not error:
+                try:
+                    data = self.files[filnum].read(temp=True)
+                    stat = self.files[filnum].stat()
+                    size = stat['blk']['blklen']
+                    address = stat['nf']['current']
+                    #length = min(SECSIZ, self.files[filnum].length)
+                    #data = self.files[filnum].tempRead(length)
+                    if data:
+                        checksum = unpack(">H", dwCrc16(data))[0]
+                    else:
+                        error = E_MC_IO
+                except:
+                    error = E_MC_IO
+            if error:
+                checksum = error
+            #if opn:
+            #    response = chr(error)
+            #else:
+            #    response = pack(">HHH", address, size, checksum)
+            response = pack(">HHH", address, size, checksum)
+            self.conn.write(response)
+            return error
+
+        def cmdEmCeeLoadFile(self, cmd):
+            error = 0
+            info = self.conn.read(2, self.timeout)
+            if not info:
+                print("cmd=%0x cmdEmCeeLoadFile timout getting command info" % (ord(cmd)))
+                error = E_MC_IO # IO ERROR
+            if not error:
+                ftyp = ord(info[0])
+                fnamelen = ord(info[1])
+                fname = self.conn.read(fnamelen, self.timeout)
+                if not fname:
+                    print("cmd=%0x cmdEmCeeLoadFile timout getting file name" % (ord(cmd)))
+                    error = E_MC_FN
+            if not error:
+                error = self._emCeeOpenFile(0, fname, 'rb', ftyp)
+            if error:
+		print("cmd=%0x cmdEmCeeLoadFile error=%d" % ord(cmd), error)
+                return
+            elif self.debug:
+		print("cmd=%0x cmdEmCeeLoadFile" % ord(cmd))
+
+        def cmdEmCeeOpenFile(self, cmd):
+            fmodes = {
+                    1: 'rb',
+                    2: 'wb+',
+                    3: 'ab+',
+            }
+            error = 0
+            info = self.conn.read(2, self.timeout)
+            if not info:
+                print("cmd=%0x cmdEmCeeLoadFile timout getting command info" % (ord(cmd)))
+                error = E_MC_IO # IO ERROR
+            if not error:
+                finfo = ord(info[0])
+                filnum = finfo & 0x0f
+                fmode = fmodes[((finfo & 0xc0)>>6)]
+                fnamelen = ord(info[1])
+                fname = self.conn.read(fnamelen, self.timeout)
+                if not fname:
+                    print("cmd=%0x cmdEmCeeLoadFile timout getting file name" % (ord(cmd)))
+                    error = E_MC_FN
+            error = self._emCeeOpenFile(0, fname, fmode, opn=True)
+            if error:
+		print("cmd=%0x cmdEmCeeLoadFile error=%d" % (ord(cmd), error))
+                return
+            elif self.debug:
+		print("cmd=%0x cmdEmCeeLoadFile" % ord(cmd))
+
+        def xxx(self):
+            if error:
+		print("cmd=%0x cmdEmCeeLoadFile error=%d" % ord(cmd), error)
+                return
+            elif self.debug:
+		print("cmd=%0x cmdEmCeeLoadFile" % ord(cmd))
+
+        def cmdEmCeeGetBlock(self, cmd):
+            error = 0
+            filnum = self.conn.read(1, self.timeout)
+            if not filnum:
+                error = E_MC_IO
+            if not error:
+                data = self.files[ord(filnum)].read()
+            if data:
+                self.conn.write(data)
+            if self.debug:
+		print("cmd=%0x cmdEmCeeGetBlock" % ord(cmd))
+
+        def cmdEmCeeNextBlock(self, cmd):
+            error = 0
+            address = 0
+            size = 0
+            checksum = 0
+            filnum = self.conn.read(1, self.timeout)
+            if not filnum:
+                error = E_MC_IO
+            if not error:
+                try:
+                    fh = self.files[ord(filnum)]
+                    if fh == None:
+                        error = E_MC_NO
+                except:
+                    error = E_MC_DN
+
+            if not error:
+                try:
+                    data = self.files[ord(filnum)].read(temp=True)
+                    stat = self.files[ord(filnum)].stat()
+                    if stat['blk']['blktyp'] == 0xff:
+                        size = 0
+                        address = stat['nf']['start']
+                    else:
+                        size = stat['blk']['blklen']
+                        address = stat['nf']['current']
+                        #length = min(SECSIZ, self.files[filnum].length)
+                        #data = self.files[filnum].tempRead(length)
+                        if data:
+                            checksum = unpack(">H", dwCrc16(data))[0]
+                        else:
+                            error = E_MC_IO + 100
+                except:
+                    raise
+                    error = E_MC_IO + 200
+
+            #if not error:
+            #    length = min(SECSIZ, fh.remaining)
+            #    if length == 0 and fh.ftyp == 2 and fh.typ != 0xff: # Last block and 
+            #                fh.readHeader()
+            #    try:
+            #        #data = fh.tempRead(length)
+            #        data = 
+            #        if data:
+            #            checksum = dwCrc16(data)
+            #        else:
+            #            error = E_MC_IO
+            #    except:
+            #        error = E_MC_IO
+            if error:
+                checksum = error
+            response = pack(">HHH", address, size, checksum)
+            self.conn.write(response)
+            if error:
+		print("cmd=%0x cmdEmCeeNextBlock error=%d" % (ord(cmd), error))
+                return
+            if self.debug:
+		print("cmd=%0x cmdEmCeeNextBlock" % ord(cmd))
+
+        def cmdEmCeeSave(self, cmd):
+            if self.debug:
+		print("cmd=%0x cmdEmCeeSave" % ord(cmd))
+
+        def cmdEmCeeWriteBlock(self, cmd):
+            if self.debug:
+		print("cmd=%0x cmdEmCeeWriteBlock" % ord(cmd))
+
+        def cmdEmCeeOpen(self, cmd):
+            if self.debug:
+		print("cmd=%0x cmdEmCeeOpen" % ord(cmd))
+
+        def _cmdEmCeeDirSendNext(self, error=0):
+            length = 0
+            if not error:
+                if self.emCeeDirIdx >= len(self.emCeeDir):
+                    self.emCeeDirIdx = 0
+                    self.emCeeDir = []
+                    length = 0
+                else:
+                    length = len(self.emCeeDir[self.emCeeDirIdx])
+            self.conn.write(chr(error)+chr(length))
+
+        def cmdEmCeeDirFile(self, cmd):
+            error = 0
+            flag = 0
+            dirNam = os.getcwd()
+            try:
+                flag = ord(self.conn.read(1, self.timeout))
+                length = ord(self.conn.read(1, self.timeout))
+            except:
+                error = E_MC_IO
+            if self.debug:
+		print("cmd=%0x cmdEmCeeDirFile flag=%d length=%d" % (ord(cmd), flag, length))
+            if not error and length>0:
+                try:
+                    dirNam = self.conn.read(length, self.timeout)
+                except:
+                    error = E_MC_IO
+            if not error:
+                if flag == 0:
+                    try:
+                        self.emCeeDir = os.listdir(dirNam)
+                        self.emCeeDirIdx = 0
+                    except:
+                        error = E_MC_NE
+                else:
+                    self.emCeeDirIdx += 1
+
+            self._cmdEmCeeDirSendNext(error)
+            if self.debug:
+		print("cmd=%0x cmdEmCeeDirFile" % ord(cmd))
+
+        def cmdEmCeeRetrieveName(self, cmd):
+            error = 0
+            try:
+                length = ord(self.conn.read(1, self.timeout))
+            except:
+                error = E_MC_IO
+            if not error:
+                dirName = self.emCeeDir[self.emCeeDirIdx][:length]
+                self.conn.write(dirName)
+            if self.debug:
+		print("cmd=%0x cmdEmCeeRetrieveName" % ord(cmd))
+
+        def cmdEmCeeDirName(self, cmd):
+            error = 0
+            try:
+                flag = ord(self.conn.read(1, self.timeout))
+                _ = ord(self.conn.read(1, self.timeout))
+            except:
+                error = E_MC_IO
+            if not error:
+                if flag == 0:
+                    self.emCeeDirIdx = 0
+                else:
+                    self.emCeeDirIdx += 1
+
+            self._cmdEmCeeDirSendNext(error)
+            if self.debug:
+		print("cmd=%0x cmdEmCeeDirName" % ord(cmd))
+
+        def cmdEmCeeSetDir(self, cmd):
+            error = 0
+            try:
+                _ = self.conn.read(1, self.timeout)
+                length = ord(self.conn.read(1, self.timeout))
+            except:
+                error = E_MC_IO
+            if not error:
+                try:
+                    dirNam = self.conn.read(length, self.timeout)
+                except:
+                    raise
+                    error = E_MC_IO
+            if not error:
+                try:
+                    os.chdir(dirNam)
+                except:
+                    error = E_MC_NE
+            self.conn.write(chr(error))
+            if self.debug:
+		print("cmd=%0x cmdEmCeeSetDir" % ord(cmd))
+
+        def cmdEmCeeErr(self, cmd):
+            if self.debug:
+		print("cmd=%0x cmdEmCeeErr" % ord(cmd))
+
+	# EmCee Command jump table
+        mccommand = {
+                MC_LOAD: cmdEmCeeLoadFile,
+                MC_GETBLK: cmdEmCeeGetBlock,
+                MC_NXTBLK: cmdEmCeeNextBlock,
+                MC_SAVE: cmdEmCeeSave,
+                MC_WRBLK: cmdEmCeeWriteBlock,
+                MC_OPEN: cmdEmCeeOpen,
+                MC_DIRFIL: cmdEmCeeDirFile,
+                MC_RETNAM: cmdEmCeeRetrieveName,
+                MC_DIRNAM: cmdEmCeeDirName,
+                MC_SETDIR: cmdEmCeeSetDir,
+        }
+
+        def doEmCeeCmd(self, cmd):
+            mccmd = self.conn.read(1)
+            if mccmd:
+                try:
+                    f=DWServer.mccommand[mccmd]
+                except:
+                    f= lambda s,x: DWServer.mcErr(s,x)
+                f(self, mccmd)
+
+	# DriveWire Command jump table
 	dwcommand = {
 		OP_NOP: cmdNop,
 		OP_TIME: cmdTime,
@@ -522,6 +826,7 @@ class DWServer:
 		OP_SERWRITEM: cmdSerWriteM,
 		OP_PRINT: cmdPrint,
 		OP_PRINTFLUSH: cmdPrintFlush,
+		MC_ATTENTION: doEmCeeCmd,
 	}
 
 	def main(self):

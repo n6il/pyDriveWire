@@ -10,7 +10,7 @@ import argparse
 
 import sys
 
-VERSION = 'v0.3'
+VERSION = 'v0.4'
 
 def ParseArgs():
     parser = argparse.ArgumentParser(description='pyDriveWire Server %s' % VERSION)

@@ -62,3 +62,31 @@ STATSIZ = 2
 SS_ComSt = chr(0x28)
 SS_Open = chr(0x29)
 SS_Close = chr(0x2A)
+
+# EmCee Protocol
+MC_ATTENTION = chr(0x21)
+MC_LOAD = chr(0x4C)
+MC_GETBLK = chr(0x47)
+MC_NXTBLK = chr(0x4E)
+MC_SAVE = chr(0x53)
+MC_WRBLK = chr(0x57)
+MC_OPEN = chr(0x4F)
+MC_DIRFIL = chr(0x46)
+MC_RETNAM = chr(0x24)
+MC_DIRNAM = chr(0x44)
+MC_SETDIR = chr(0x43)
+
+# EmCee Errors
+E_MC_FC = 8
+E_MC_IO = 34
+E_MC_FM = 36
+E_MC_DN = 38
+E_MC_NE = 40
+E_MC_WP = 42
+E_MC_FN = 44
+E_MC_FS = 46
+E_MC_IE = 48
+E_MC_FD = 50
+E_MC_AO = 52
+E_MC_NO = 54
+E_MC_DS = 56

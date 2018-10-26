@@ -21,7 +21,7 @@ formats = {
 
 
 class DWFile:
-    def __init__(self, name, mode='r'):
+    def __init__(self, name, mode='r', typ=None):
         self.name = name
         self.mode = mode
         self.remote = False
@@ -153,6 +153,50 @@ class DWFile:
         #assert(dd_tot == sectors)
         return fmt
 
+
+from struct import *
+
+class MlFileReader:
+
+        def __init__(self, fileName, mode, ftyp):
+                self.fileName = fileName
+                self.file = open(fileName, mode)
+		self.ftyp = ftyp
+		st = stat(fileName)
+                self.flength = st.st_size
+                self.typ = 0
+                self.length = self.flength # default value for non-ml files
+                self.offset = 0
+                self.remaining = self.flength # default value for non-ml files
+
+        def readHeader(self):
+                self.offset = self.file.tell()
+                data = self.file.read(5)
+                (typ, length, addr) = unpack(">BHH", data)
+                self.typ = typ
+                self.addr = addr
+                self.length = length
+                self.remaining = length
+                return typ
+
+        def read(self, length=None):
+                if self.typ == 0xff or self.remaining == 0:
+                        return ''
+                if not length:
+                        length = self.remaining
+                self.remaining -= length
+                return self.file.read(length)
+
+	def tempRead(self, length=None):
+		prev = self.file.tell()
+                if self.typ == 0xff or self.remaining == 0:
+                        return ''
+                if not length:
+                        length = self.remaining
+                data=self.file.read(length)
+		self.file.seek(prev)
+		return data
+ 
 if __name__ == '__main__':
         import sys
         f = sys.argv[1]
