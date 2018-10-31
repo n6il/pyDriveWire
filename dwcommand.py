@@ -220,7 +220,7 @@ class DWParser:
 		out.append( "Drive  File" )
 		out.append( "-----  --------------------------------------" )
 		i=0
-		for f in self.server.files:
+		for f in self.server.files[:4]:
 			name = f.name if f else f
 			if f and f.remote:
 				name += '(%s)' % f.file.name

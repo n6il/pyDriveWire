@@ -58,12 +58,15 @@ class CocoCasBlock:
 
 class CocoCas:
     def __init__(self, fn, mode='rb'):
-        self.segments = open(fn, mode).read().split('U<')
+	self.name = fn
+        self.file = open(fn, mode)
+        self.segments = self.file.read().split('U<')
         self.fn = fn
         self.mode = mode
         self.segment = 0
         self.blk = None
         self.nameFile = None
+	self.remote = False
 
     def rewind(self):
         self.segment = 0
