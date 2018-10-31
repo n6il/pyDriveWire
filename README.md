@@ -1,10 +1,18 @@
 # pyDriveWire
-Python Implementation of DriveWire 4
+Python Implementation of DriveWire 4 and EmCee Protocols
 
 PyDriveWire is a nearly complete DriveWire4 Server written in Python.  The goal is to eventually implement all of the features available.  The server also implements additional features that are not available in DriveWire4.
 
+PyDriveWire v0.4 also has experimental support for the EmCee Protocol for use with MCX Basic on the TRS-80 MC-10.  
+
+DriveWire 4 and EmCee Procotols can be used simultaneously on the server without reconfiguration.
+
 Features
 --------
+* (new for v0.4) Experimental EmCee Protocol Support
+* (new for v0.4) Added Windows installation instructions
+* (new for v0.4) Added `pyDriveWire.bat` file
+* (updated v0.4) `dw server dir` and `dw server list` enhanced to run on _ALL_ OSes (Mac/Windows/Linux, etc)
 * (new for v0.3) Experimental printing support
 * (new for v0.3) New command line parameters, see the "Run It" section for details
 * Connections to serial ports at all supported baud rates: 38400, 57600, 115200, 230400, 460800, 921600
@@ -39,7 +47,7 @@ Supported Operating Systems
 * Any OS where you can run Python, including but not limited to:
 * Linux
 * macOS
-* Windows support is _PRELIMINARY_.  Minimal testing has been done but it should work
+* Windows
 
 
 Installation (Linux/macOS/UNIX)
@@ -52,13 +60,31 @@ _Experimental Printing Support_
 
 * `pypy -m pip install reportlab`
 
+
+Installation (Windows)
+------------
+1. Obtain the latest copy of _Python 2.7 Compatible PyPy for Windows_  from
+   https://www.pypy.org/download.html
+2. Extract it to the `C:\Program Files (x86)` folder
+3. Add 2 entries to your system path:   
+  a. the folder where you extracted PyPy to  
+  b. the folder above and add `\bin` to the end
+4. Download pip: https://bootstrap.pypa.io/get-pip.py
+5. Install Pip. Open a command prompt and type: `pypy get-pip.py`
+6. Install pyserial: `pip install pyserial`
+7. Download (or git clone) the latest pyDriveWire release package from
+   https://github.com/n6il/pyDriveWire/releases and extract it.
+8. Versions 0.4 and later have a `pyDriveWire.bat` batch file you can run.
+   Earlier versions can be started from the command prompt: `pypy
+pyDriveWire.py <options>`
+
 Run It
 ------
-    usage: pyDriveWire.py [-h] [-s SPEED] [-a] [-c] [-H HOST] [-p PORT] [-R]
+    usage: pyDriveWire [-h] [-s SPEED] [-a] [-c] [-H HOST] [-p PORT] [-R]
                           [-x EXPERIMENTAL]
                           FILE [FILE ...]
     
-    pyDriveWire Server v0.3
+    pyDriveWire Server v0.4
     
     positional arguments:
       FILE                  list of files
@@ -105,6 +131,94 @@ The console log will explain where the output PDF went:
     Printing to: /var/folders/1y/cjrxv35d76bc54myg7hy7k1c0000gn/T/tmpWdKRQY.pdf
     Printing: closing print buffer: /var/folders/1y/cjrxv35d76bc54myg7hy7k1c0000gn/T/tmp2zG0Pb.txt
 
+
+# Experimental EmCee Protocol Support
+pyDriveWire version v0.4 adds experimental support for the EmCee protocol used on the TRS-80 MC-10 running MCX Basic (MCX Basic is available on the MCX-128 expansion card).  The EmCee protocol support is always turned on allowing any application connected to a pyDriveWire server to use EmCee and DriveWire protocols simultaneously.  With this setup one could use a DriveWire application on a MC-10 or a EmCee application on a CoCo without the need to switch servers.
+
+As of v0.4 the following MCX Basic Commands are supported:
+
+* `SETDIR`
+* `DIR`
+* `LOAD`
+* `LOADM`
+
+
+The following file formats are supported:
+
+* `.C10`
+* `.CAS`
+
+
+## Important Note about Simultaneous use of DriveWire and EmCee Protocols
+Drive 0 will be used by the EmCee server for mounting the `.C10` or `.CAS` files.  Any DriveWire disk in Drive 0 will be unmounted. If data was written to the DriveWire disk in Drive 0 it is highly recommended to umount the DriveWire disk using the `dw disk eject 0` command before using any of the EmCee features. 
+
+## Notes
+
+1. You must use 38400 baud to use the EmCee protocol on  a MC-10 running MCX Basic
+2. Saving of files is not currently supported but is in progress
+3. The `SETDIR` command works differently than the standard EmCee Server.
+4. At the current time pyDriveWire _only_ supports `.C10` and `.CAS` formatted files.  WAV and BIN file support is planned for a future update.
+5. At the current time you cannot open a `.C10` or `.CAS` file from the command line.  Use the `LOAD` or `LOADM` command.
+
+## Using pyDriveWire's EmCee Server
+
+The EmCee server in pyDriveWire is on by default and there are no commands to turn it on or off.  The only special requirement is that ***You must use 38400 baud to use the EmCee protocol on  a MC-10 running MCX Basic***.  Please see the rest of this documentation for how to invoke pyDriveWire.  Once pyDriveWire is started you can use the normal MCX Basic commands to access files on the server.
+
+## `SETDIR <path>` - Set the directory on the server
+
+#### Options
+
+* `<path>` --  full path name a directory on the server
+
+#### Description 
+
+The pyDriveWire version of `SETDIR` is different than the normal EmCee server.  You must provide a full path name to the directory you want to switch to.
+
+#### Examples
+
+* Windows: `SETDIR C:\Users\Mikey\MC-10`
+* Mac/Linux: `SETDIR /home/Mikey/MC-10`
+
+
+## `DIR [<path>]` - List directory on the server
+
+#### Options
+
+* `<path>` --  optional full path name a directory on the server
+
+#### Description
+
+List the directory on the server.  The default directory is the one where pyDrivewire was invoked. `<path>` is optional and must be a full path name to the directory you want to list.
+
+#### Examples
+
+* `DIR`
+* Windows: `DIR C:\Users\Mikey\MC-10`
+* Mac/Linux: `DIR /home/Mikey/MC-10`
+
+## `LOAD <file>` - Load a program from the server
+
+#### Options
+
+* `<file>` -- `.C10/.CAS` file to load from
+
+#### Description 
+The pyDriveWire server searches the provided `.C10` or `.CAS` file and loads the first file in the tape image.
+
+#### Notes
+Drive 0 will be used for mounting the `.C10` or `.CAS` file.  Any DriveWire disk in Drive 0 will be unmounted.
+
+## `LOADM` - Load a binary program from the server
+
+#### Options
+
+* `<file>` -- `.C10/.CAS` file to load from
+
+#### Description 
+The pyDriveWire server searches the provided `.C10` or `.CAS` file and loads the first BIN file in the tape image.
+
+#### Notes
+Drive 0 will be used for mounting the `.C10` or `.CAS` file.  Any DriveWire disk in Drive 0 will be unmounted.
 
 Supported DW Commands
 ---------------------
