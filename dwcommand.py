@@ -512,6 +512,40 @@ class DWRepl:
 				self.server.close(int(i))
 			i += 1
 		os._exit(0)
+
+
+class DWRemoteRepl:
+        def __init__(self, server, port=6809):
+		self.server = server
+		self.cmd = DWParser(server)
+		self.sock = DWSocketServer(port=port)
+                self.at = threading.Thread(target=self.run, args=())
+                self.at.daemon = True
+		self.at.start()
+
+	def run(self):
+		while True:
+			#sock.accept()	
+			s = self.sock.read(readLine=True)
+			if len(s) > 0:
+				s = s.strip()
+				if s in ['quit', 'QUIT', 'exit', 'EXIT']:
+					break
+				r = self.cmd.parse(s)
+				self.sock.write(r+'\n')	
+                self.server.conn.cleanup()
+                i=0
+                for f in self.server.files:
+                        if f:
+                                self.server.close(int(i))
+                        i += 1
+                os._exit(0)
+
+
+	def wait(self):
+		self.at.join()
+
+
 if __name__ == '__main__':
 	r = DWRepl(None)
 	r.rt.join()

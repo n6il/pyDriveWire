@@ -9,6 +9,7 @@ DriveWire 4 and EmCee Procotols can be used simultaneously on the server without
 
 Features
 --------
+* (new for v0.4) Remote dw command input on TCP port
 * (new for v0.4) Experimental EmCee Protocol Support
 * (new for v0.4) Added Windows installation instructions
 * (new for v0.4) Added `pyDriveWire.bat` file
@@ -99,6 +100,8 @@ Run It
       -p PORT, --port PORT  Port to use
       -R, --rtscts          Serial: Enable RTS/CTS Flow Control
       -x EXPERIMENTAL       experimental options
+      -D CMDPORT, --cmd-port CMDPORT
+                            Remote dw command input
 
 Examples:
 

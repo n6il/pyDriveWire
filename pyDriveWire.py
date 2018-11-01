@@ -3,7 +3,7 @@ import serial
 from dwserial import DWSerial
 from dwsocket import DWSocketServer, DWSocket
 from dwserver import DWServer
-from dwcommand import DWRepl
+from dwcommand import DWRepl, DWRemoteRepl
 import traceback
 import logging
 import argparse
@@ -21,6 +21,7 @@ def ParseArgs():
     parser.add_argument('-p', '--port', dest='port', help='Port to use')
     parser.add_argument('-R', '--rtscts', dest='rtscts', action='store_true', help='Serial: Enable RTS/CTS Flow Control')
     parser.add_argument('-x', dest='experimental', action='append', help='experimental options')
+    parser.add_argument('-D', '--cmd-port', dest='cmdPort', help='Remote dw command input')
     parser.add_argument('files', metavar='FILE', nargs='+',
                     help='list of files')
 
@@ -96,7 +97,9 @@ if __name__ == '__main__':
 		for f in args.files:
 			dws.open(drive, f)
 			drive += 1
-                dwr = DWRepl(dws)
+		if args.cmdPort:
+			dwe = DWRemoteRepl(dws, args.cmdPort)
+		dwr = DWRepl(dws)
 		dws.main()
 	except:
 		traceback.print_exc()
