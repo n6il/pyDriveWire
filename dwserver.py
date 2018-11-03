@@ -9,7 +9,7 @@ from dwchannel import DWVModem
 from dwfile import DWFile
 from dwutil import *
 
-from cococas import CocoCas
+from cococas import *
 
 NULL_SECTOR = NULL * SECSIZ
 
@@ -544,7 +544,7 @@ class DWServer:
             if not error:
                 error = self._emCeeOpenFile(0, fname, 'rb', ftyp)
             if error:
-		print("cmd=%0x cmdEmCeeLoadFile error=%d" % ord(cmd), error)
+		print("cmd=%0x cmdEmCeeLoadFile error=%d" % (ord(cmd), error))
                 return
             elif self.debug:
 		print("cmd=%0x cmdEmCeeLoadFile" % ord(cmd))
@@ -569,12 +569,12 @@ class DWServer:
                 if not fname:
                     print("cmd=%0x cmdEmCeeLoadFile timout getting file name" % (ord(cmd)))
                     error = E_MC_FN
-            error = self._emCeeOpenFile(0, fname, fmode, opn=True)
+            error = self._emCeeOpenFile(filnum, fname, fmode, opn=True)
             if error:
-		print("cmd=%0x cmdEmCeeLoadFile error=%d" % (ord(cmd), error))
+		print("cmd=%0x cmdEmCeeOpenFile error=%d" % (ord(cmd), error))
                 return
             elif self.debug:
-		print("cmd=%0x cmdEmCeeLoadFile" % ord(cmd))
+		print("cmd=%0x cmdEmCeeOpenFile" % ord(cmd))
 
         def xxx(self):
             if error:
@@ -655,16 +655,76 @@ class DWServer:
 		print("cmd=%0x cmdEmCeeNextBlock" % ord(cmd))
 
         def cmdEmCeeSave(self, cmd):
+	    error = 0
+	    info = self.conn.read(6, self.timeout)
+            if not info:
+		error = E_MC_IO
+            if not error:
+		(mode, nameLength, exaddr, size) = unpack(">BBHH", info)
+		name = self.conn.read(nameLength, self.timeout)
+            if not name:
+		    error = E_MC_IO
+            if not error:
+           	self.files[0] = CocoCas(name, 'wb')
+		load = start = ascflg = 0 
+		ascflg = 0xff	
+		if mode == 2:
+			load = size
+			start = exaddr
+			filetype = 2 # ml
+			ascflg = 0
+		elif mode == 0:
+			filetype = 0 # basic
+			ascflg = 0 # basic
+		else:
+			filetype = 1 # data
+		nf = CocoCasNameFile(
+			filename = name.split(os.path.sep)[-1].split('.')[0][:8].upper(),
+			filetype = filetype,
+			ascflg = ascflg,
+			gap = 1,
+			load = load,
+			start = start,
+		 )
+		nfblk = CocoCasBlock(nf.getBlockData(), blktyp=0) # namefile
+		self.files[0].nf = nf
+		self.files[0].writeBlock(nfblk)
+	    self.conn.write(chr(error))
             if self.debug:
 		print("cmd=%0x cmdEmCeeSave" % ord(cmd))
 
         def cmdEmCeeWriteBlock(self, cmd):
+            error = 0
+	    data = ''
+            eof = False
+            info = self.conn.read(3, self.timeout)
+	    if not info:
+		error = E_MC_IO
+	    if not error:
+		(fileNum, size) = unpack(">BH", info)
+                print fileNum
+                if not self.files[fileNum]:
+                    error = E_MC_NO
+	    if not error:
+		if size == 0:
+			eof = True
+			self.files[fileNum].writeBlock(CocoCasBlock("\xff\x00\xff\x55"))
+			self.files[fileNum].close()
+		else:
+			data = self.conn.read(size, self.timeout)
+			if not data:
+				error = E_MC_IO
+			if not error:
+				i = 0
+				while i < len(data):
+					j = i + 255
+					self.files[fileNum].writeBlock(CocoCasBlock(data[i:j], blktyp=1))
+					i = j
+	    #if not error:
+	    dataCrc = dwCrc16(data)
+	    self.conn.write(dataCrc)	
             if self.debug:
 		print("cmd=%0x cmdEmCeeWriteBlock" % ord(cmd))
-
-        def cmdEmCeeOpen(self, cmd):
-            if self.debug:
-		print("cmd=%0x cmdEmCeeOpen" % ord(cmd))
 
         def _cmdEmCeeDirSendNext(self, error=0):
             length = 0
@@ -769,7 +829,7 @@ class DWServer:
                 MC_NXTBLK: cmdEmCeeNextBlock,
                 MC_SAVE: cmdEmCeeSave,
                 MC_WRBLK: cmdEmCeeWriteBlock,
-                MC_OPEN: cmdEmCeeOpen,
+                MC_OPEN: cmdEmCeeOpenFile,
                 MC_DIRFIL: cmdEmCeeDirFile,
                 MC_RETNAM: cmdEmCeeRetrieveName,
                 MC_DIRNAM: cmdEmCeeDirName,

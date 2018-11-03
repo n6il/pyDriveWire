@@ -530,6 +530,8 @@ class DWRemoteRepl:
 			if len(s) > 0:
 				s = s.strip()
 				if s in ['quit', 'QUIT', 'exit', 'EXIT']:
+					sock.conn.close()
+					sock.conn = None
 					break
 				r = self.cmd.parse(s)
 				self.sock.write(r+'\n')	

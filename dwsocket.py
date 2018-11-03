@@ -92,6 +92,19 @@ class DWSocket(DWIO):
 		return any(ri)
 		#return self.sock.in_waiting
 		
+	def _out_waiting(self):
+		if self.abort or not self.conn:
+			return False
+		wi = []
+		try:
+			(_, wi, _) = select.select([], [self.conn.fileno()], [], 1)
+		except Exception as e:
+			print str(e)
+			#print "Connection closed",self
+			#self._close()
+		return any(wi)
+		#return self.sock.in_waiting
+		
 	def _close(self):
 		#if not self.conn:
 		#	return
@@ -153,6 +166,7 @@ class DWSocketServer(DWSocket):
 	def _read(self, count=256):
 		data = None
 		if not self.conn:
+			print "accepting"
 			self.accept()
 		data = ''
 		try:
