@@ -158,10 +158,9 @@ Drive 0 will be used by the EmCee server for mounting the `.C10` or `.CAS` files
 ## Notes
 
 1. You must use 38400 baud to use the EmCee protocol on  a MC-10 running MCX Basic
-2. Saving of files is not currently supported but is in progress
-3. The `SETDIR` command works differently than the standard EmCee Server.
-4. At the current time pyDriveWire _only_ supports `.C10` and `.CAS` formatted files.  WAV and BIN file support is planned for a future update.
-5. At the current time you cannot open a `.C10` or `.CAS` file from the command line.  Use the `LOAD` or `LOADM` command.
+2. The `SETDIR` command works differently than the standard EmCee Server.
+3. At the current time pyDriveWire _only_ supports `.C10` and `.CAS` formatted files.  WAV and BIN file support is planned for a future update.
+4. At the current time you cannot open a `.C10` or `.CAS` file from the command line.  Use the `LOAD`,  `LOADM`  or `OPEN` commands.
 
 ## Using pyDriveWire's EmCee Server
 
@@ -199,29 +198,6 @@ List the directory on the server.  The default directory is the one where pyDriv
 * Windows: `DIR C:\Users\Mikey\MC-10`
 * Mac/Linux: `DIR /home/Mikey/MC-10`
 
-## `LOAD <file>` - Load a program from the server
-
-#### Options
-
-* `<file>` -- `.C10/.CAS` file to load from
-
-#### Description 
-The pyDriveWire server searches the provided `.C10` or `.CAS` file and loads the first file in the tape image.
-
-#### Notes
-Drive 0 will be used for mounting the `.C10` or `.CAS` file.  Any DriveWire disk in Drive 0 will be unmounted.
-
-## `LOADM` - Load a binary program from the server
-
-#### Options
-
-* `<file>` -- `.C10/.CAS` file to load from
-
-#### Description 
-The pyDriveWire server searches the provided `.C10` or `.CAS` file and loads the first BIN file in the tape image.
-
-#### Notes
-Drive 0 will be used for mounting the `.C10` or `.CAS` file.  Any DriveWire disk in Drive 0 will be unmounted.
 
 Supported DW Commands
 ---------------------

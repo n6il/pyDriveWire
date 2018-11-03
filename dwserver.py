@@ -488,14 +488,13 @@ class DWServer:
 		#raise Exception("cmd=%0x cmdErr" % ord(cmd))
 
         ### EmCee Server ###
-        def _emCeeOpenFile(self, filnum, fname, fmode, ftyp=0, opn=False):
-            error = 0
+        def _emCeeLoadFile(self, filnum, fname, fmode, ftyp=0, opn=False, error=0):
             address = 0
             size = 0
             checksum = 0
             if not error:
                 try:
-                    self.files[filnum] = CocoCas(fname)
+                    self.files[filnum] = CocoCas(fname, fmode)
                     self.files[filnum].seek()
                     #self.files[filnum] = MlFileReader(fname, fmode, ftyp)
                     #if ftyp == 2: # ml file
@@ -520,13 +519,42 @@ class DWServer:
                     error = E_MC_IO
             if error:
                 checksum = error
-            #if opn:
-            #    response = chr(error)
-            #else:
-            #    response = pack(">HHH", address, size, checksum)
-            response = pack(">HHH", address, size, checksum)
+            if opn:
+                response = chr(error)
+            else:
+                response = pack(">HHH", address, size, checksum)
             self.conn.write(response)
             return error
+
+        def _emCeeSaveFile(self, filnum, name, mode, exaddr, size, error):
+            if not error:
+           	self.files[filnum] = CocoCas(name, 'wb')
+		load = start = ascflg = 0 
+		ascflg = 0xff	
+		if mode == 2:
+			load = size
+			start = exaddr
+			filetype = 2 # ml
+			ascflg = 0
+		elif mode == 0:
+			filetype = 0 # basic
+			ascflg = 0 # basic
+		else:
+			filetype = 1 # data
+		nf = CocoCasNameFile(
+			filename = name.split(os.path.sep)[-1].split('.')[0][:8].upper(),
+			filetype = filetype,
+			ascflg = ascflg,
+			gap = 1,
+			load = load,
+			start = start,
+		 )
+		nfblk = CocoCasBlock(nf.getBlockData(), blktyp=0) # namefile
+		self.files[filnum].nf = nf
+		self.files[filnum].writeBlock(nfblk)
+	    self.conn.write(chr(error))
+            return error
+
 
         def cmdEmCeeLoadFile(self, cmd):
             error = 0
@@ -542,7 +570,7 @@ class DWServer:
                     print("cmd=%0x cmdEmCeeLoadFile timout getting file name" % (ord(cmd)))
                     error = E_MC_FN
             if not error:
-                error = self._emCeeOpenFile(0, fname, 'rb', ftyp)
+                error = self._emCeeLoadFile(0, fname, 'rb', ftyp)
             if error:
 		print("cmd=%0x cmdEmCeeLoadFile error=%d" % (ord(cmd), error))
                 return
@@ -569,7 +597,10 @@ class DWServer:
                 if not fname:
                     print("cmd=%0x cmdEmCeeLoadFile timout getting file name" % (ord(cmd)))
                     error = E_MC_FN
-            error = self._emCeeOpenFile(filnum, fname, fmode, opn=True)
+            if fmode.startswith('r'):
+                error = self._emCeeLoadFile(filnum, fname, fmode, opn=True, error=error)
+            else:
+                self._emCeeSaveFile(filnum, fname, fmode, 0, 0, error)
             if error:
 		print("cmd=%0x cmdEmCeeOpenFile error=%d" % (ord(cmd), error))
                 return
@@ -664,32 +695,7 @@ class DWServer:
 		name = self.conn.read(nameLength, self.timeout)
             if not name:
 		    error = E_MC_IO
-            if not error:
-           	self.files[0] = CocoCas(name, 'wb')
-		load = start = ascflg = 0 
-		ascflg = 0xff	
-		if mode == 2:
-			load = size
-			start = exaddr
-			filetype = 2 # ml
-			ascflg = 0
-		elif mode == 0:
-			filetype = 0 # basic
-			ascflg = 0 # basic
-		else:
-			filetype = 1 # data
-		nf = CocoCasNameFile(
-			filename = name.split(os.path.sep)[-1].split('.')[0][:8].upper(),
-			filetype = filetype,
-			ascflg = ascflg,
-			gap = 1,
-			load = load,
-			start = start,
-		 )
-		nfblk = CocoCasBlock(nf.getBlockData(), blktyp=0) # namefile
-		self.files[0].nf = nf
-		self.files[0].writeBlock(nfblk)
-	    self.conn.write(chr(error))
+            self._emCeeSaveFile(0, name, mode, exaddr, size, error)
             if self.debug:
 		print("cmd=%0x cmdEmCeeSave" % ord(cmd))
 
@@ -834,6 +840,7 @@ class DWServer:
                 MC_RETNAM: cmdEmCeeRetrieveName,
                 MC_DIRNAM: cmdEmCeeDirName,
                 MC_SETDIR: cmdEmCeeSetDir,
+                MC_REWRBLK: cmdEmCeeWriteBlock,
         }
 
         def doEmCeeCmd(self, cmd):
