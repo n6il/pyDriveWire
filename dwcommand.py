@@ -134,11 +134,24 @@ class DWParser:
 		uiParser=ParseNode("ui")
                 uiParser.add("server", uiServerParser)
 
+		aliasParser=ParseNode("alias")
+                aliasParser.add("show", ParseAction(self.doMcAliasShow))
+                aliasParser.add("add", ParseAction(self.doMcAliasAdd))
+                aliasParser.add("remove", ParseAction(self.doMcAliasRemove))
+
+		mcParser=ParseNode("mc")
+                mcParser.add("alias", aliasParser)
+                mcParser.add("setdir", ParseAction(self.doMcSetDir))
+                mcParser.add("getdir", ParseAction(self.doMcGetDir))
+                mcParser.add("show", ParseAction(self.doShow))
+                mcParser.add("eject", ParseAction(self.doEject))
+
 		self.parseTree=ParseNode("")
 		self.parseTree.add("dw", dwParser)
 		self.parseTree.add("tcp", tcpParser)
 		self.parseTree.add("AT", atParser)
 		self.parseTree.add("ui", uiParser)
+		self.parseTree.add("mc", mcParser)
 
 	def __init__(self, server):
 		self.server=server
@@ -428,6 +441,53 @@ class DWParser:
                 r += [e] 
             return '\n'.join(r)
 		
+        def doMcSetDir(self, data):
+            try:
+                os.chdir(data)
+            except Exception as e:
+                return str(e)
+            return "chdir(%s)" % data
+
+        def doMcGetDir(self, data):
+            dir = ''
+            try:
+                dir = os.getcwd()
+            except Exception as e:
+                return str(e)
+            return "Cwd: %s" % dir
+
+        def doMcAliasShow(self, data):
+            r = [   'Server Aliases',
+                    '==============']
+            for k,v in self.server.emCeeAliases.items():
+                r.append("Alias: %s Path: %s" % (k,v))
+            return '\n'.join(r)
+
+        def doMcAliasAdd(self, data):
+            idx = data.find(' ')
+            if idx == -1:
+                return "mc alias add <name> <path>"
+            alias = data[:idx].upper()
+            path = data[idx+1:]
+            self.server.emCeeAliases[alias] = path
+            r = [   'Add Alias',
+                    '==============',
+                    'Alias: %s Path: %s' % (alias, path)
+                ]
+            return '\n'.join(r)
+
+        def doMcAliasRemove(self, data):
+            alias = data.upper()
+            path = self.server.emCeeAliases.get(alias, None)
+            if not path:
+                return "Alias %s doesn't exit" % alias
+            r = [   'Remove Alias',
+                    '==============',
+                    'Alias: %s Path: %s' % (alias, path)
+                ]
+            del self.server.emCeeAliases[alias]
+            return '\n'.join(r)
+
 	def parse(self, data, interact=False):
 		data = data.lstrip().strip()
 		u = data.upper()

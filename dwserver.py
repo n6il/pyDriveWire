@@ -31,6 +31,7 @@ class DWServer:
                                 print("DWServer: Enabling experimental printing support")
                                 from dwprinter import DWPrinter
 				self.vprinter = DWPrinter()
+                self.emCeeAliases = {}
 
 	def registerConn(self, conn):
 		n = None
@@ -494,6 +495,7 @@ class DWServer:
             checksum = 0
             if not error:
                 try:
+                    fname = self.emCeeAliases.get(fname.upper(), fname)
                     self.files[filnum] = CocoCas(fname, fmode)
                     self.files[filnum].seek()
                     #self.files[filnum] = MlFileReader(fname, fmode, ftyp)
@@ -528,6 +530,7 @@ class DWServer:
 
         def _emCeeSaveFile(self, filnum, name, mode, exaddr, size, error):
             if not error:
+                name = self.emCeeAliases.get(name.upper(), name)
            	self.files[filnum] = CocoCas(name, 'wb')
 		load = start = ascflg = 0 
 		ascflg = 0xff	
@@ -762,6 +765,7 @@ class DWServer:
             if not error:
                 if flag == 0:
                     try:
+                        dirNam = self.emCeeAliases.get(dirNam.upper(), dirNam)
                         self.emCeeDir = os.listdir(dirNam)
                         self.emCeeDirIdx = 0
                     except:
@@ -817,6 +821,7 @@ class DWServer:
                     error = E_MC_IO
             if not error:
                 try:
+                    dirNam = self.emCeeAliases.get(dirNam.upper(), dirNam)
                     os.chdir(dirNam)
                 except:
                     error = E_MC_NE

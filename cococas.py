@@ -1,5 +1,7 @@
 import re
 from struct import *
+import tempfile
+import urllib
 
 LEADER = '\x55' * 128
 
@@ -89,6 +91,7 @@ class CocoCasBlock:
 class CocoCas:
     def __init__(self, fn, mode='rb'):
 	self.name = fn
+        fn = self.checkWeb(fn)
         self.wav = fn.lower().endswith('wav')
         if self.wav:
             self.file = CocoWavFile()
@@ -105,6 +108,18 @@ class CocoCas:
         self.blk = None
         self.nameFile = None
 	self.remote = False
+
+    def checkWeb(self, fileName):
+        try:
+            #print self.name
+            n = self.name.index(':')
+            fileName = tempfile.mktemp(prefix=self.name.split('/')[-1].split('.')[0], suffix='.'+self.name.split('.')[-1])
+            print("Downloading: %s" % (self.name))
+            urllib.urlretrieve(self.name, fileName)
+            self.remote = True
+        except ValueError:
+            pass
+        return fileName
 
     def rewind(self):
         self.segment = 0
