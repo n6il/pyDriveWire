@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<body>
+<h1>pyDriveWire Server</h1>
+<hr>
+<h2>Disk Images</h2>
+<tt>Disk 0: </tt><input name="disk0" id="disk0"><button id="disk0Insert" onclick="insert(0)">Insert</button><button id="disk0Eject" onclick="eject(0)">Eject</button><br>
+<tt>Disk 1: </tt><input name="disk1" id="disk1"><button id="disk1Insert" onclick="insert(1)">Insert</button><button id="disk1Eject" onclick="eject(1)">Eject</button><br>
+<tt>Disk 2: </tt><input name="disk2" id="disk2"><button id="disk2Insert" onclick="insert(2)">Insert</button><button id="disk2Eject" onclick="eject(2)">Eject</button><br>
+<tt>Disk 3: </tt><input name="disk3" id="disk3"><button id="disk3Insert" onclick="insert(3)">Insert</button><button id="disk3Eject" onclick="eject(3)">Eject</button><br>
+<button id="refresh" onclick="updateDisks()">Refresh</button><br>
+<hr>
+<h2>Command Console</h2>
+<script>
+function updatePre(string) {
+	var pre = document.getElementById('bar');
+	pre.innerHTML += string + "\npyDriveWire> ";
+}
+
+</script>
+<pre id="bar">
+pyDriveWire> </pre>
+<input type="text" name="foo" id="foo">
+<button id="myBtn" onclick="buttonPressed()">Submit</button>
+<script>
+var input = document.getElementById("foo");
+input.addEventListener("keyup", function(event) {
+    event.preventDefault();
+    if (event.keyCode === 13) {
+        document.getElementById("myBtn").click();
+    }
+});
+
+function updateDisksCb(string) {
+	// updatePre('dw disk show\n' + string.trim().replace('\r', ''));
+	var lines = string.trim().replace('\r', '').split('\n');
+	var len = lines.length;
+	for ( i=2; i<len; i++) {
+		var e = lines[i].split(/ +/);
+		var d = document.getElementById('disk' + e[0]);
+		d.value = e[1]
+	}
+
+}
+
+function updateDisks() {
+	var callback = updateDisksCb;
+	var cmd = 'dw disk show';
+	updatePre(cmd);
+	httpPostAsync(cmd, callback);
+}
+updateDisks();
+
+function diskOpsCb(string) {
+	updatePre(string.trim().replace('\r', ''));
+	updateDisks()
+}
+
+function insert(disk) {
+	var input = document.getElementById('disk'+disk);
+	var image = input.value;
+	if (image == 'None') {
+		return
+	}
+	var callback = diskOpsCb;
+	var cmd = 'dw disk insert ' + disk + " " + input.value;
+	updatePre(cmd);
+	httpPostAsync(cmd, callback);
+}
+
+function eject(disk) {
+	var input = document.getElementById('disk'+disk);
+	var image = input.value;
+	if (image == 'None') {
+		return
+	}
+	var callback = diskOpsCb;
+	var cmd = 'dw disk eject ' + disk;
+	updatePre(cmd);
+	httpPostAsync(cmd, callback);
+}
+
+function buttonPressed() {
+	var input = document.getElementById('foo');
+        if (! input.value) {
+		return
+	}
+	var pre = document.getElementById('bar');
+	pre.innerHTML += input.value + "\n"
+	httpPostAsync(input.value, updatePre)
+	input.value = ''
+}
+
+function httpPostAsyncY()
+{
+	var input = document.getElementById('foo')
+    	var theUrl = window.location.toString()
+	// var theUrl = "http://localhost:8088"
+        // var theUrl = "http://www.ocs.net/cgi-bin/test.py"
+	fetch(theUrl, {
+  method: "POST",
+  cors: "no-cors",
+  body: input.value,
+  })
+		.then(function(response) {
+			console.log(response.json());
+			// return response.text();
+		})
+		.then(function(myJson) {
+			console.log(myJson);
+			// console.log(JSON.stringify(myJson));
+		});
+}
+
+function httpPostAsync(data, callback)
+{
+    var theUrl = window.location.toString()
+    // var theUrl = "http://www.ocs.net/cgi-bin/test.py"
+    // var callback = updatePre;
+    var xmlHttp = new XMLHttpRequest();
+    // var input = document.getElementById('foo')
+    xmlHttp.open("POST", theUrl, true); // true for asynchronous 
+    xmlHttp.onreadystatechange = function() { 
+        if (this.readyState == 4 && this.status == 200)
+            callback(this.responseText);
+    }
+    xmlHttp.send(data);
+}
+</script>
+<input type="file" id="input" onChange="handleFiles(this.files)"><br>
+<script>
+function handleFiles(file) {
+	console.log(file)
+}
+</script>
+
+</body>
+</html>
+

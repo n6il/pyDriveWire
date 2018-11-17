@@ -4,6 +4,7 @@ from dwserial import DWSerial
 from dwsocket import DWSocketServer, DWSocket
 from dwserver import DWServer
 from dwcommand import DWRepl, DWRemoteRepl, DWParser
+from dwhttpserver import DWHttpServer
 import traceback
 import logging
 import argparse
@@ -23,6 +24,7 @@ def ParseArgs():
     parser.add_argument('-R', '--rtscts', dest='rtscts', action='store_true', help='Serial: Enable RTS/CTS Flow Control')
     parser.add_argument('-x', dest='experimental', action='append', help='experimental options')
     parser.add_argument('-D', '--cmd-port', dest='cmdPort', help='Remote dw command input')
+    parser.add_argument('-U', '--ui-port', dest='uiPort', help='pyDriveWire UI Port')
     parser.add_argument('-C', '--config', dest='config', help='Config File', default="~/.pydrivewirerc")
     parser.add_argument('files', metavar='FILE', nargs='*',
                     help='list of files')
@@ -135,6 +137,8 @@ if __name__ == '__main__':
 			drive += 1
 		if args.cmdPort:
 			dwe = DWRemoteRepl(dws, args.cmdPort)
+		if args.uiPort:
+			dwhts = DWHttpServer(dws, int(args.uiPort))
 		dwr = DWRepl(dws)
 		dws.main()
 	except:
