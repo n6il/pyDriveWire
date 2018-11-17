@@ -3,12 +3,13 @@ import serial
 from dwserial import DWSerial
 from dwsocket import DWSocketServer, DWSocket
 from dwserver import DWServer
-from dwcommand import DWRepl, DWRemoteRepl
+from dwcommand import DWRepl, DWRemoteRepl, DWParser
 import traceback
 import logging
 import argparse
 
 import sys
+import os
 
 VERSION = 'v0.4'
 
@@ -22,14 +23,17 @@ def ParseArgs():
     parser.add_argument('-R', '--rtscts', dest='rtscts', action='store_true', help='Serial: Enable RTS/CTS Flow Control')
     parser.add_argument('-x', dest='experimental', action='append', help='experimental options')
     parser.add_argument('-D', '--cmd-port', dest='cmdPort', help='Remote dw command input')
-    parser.add_argument('files', metavar='FILE', nargs='+',
+    parser.add_argument('-C', '--config', dest='config', help='Config File', default="~/.pydrivewirerc")
+    parser.add_argument('files', metavar='FILE', nargs='*',
                     help='list of files')
 
     args = parser.parse_args()
 
+    args = ReadConfig(args)
+
     err = None
     if not any([args.port, args.accept, args.connect]):
-        err = "Must supply one of --serial, --accept, or --connect"
+        err = "Must supply one of --port, --accept, or --connect or config file"
     elif args.accept and not args.port:
         err = "TCP Accept must supply --accept and --port"
     elif args.connect and not all([args.port,args.host]):
@@ -42,6 +46,31 @@ def ParseArgs():
         parser.print_usage()
         exit(1)
 
+    return args
+
+def ReadConfig(args):
+    cmds = []
+    args.cmds = cmds
+
+    i = 0
+    cfgFile = os.path.expanduser(args.config)
+    if not os.path.exists(cfgFile):
+        return args
+    with open(cfgFile) as f:
+        for l in f:
+            l = l.lstrip().rstrip()
+            if l.startswith('#') or l=='':
+                continue
+            lp = l.split(' ')
+            if lp[0].lower() == 'option':
+                #args[lp[1]] = lp[2]
+                val = lp[2]
+                if val in ['True', 'False']:
+                        val = eval(val)
+                exec('args.%s = val' % lp[1])
+            else:
+                cmds += [l]
+    args.cmds = cmds
     return args
 
 if __name__ == '__main__':
@@ -91,6 +120,13 @@ if __name__ == '__main__':
 	#print conn.__class__
 
 	dws = DWServer(args, conn, VERSION)
+
+
+        parser = DWParser(dws)
+        for cmd in args.cmds:
+            print cmd
+            parser.parse(cmd)
+
 
 	try:
 		drive = 0

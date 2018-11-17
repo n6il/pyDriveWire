@@ -515,7 +515,7 @@ class DWParser:
 					callData = data[3:].lstrip()
 				else:
 					callData = data[i:]
-				print callData
+				#print callData
 				res = ''
 				try:
 					res=v.call(callData)	
