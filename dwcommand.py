@@ -267,22 +267,10 @@ class DWParser:
 	#def doDir(self, data, nxti):
 	def doDir(self, data):
 		out = ['']
-		#cmd = ['ls']
-		#if nxti != -1:
-		#	path = data[nxti+1:].split(' ')[0]
-		#	cmd.append(path)
-		#if not data:
-		#	raise Exception("dir: Bad data")
-		#if data:
-		#	cmd.append(data)
-		#print cmd
-		#data2 = subprocess.Popen(
-		#	" ".join(cmd),
-		#	stdout=subprocess.PIPE,
-		#	stderr=subprocess.STDOUT,
-		#	shell=True)	
-		#out.extend(data2.stdout.read().split('\n'))
-		out.extend(os.listdir(data))
+                # print "doDir data=(%s)" % data
+                if not data:
+                    data  = os.getcwd()
+                out.extend(os.listdir(data))
 		out.append('')
 		return '\n\r'.join(out)
 
