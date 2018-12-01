@@ -1,0 +1,132 @@
+<html>
+<body>
+<h1 id="top">pyDriveWire Server Help</h1>
+<ol id="toc">
+	<li>User Interface<ol>
+		<li><a href="#Disk_Images">Disk Images</a></li>
+		<li><a href="#Command_Console">Command Console</a></li>
+		<li>bar</li>
+	</ol></li>
+	<li><a href="#Commands">DriveWire Commands</a></li>
+	</ol></li>
+</ol>
+<div id="Disk_Images">
+<h2>Disk Images</h2>
+<p>The Disk Images screen allows you to manage which disk images are mounted in the pyDriveWireServer.</p>
+<p>Each line in the screen has a text box for each virtual disk on the server.  The text box shows
+the currently mounted disk image or None if no disk is mounted.</p>
+<p>To Mount a disk image, type the full path to the disk image <i>on the pyDriveWireServer</i> and click the <i>Insert</i> button.</p>
+<p>To Eject a disk image click the <i>Eject</i> button.</p>
+<p>To refresh the currently mounted disk images click the <i>Refresh</i> button.</p>
+<p><a href="#top">Back</a></p>
+</div>
+<div id="Command_Console">
+<h2>Command Console</h2>
+<p>The Command Console screen allows you to run commands on the pyDriveWire
+server and also shows all the commands that have been run on the server
+by the user interface.</p>
+<p>The screen has 2 parts: A scollable window with all the commands and command output, and second text box to enter commands and a button submit those commands to the server</p>
+<p>The command window is designed to be <i>interactive</i> so that you can
+easily explore the available commands without looking up in the manual.
+Suppose the user doesn't know what command to type and just typed <tt>help</tt>:
+<blockquote><pre>
+pyDriveWire> help
+: Invalid command: help
+commands: dw tcp AT ui mc
+</pre></blockquote>
+The server responded that <tt>help</tt> is not a valid command but it listed
+out the valid possible command prefixes <tt>dw tcp AT ui mc</tt>.  The user
+continues their exploration:
+<blockquote><pre>
+pyDriveWire> dw
+dw: Invalid command: dw
+dw commands: disk server port
+</pre></blockquote>
+Here the user typed <tt>dw</tt> and the server responded with all of the available commands under <tt>dw</tt>.  If the user was interested in disk operations they could type  <tt>dw disk</tt> to see what sub commands are available:
+<blockquote><pre>
+pyDriveWire> dw disk 
+disk: Invalid command: disk
+disk commands: insert reset eject show
+</pre></blockquote>
+The user is interested to show what disk images are mounted so this time the issued the full command:
+<blockquote><pre>
+pyDriveWire> dw disk show
+
+
+Drive  File
+-----  --------------------------------------
+0      /Users/mfurman/Downloads/plato.dsk
+1      None
+2      None
+3      None
+</pre></blockquote>
+If you already know the command you want you can of course type it directly without going through the exploratory steps above.</p>
+<p><a href="#top">Back</a></p>
+</div>
+<div id="Commands">
+<h2>DriveWire Commands</h2>
+<pre>
+AT commands
+===========
+AT
+ATD<host:port>
+ATDT<host:port>
+ATE
+ATI
+ATH
+ATO
+ATZ
+
+dw disk commands
+===========
+dw disk insert <drive> <path>
+dw disk eject <drive>
+dw disk reset <drive>
+dw disk show
+
+dw port commands
+================
+dw port show
+dw port close <port>
+dw port debug <0|false|1|true>
+
+dw server commands
+==================
+dw server conn debug <0|false|1|true>
+dw server debug <0|false|1|true>
+dw server dir <path>
+dw server dump
+dw server instance
+dw server list <path>
+dw server timeout <seconds>
+dw server version
+
+mc commands
+===========
+mc alias show
+mc alias add <alias> <path>
+mc alias remove <alias>
+mc setdir <path>
+mc getdir
+mc show
+mc eject <drive>
+
+tcp commands
+============
+tcp connect <host:port>
+tcp listen <port>
+tcp join <connection>
+tcp kill <connection>
+
+ui commands
+===========
+ui server file defaultdir
+ui server file dir
+ui server file info
+ui server file roots
+ui server file xdir
+</pre>
+<p><a href="#top">Back</a></p>
+</div>
+</body>
+</html>

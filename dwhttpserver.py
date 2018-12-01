@@ -3,6 +3,8 @@ from urlparse import parse_qs
 import cgi
 import threading
 from dwcommand import DWParser
+import os
+
 """
 class DWParser:
 	def __init__(self, server):
@@ -23,16 +25,21 @@ class GP(BaseHTTPRequestHandler):
     #    self._set_headers()
     def do_GET(self):
 	response = 200
-	if self.path not in ['/', '/index.html']:
+        path = 'ui%s' % self.path
+	if self.path in ['/', '/index.html']:
+            path = 'ui/pyDriveWireUi.html' 
+            response = 200
+        elif os.path.exists(path):
+            response = 200
+        else:
 		response = 404
         self._set_headers('text/html', response)
 	if response != 200:
 		self.wfile.write("<html><body><h1>%d Error: Invalid location: %s</h1></body></html>" % (response, self.path))
 		return
-        print self.path
         #print parse_qs(self.path[2:])
         #self.wfile.write("<html><body><h1>Get Request Received!</h1></body></html>")
-	with open('ui/pyDriveWireUi.html') as f:
+	with open(path) as f:
 		self.wfile.write(f.read())
     def do_POST(self):
 	global parser

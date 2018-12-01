@@ -1,28 +1,107 @@
 <!DOCTYPE html>
 <html>
+<head>
+<title>pyDriveWire Server</title>
+</head>
 <body>
-<h1>pyDriveWire Server</h1>
-<hr>
-<h2>Disk Images</h2>
-<tt>Disk 0: </tt><input name="disk0" id="disk0"><button id="disk0Insert" onclick="insert(0)">Insert</button><button id="disk0Eject" onclick="eject(0)">Eject</button><br>
-<tt>Disk 1: </tt><input name="disk1" id="disk1"><button id="disk1Insert" onclick="insert(1)">Insert</button><button id="disk1Eject" onclick="eject(1)">Eject</button><br>
-<tt>Disk 2: </tt><input name="disk2" id="disk2"><button id="disk2Insert" onclick="insert(2)">Insert</button><button id="disk2Eject" onclick="eject(2)">Eject</button><br>
-<tt>Disk 3: </tt><input name="disk3" id="disk3"><button id="disk3Insert" onclick="insert(3)">Insert</button><button id="disk3Eject" onclick="eject(3)">Eject</button><br>
-<button id="refresh" onclick="updateDisks()">Refresh</button><br>
-<hr>
-<h2>Command Console</h2>
-<script>
-function updatePre(string) {
-	var pre = document.getElementById('bar');
-	pre.innerHTML += string + "\npyDriveWire> ";
+<style>
+body {
+    background-color: LimeGreen;
 }
 
-</script>
-<pre id="bar">
-pyDriveWire> </pre>
-<input type="text" name="foo" id="foo">
+ 
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    background-color: LimeGreen;
+}
+
+li a {
+    display: block;
+    color: #000;
+    padding: 8px 16px;
+    text-decoration: none;
+    border: solid;
+    border-width: 1px;
+    border-color: White;
+}
+
+/* Change the link color on hover */
+li a.active {
+	background-color: Black;
+	color: LimeGreen;
+}
+
+li a:hover:not(.active) {
+    background-color: #555;
+    color: white;
+}
+
+iframe {
+	width: 100%;
+	height: 100%;
+	border: none;
+}
+
+</style>
+<div style="float: top; width: 100%; backround-color:LimeGreen; text-align:center;"><h1 id="h1">pyDriveWire Server</h1><hr></div>
+<div style="float: left; width: 10%; background-color:LimeGreen; height: 500px;" id="menu">
+<!--
+<div style="border: solid; border-width: 1px; padding=2px; text-decoration: none;" id="sdt"><a href="#" onclick="showDisk()">Disk Images</a></div><br>
+<div style="border: solid; border-width: 1px; padding=2px; text-decoration: none;" id="sct"><a href="#" onclick="showConsole()">Command Console</a></div>
+-->
+<h2>Menu</h2>
+<ul>
+	<li><a href="#" onclick="showDiv('disk')" class="active" id="b_disk">Disk Images</a></li>
+	<li><a href="#" onclick="showDiv('console')" id="b_console">Command Console</a></li>
+	<li><a href="#" onclick="showDiv('help')" id="b_help">Help</a></li>
+	<li><a href="#" onclick="showDiv('about')" id="b_about">About</a></li>
+</ul>
+</div>
+<!-- div style="float: left; width: 1%; background-color:LimeGreen; height: 500px;" id="space"></div-->
+
+<!-- div: disk -->
+<div style="margin-left: 10%; padding: 1px 20px; background-color: LimeGreen; foreground-color: Black; height: 500px;" id="disk">
+<h2>Disk Images</h2>
+<tt>Disk 0: </tt><input name="disk0" size="40" id="disk0"><button id="disk0Insert" onclick="insert(0)">Insert</button><button id="disk0Eject" onclick="eject(0)">Eject</button><br>
+<tt>Disk 1: </tt><input name="disk1" size="40" id="disk1"><button id="disk1Insert" onclick="insert(1)">Insert</button><button id="disk1Eject" onclick="eject(1)">Eject</button><br>
+<tt>Disk 2: </tt><input name="disk2" size="40" id="disk2"><button id="disk2Insert" onclick="insert(2)">Insert</button><button id="disk2Eject" onclick="eject(2)">Eject</button><br>
+<tt>Disk 3: </tt><input name="disk3" size="40" id="disk3"><button id="disk3Insert" onclick="insert(3)">Insert</button><button id="disk3Eject" onclick="eject(3)">Eject</button><br>
+<button id="refresh" onclick="updateDisks()">Refresh</button><br>
+</div>
+
+<!-- div: console -->
+<div style="margin-left: 10%; padding: 1px 20px; display: none; background-color: LimeGreen; foreground-color: Black; height: 500px;" id="console">
+<h2>Command Console</h2>
+<textarea id="txt" rows="24" cols="80" style="font-family: monospace;">pyDriveWire> </textarea><br>
+Enter Command:<br>
+<input type="text" name="foo" id="foo" style="font-family: monospace;" size="80">
 <button id="myBtn" onclick="buttonPressed()">Submit</button>
+</div>
+
+
+<!-- div: help -->
+<div style="margin-left: 10%; padding: 1px 20px; display: none; background-color: LimeGreen; foreground-color: Black; height: 500px;" id="help">
+	<iframe src="/help.html"></iframe>
+</div>
+<!-- div: about -->
+<div style="margin-left: 10%; padding: 1px 20px; display: none; background-color: LimeGreen; foreground-color: Black; height: 500px;" id="about">
+	<iframe src="/about.html"></iframe>
+</div>
+
 <script>
+var divs = {}
+var buttons = {}
+var divList = ["disk", "console", "help", "about"]
+for (i in divList) {
+	var div = divList[i]
+	divs[div] = document.getElementById(div)
+	buttons[div] = document.getElementById('b_' + div)
+}
+
+
 var input = document.getElementById("foo");
 input.addEventListener("keyup", function(event) {
     event.preventDefault();
@@ -31,8 +110,91 @@ input.addEventListener("keyup", function(event) {
     }
 });
 
+
+function showDiv(myDiv) {
+	for (div in divs) {
+		if (div == myDiv) {
+			divs[div].style.display = "block";
+			buttons[div].className = "active"; 
+		} else {
+			divs[div].style.display = "none";
+			buttons[div].className = null; 
+		}
+	}
+	if ( myDiv == 'console') {
+		var txt = document.getElementById('txt');
+		txt.scrollTop = txt.scrollHeight;
+	}
+}
+
+function showDisk2() {
+	var disk = document.getElementById('disk');
+	var cnsl = document.getElementById('console');
+	// var sdt = document.getElementById('sdt');
+	// var sct = document.getElementById('sct');
+	// sdt.style.border='solid';
+	// sdt.style.backgroundColor='Black';
+	// sdt.style.color='LimeGren';
+	// sct.style.border='none';
+	disk.style.display='block';
+	cnsl.style.display='none';
+	// cnsl.style.display='none';
+	var sdt2 = document.getElementById('sdt2');
+	var sct2 = document.getElementById('sct2');
+	sdt2.className="active";
+	sct2.className=null;
+}
+
+function showConsole2() {
+	var disk = document.getElementById('disk');
+	var cnsl = document.getElementById('console');
+	// var sdt = document.getElementById('sdt');
+	// var sct = document.getElementById('sct');
+	// sct.style.border='solid';
+	// sdt.style.border='none';
+	disk.style.display='none';
+	cnsl.style.display='block';
+	var txt = document.getElementById('txt');
+	txt.scrollTop = txt.scrollHeight 
+	var sdt2 = document.getElementById('sdt2');
+	var sct2 = document.getElementById('sct2');
+	sdt2.className=null;
+	sct2.className="active";
+
+}
+
+function updateTxt(data) {
+	var txt = document.getElementById('txt');
+	txt.value += data;
+	txt.scrollTop = txt.scrollHeight 
+}
+
+function updateTxtCb(data) {
+	updateTxt(data + "\n\npyDriveWire> ");
+}
+
+function updateH1Cb(string) {
+	// updateTxtCb('dw disk show\n' + string.trim().replace('\r', ''));
+	// updateTxtCb(string.trim().replace('\r', ''));
+	var lines = string.trim().replace('\r', '').split('\n');
+	var len = lines.length;
+	var h1 = document.getElementById('h1');
+	h1.innerHTML = lines[0];
+	// updateTxtCb(lines[0] +'\n\n');
+
+}
+
+function updateH1() {
+	var callback = updateH1Cb;
+	var cmd = 'dw server version';
+	// updateTxt(cmd + '\n');
+	httpPostAsync(cmd, callback);
+}
+updateH1();
+
 function updateDisksCb(string) {
-	// updatePre('dw disk show\n' + string.trim().replace('\r', ''));
+	// updateTxtCb('dw disk show\n' + string.trim().replace('\r', ''));
+	updateTxtCb(string.trim().replace('\r', ''));
 	var lines = string.trim().replace('\r', '').split('\n');
 	var len = lines.length;
 	for ( i=2; i<len; i++) {
@@ -46,13 +208,13 @@ function updateDisksCb(string) {
 function updateDisks() {
 	var callback = updateDisksCb;
 	var cmd = 'dw disk show';
-	updatePre(cmd);
+	updateTxt(cmd + '\n');
 	httpPostAsync(cmd, callback);
 }
 updateDisks();
 
 function diskOpsCb(string) {
-	updatePre(string.trim().replace('\r', ''));
+	updateTxtCb(string.trim().replace('\r', ''));
 	updateDisks()
 }
 
@@ -64,7 +226,7 @@ function insert(disk) {
 	}
 	var callback = diskOpsCb;
 	var cmd = 'dw disk insert ' + disk + " " + input.value;
-	updatePre(cmd);
+	updateTxt(cmd + '\n');
 	httpPostAsync(cmd, callback);
 }
 
@@ -76,7 +238,7 @@ function eject(disk) {
 	}
 	var callback = diskOpsCb;
 	var cmd = 'dw disk eject ' + disk;
-	updatePre(cmd);
+	updateTxt(cmd + '\n');
 	httpPostAsync(cmd, callback);
 }
 
@@ -85,9 +247,10 @@ function buttonPressed() {
         if (! input.value) {
 		return
 	}
-	var pre = document.getElementById('bar');
-	pre.innerHTML += input.value + "\n"
-	httpPostAsync(input.value, updatePre)
+	// var pre = document.getElementById('bar');
+	// pre.innerHTML += input.value + "\n"
+	updateTxt(input.value + "\n")
+	httpPostAsync(input.value, updateTxtCb)
 	input.value = ''
 }
 
@@ -116,7 +279,7 @@ function httpPostAsync(data, callback)
 {
     var theUrl = window.location.toString()
     // var theUrl = "http://www.ocs.net/cgi-bin/test.py"
-    // var callback = updatePre;
+    // var callback = updateTxt;
     var xmlHttp = new XMLHttpRequest();
     // var input = document.getElementById('foo')
     xmlHttp.open("POST", theUrl, true); // true for asynchronous 
@@ -127,13 +290,15 @@ function httpPostAsync(data, callback)
     xmlHttp.send(data);
 }
 </script>
-<input type="file" id="input" onChange="handleFiles(this.files)"><br>
+
+<!-- input type="file" id="input" onChange="handleFiles(this.files)"><br->
 <script>
 function handleFiles(file) {
 	console.log(file)
 }
-</script>
 
+
+</script>
 </body>
 </html>
 
