@@ -5,6 +5,7 @@ from dwsocket import *
 from dwtelnet import DWTelnet
 import os
 import sys
+import re
 
 class ParseNode:
 	def __init__(self, name, nodes=None):
@@ -91,6 +92,7 @@ class DWParser:
 		serverParser.add("dump", ParseAction(self.dumpstacks))
 		serverParser.add("debug", ParseAction(self.doDebug))
 		serverParser.add("timeout", ParseAction(self.doTimeout))
+		serverParser.add("version", ParseAction(self.doVersion))
 		connParser=ParseNode("conn")
 		connParser.add("debug", ParseAction(self.doConnDebug))
 		serverParser.add("conn", connParser)
@@ -189,12 +191,13 @@ class DWParser:
 		return '\n\r'.join(out)
 
 	def doPortClose(self, data):
-		channel = data.lstrip().rstrip()
-		if not chr(int(channel)) in self.server.channels:
+		data = data.lstrip().rstrip()
+		channel = chr(int(data))
+		if not channel in self.server.channels:
 			return "Invalid port %s" % channel
 		ch = self.server.channels[channel]
 		ch._close()
-		return "Port=n%s closing" % channel
+		return "Port=n%s closing" % data
 
 	def doPortShow(self, data):
 		out = ['','']
@@ -257,6 +260,9 @@ class DWParser:
 			self.server.timeout = timeout
 		return "debug=%s" % (self.server.timeout)
 			
+	def doVersion(self, data):
+		return "pyDriveWire Server %s" % self.server.version
+
 	def doDebug(self, data):
 		if data.startswith(('1','on','t','T','y', 'Y')):
 			self.server.debug = True
@@ -478,6 +484,8 @@ class DWParser:
 
 	def parse(self, data, interact=False):
 		data = data.lstrip().strip()
+                data = re.subn('.\b', '', data)[0]
+                data = re.subn('.\x7f', '', data)[0]
 		u = data.upper()
 		if u.startswith("AT"):
 			tokens=["AT"]
@@ -548,6 +556,8 @@ class DWRepl:
 				break
 			
 			try:
+				wdata = re.subn('.\b', '', wdata)[0]
+				wdata = re.subn('.\x7f', '', wdata)[0]
 				print self.parser.parse(wdata, True)
 			except Exception as ex:
 				print "ERROR:: %s" % str(ex)
@@ -576,7 +586,9 @@ class DWRemoteRepl:
 			#sock.accept()	
 			s = self.sock.read(readLine=True)
 			if len(s) > 0:
-				s = s.strip()
+				s = s.lstrip().rstrip()
+				s = re.subn('.\b', '', s)[0]
+				s = re.subn('.\x7f', '', s)[0]
 				if s in ['quit', 'QUIT', 'exit', 'EXIT']:
 					sock.conn.close()
 					sock.conn = None
