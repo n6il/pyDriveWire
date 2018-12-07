@@ -26,6 +26,7 @@ def ParseArgs():
     parser.add_argument('-D', '--cmd-port', dest='cmdPort', help='Remote dw command input')
     parser.add_argument('-U', '--ui-port', dest='uiPort', help='pyDriveWire UI Port')
     parser.add_argument('-C', '--config', dest='config', help='Config File', default="~/.pydrivewirerc")
+    parser.add_argument('--daemon', dest='daemon', action='store_true', help='Daemon Mode, No Repl')
     parser.add_argument('files', metavar='FILE', nargs='*',
                     help='list of files')
 
@@ -139,7 +140,8 @@ if __name__ == '__main__':
 			dwe = DWRemoteRepl(dws, args.cmdPort)
 		if args.uiPort:
 			dwhts = DWHttpServer(dws, int(args.uiPort))
-		dwr = DWRepl(dws)
+                if not args.daemon:
+                    dwr = DWRepl(dws)
 		dws.main()
 	except:
 		traceback.print_exc()
