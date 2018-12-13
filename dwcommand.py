@@ -86,7 +86,7 @@ class DWParser:
 		diskParser.add("show", ParseAction(self.doShow))
 
 		serverParser=ParseNode("server")
-		serverParser.add("instance", ParseAction(self.doInstance))
+		serverParser.add("instance", ParseAction(self.doInstanceShow))
 		serverParser.add("dir", ParseAction(self.doDir))
 		serverParser.add("list", ParseAction(self.doList))
 		serverParser.add("dump", ParseAction(self.dumpstacks))
@@ -102,10 +102,16 @@ class DWParser:
 		portParser.add("close", ParseAction(self.doPortClose))
 		portParser.add("debug", ParseAction(self.doPortDebug))
 
+		instanceParser=ParseNode("instance")
+		instanceParser.add("show", ParseAction(self.doInstanceShow))
+		instanceParser.add("add", ParseAction(self.doInstanceShow))
+		instanceParser.add("select", ParseAction(self.doInstanceSelect))
+
 		dwParser=ParseNode("dw")
 		dwParser.add("disk", diskParser)
 		dwParser.add("server", serverParser)
 		dwParser.add("port", portParser)
+		dwParser.add("instance", instanceParser)
 
 		tcpParser=ParseNode("tcp")
 		tcpParser.add("connect", ParseAction(self.doConnect))
@@ -178,14 +184,24 @@ class DWParser:
 		drive = data.split(' ')[0]
 		self.server.close(int(drive))
 		return "close(%d)" % (int(drive))
-	def doInstance(self, data):
+
+
+	def doInstanceSelect(self, data):
+		instance = data.split(' ')[0]
+                self.server = self.server.instances[int(instance)]
+                return "Selected Instance %s: %s" % (self.server.instance, self.server.conn.name())
+
+	def doInstanceShow(self, data):
 		out = ['','']
 		out.append( "Inst.  Type" )
 		out.append( "-----  --------------------------------------" )
-		#i=0
-		#for f in self.server.files:
-		out.append( "%d      %s" % (0, self.server.conn.__class__))
-		#	i += 1
+		i=0
+		for inst in self.server.instances:
+                    c = ' '
+                    if i == self.server.instance:
+                      c = '*'
+                    out.append( "%d%c     %s" % (i, c, inst.conn.name()))
+		    i += 1
 		
 		out.append('')
 		return '\n\r'.join(out)
@@ -542,7 +558,11 @@ class DWRepl:
 	def doRepl(self):
 		while True:
 			try: 
-				print "pyDriveWire> ",
+                                iprompt=''
+                                if len(self.server.instances) > 1:
+                                    server = self.parser.server
+                                    iprompt ='(%d)' % server.instance
+				print "pyDriveWire%s> " % iprompt,
 				wdata = raw_input()
 			except EOFError:
 				print
@@ -558,7 +578,8 @@ class DWRepl:
 			try:
 				wdata = re.subn('.\b', '', wdata)[0]
 				wdata = re.subn('.\x7f', '', wdata)[0]
-				print self.parser.parse(wdata, True)
+                                r = self.parser.parse(wdata, True)
+                                print r
 			except Exception as ex:
 				print "ERROR:: %s" % str(ex)
 				traceback.print_exc()

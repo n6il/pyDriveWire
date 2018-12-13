@@ -14,7 +14,7 @@ from cococas import *
 NULL_SECTOR = NULL * SECSIZ
 
 class DWServer:
-	def __init__(self, args, conn, version):
+	def __init__(self, args, conn, version, instances, instance):
 		self.conn = conn
 		self.files = [None] * 256
 		self.channels = {}
@@ -32,6 +32,8 @@ class DWServer:
                                 from dwprinter import DWPrinter
 				self.vprinter = DWPrinter()
                 self.emCeeAliases = {}
+                self.instances = instances
+                self.instance = instance
 
 	def registerConn(self, conn):
 		n = None
@@ -242,7 +244,7 @@ class DWServer:
 				print traceback.print_exc()
                 if rc == E_OK:
                     if (lsn == 0) or (not self.files[disk].os9Image and lsn >= self.files[disk].maxLsn):
-                       files[disk].guessMaxLsn() 
+                       self.files[disk].guessMaxLsn() 
 		#if crc != dwCrc16(data):
 		#	rc=E_CRC
 		self.conn.write(chr(rc))

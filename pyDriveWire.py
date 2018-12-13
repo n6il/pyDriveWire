@@ -8,9 +8,11 @@ from dwhttpserver import DWHttpServer
 import traceback
 import logging
 import argparse
+from argparse import Namespace
 
 import sys
 import os
+import threading
 
 VERSION = 'v0.4'
 
@@ -52,10 +54,13 @@ def ParseArgs():
     return args
 
 def ReadConfig(args):
-    cmds = []
-    args.cmds = cmds
+    instances = []
+    args.cmds = []
 
     i = 0
+    instance = 0
+    iargs = args
+
     cfgFile = os.path.expanduser(args.config)
     if not os.path.exists(cfgFile):
         return args
@@ -64,51 +69,47 @@ def ReadConfig(args):
             l = l.lstrip().rstrip()
             if l.startswith('#') or l=='':
                 continue
+            if l.startswith('['):
+                instName = l[1:-1]
+                instance += 1
+                iargs = Namespace()
+                iargs.accept = False
+                iargs.connect = False
+                iargs.host = None
+                iargs.port = None
+                iargs.speed = None
+                iargs.experimental = []
+                iargs.daemon = True
+                iargs.rtscts = False
+                iargs.files = []
+                iargs.cmds = []
+                instances.append(iargs)
+                continue
             lp = l.split(' ')
             if lp[0].lower() == 'option':
                 #args[lp[1]] = lp[2]
                 val = lp[2]
                 if val in ['True', 'False']:
                         val = eval(val)
-                exec('args.%s = val' % lp[1])
+                exec('iargs.%s = val' % lp[1])
+                #print "%d:option:%s" % (instance,l)
             else:
-                cmds += [l]
-    args.cmds = cmds
+                iargs.cmds += [l]
+                #print "%d:cmd:%s" % (instance,l)
+    args.instances = instances
+    #args.cmds = cmds
     return args
 
-if __name__ == '__main__':
-	import sys
 
-        args = ParseArgs()
-        #print(args)
-	logging.basicConfig(stream=sys.stdout, level=logging.INFO,
-		format='%(asctime)s %(levelname)s %(module)s:%(lineno)s.%(funcName)s %(message)s')
-	#if len(sys.argv) < 3:
-	#	print("Usage: %s <port> <speed> [<file>] [...]" % (sys.argv[0]))
-	#	print('')
-	#	print('\t%s /dev/tty.usbserial-FTF4ZN9S 115200 ...' % sys.argv[0])
-	#	print('\t%s accept <port> ...' % sys.argv[0])
-	#	print('\t%s connect <host> <port> ...' % sys.argv[0])
-	#	print('')
-	#	sys.exit(1)
-
-	#(port, speed) = sys.argv[1:3]
-	#files = sys.argv[3:]
-	#print port, speed, files
-
+def CreateServer(args, instance, instances, lock):
 	if args.accept:
                 print("Accept connection on %s" % args.port)
 		conn = DWSocketServer(port=args.port)
-		#conn.accept()
 	elif args.connect:
-		#(host, port) = sys.argv[2:4]
-		#files = sys.argv[4:]
-		#print "host",host,"port",port,"files",files
                 print "Connect to %s:%s" % (args.host,args.port)
 		conn = DWSocket(port=args.port,host=args.host)
 		conn.connect()
 		conn.run()
-		#exit(0)
 	else:
                 print "Serial Port: %s at %s, RTS/CTS=%s" % (args.port, args.speed, args.rtscts)
 		conn = DWSerial(args.port, args.speed, rtscts=args.rtscts)
@@ -120,31 +121,71 @@ if __name__ == '__main__':
 		conn.cleanup()
 	import atexit
 	atexit.register(cleanup)
-	#print conn.__class__
 
-	dws = DWServer(args, conn, VERSION)
+	dws = DWServer(args, conn, VERSION, instances, instance)
+        lock.acquire()
+        instances[instance] = dws
+        lock.release()
 
 
         parser = DWParser(dws)
         for cmd in args.cmds:
-            print cmd
+            print i,cmd
             parser.parse(cmd)
 
+        return dws
 
+def StartServer(args, dws):
 	try:
 		drive = 0
 		for f in args.files:
 			dws.open(drive, f)
 			drive += 1
-		if args.cmdPort:
-			dwe = DWRemoteRepl(dws, args.cmdPort)
-		if args.uiPort:
-			dwhts = DWHttpServer(dws, int(args.uiPort))
-                if not args.daemon:
-                    dwr = DWRepl(dws)
+                if dws.instance == 0:
+                    if args.cmdPort:
+                            dwe = DWRemoteRepl(dws, args.cmdPort)
+                    if args.uiPort:
+                            dwhts = DWHttpServer(dws, int(args.uiPort))
+                    if not args.daemon:
+                        dwr = DWRepl(dws)
 		dws.main()
 	except:
 		traceback.print_exc()
 	finally:
 		cleanup()
+
+
+instances = [None]
+lock = threading.Lock()
+def StartServers(args):
+    global instances
+    global lock
+    instances = [None] * (len(args.instances) + 1)
+    threads = []
+    #lock = threading.Lock()
+    j = 1
+    for iargs in args.instances:
+        dws = CreateServer(iargs, j, instances, lock)
+        instances[j] = dws
+        t = threading.Thread(target = StartServer, args=([iargs, dws]))
+        t.daemon = True
+        threads.append(t)
+        j += 1
+
+    dws = CreateServer(args, 0, instances, lock)
+    instances[0] = dws
+
+    for i in range(len(instances)):
+        instances[i].instances = instances
+        instances[i].instance = i
+
+    for t in threads:
+        t.start()
+    StartServer(args, dws)
+
+if __name__ == '__main__':
+#	logging.basicConfig(stream=sys.stdout, level=logging.INFO,
+#		format='%(asctime)s %(levelname)s %(module)s:%(lineno)s.%(funcName)s %(message)s'
+        args = ParseArgs()
+        StartServers(args)
 

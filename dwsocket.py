@@ -20,6 +20,9 @@ class DWSocket(DWIO):
 		self.addr = addr
 		self.binding = None
 
+        def name(self):
+            return "%s %s:%s" % (self.__class__, self.host, self.port)
+
 	def isConnected(self):
 		return self.conn != None
 

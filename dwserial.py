@@ -11,6 +11,9 @@ class DWSerial(DWIO):
 		self.rtscts = rtscts
 		self.ser = None
 
+        def name(self):
+            return "%s %s %s" % (self.__class__, self.port, self.speed)
+
 	def isConnected(self):
 		return self.ser != None
 
