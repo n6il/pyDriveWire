@@ -61,7 +61,10 @@ class Daemon:
 		# write pidfile
 		atexit.register(self.delpid)
 		pid = str(os.getpid())
-                file(self.pidfile,'w+').write("%s\n" % pid)
+                f  = open(self.pidfile,'w+')
+                f.write("%s\n" % pid)
+                f.flush()
+                f.close()
 	
 	def delpid(self):
 		os.remove(self.pidfile)
@@ -125,6 +128,23 @@ class Daemon:
 		self.stop()
 		self.start()
 
+        def getPid(self):
+            pid = None
+            if os.path.exists(self.pidfile):
+                pid = int(open(self.pidfile).read().strip())
+            return pid
+
+        def getStatus(self):
+            status = 'notRunning'
+            pid = self.getPid()
+            if pid:
+                try:
+                    os.kill(pid, 0)
+                except OSError:
+                    status = 'notRunning'
+                else:
+                    status = 'Running'
+            return status
 
 	def run(self):
 		"""

@@ -12,7 +12,11 @@ from argparse import Namespace
 
 import sys
 import os
+import time
 import threading
+import atexit
+
+from daemon import Daemon
 
 VERSION = 'v0.4'
 
@@ -29,6 +33,11 @@ def ParseArgs():
     parser.add_argument('-U', '--ui-port', dest='uiPort', help='pyDriveWire UI Port')
     parser.add_argument('-C', '--config', dest='config', help='Config File', default="~/.pydrivewirerc")
     parser.add_argument('--daemon', dest='daemon', action='store_true', help='Daemon Mode, No Repl')
+    parser.add_argument('--status', dest='daemonStatus', action='store_true', help='Daemon Status')
+    parser.add_argument('--stop', dest='daemonStop', action='store_true', help='Daemon Status')
+    parser.add_argument('--pid-file', dest='daemonPidFile', help='Daemon Pid File')
+    parser.add_argument('--log-file', dest='daemonLogFile', help='Daemon Log File')
+
     parser.add_argument('files', metavar='FILE', nargs='*',
                     help='list of files')
 
@@ -37,7 +46,7 @@ def ParseArgs():
     args = ReadConfig(args)
 
     err = None
-    if not any([args.port, args.accept, args.connect]):
+    if not any([args.port, args.accept, args.connect, args.daemon, args.daemonStatus, args.daemonStop]):
         err = "Must supply one of --port, --accept, or --connect or config file"
     elif args.accept and not args.port:
         err = "TCP Accept must supply --accept and --port"
@@ -45,6 +54,14 @@ def ParseArgs():
         err = "TCP Connect must supply --connect, --host, and --port"
     elif not args.accept and not args.connect and not all([args.speed, args.port]):
         err = "Serial connection must supply --speed and --port"
+    elif args.daemon and not args.uiPort and not args.cmdPort:
+        err = "Daemon mode must have a user interface port, --ui-port"
+    elif args.daemon and (not args.daemonPidFile or not args.daemonLogFile):
+        err = "Daemon mode must specify --pid-file and --log-file"
+    elif args.daemonStop and not args.daemonPidFile:
+        err = "Daemon stop: Must specify --pid-file"
+    elif args.daemonStatus and not args.daemonPidFile:
+        err = "Daemon status:  Must specify --pid-file"
 
     if err:
         print(err)
@@ -115,13 +132,6 @@ def CreateServer(args, instance, instances, lock):
 		conn = DWSerial(args.port, args.speed, rtscts=args.rtscts)
 		conn.connect()
 
-	def cleanup():
-		#print "main: Closing serial port."
-		dws.close(drive)
-		conn.cleanup()
-	import atexit
-	atexit.register(cleanup)
-
 	dws = DWServer(args, conn, VERSION, instances, instance)
         lock.acquire()
         instances[instance] = dws
@@ -136,6 +146,15 @@ def CreateServer(args, instance, instances, lock):
         return dws
 
 def StartServer(args, dws):
+	def cleanup():
+		#print "main: Closing serial port."
+                for server in dws.instances:
+                    server.closeAll()
+                    server.conn.cleanup()
+
+        if dws.instance == 0:
+            atexit.register(cleanup)
+
 	try:
 		drive = 0
 		for f in args.files:
@@ -183,9 +202,44 @@ def StartServers(args):
         t.start()
     StartServer(args, dws)
 
+class pyDriveWireDaemon(Daemon):
+        def run(self):
+            StartServers(self.args)
+
 if __name__ == '__main__':
 #	logging.basicConfig(stream=sys.stdout, level=logging.INFO,
 #		format='%(asctime)s %(levelname)s %(module)s:%(lineno)s.%(funcName)s %(message)s'
-        args = ParseArgs()
-        StartServers(args)
 
+    args = ParseArgs()
+    daemon = None
+    pid = None
+    status = 'notRunning'
+    if args.daemon or args.daemonStatus or args.daemonStop:
+        pidFile = args.daemonPidFile
+        daemon = pyDriveWireDaemon(pidFile, args, stdout=args.daemonLogFile, stderr=args.daemonLogFile)
+        if args.daemonStatus or args.daemonStop:
+            pid = daemon.getPid()
+            if pid:
+                status = daemon.getStatus()
+    if args.daemonStatus:
+            pidMsg = '\b'
+            if pid:
+                pidMsg  = 'pid:%d' % pid
+            print "pyDriveWire Server %s status:%s" % (pidMsg, status)
+    elif args.daemonStop:
+        msg = ''
+        if status == 'Running':
+            daemon.stop()
+            msg = 'Stopped'
+        else:
+            msg = status
+        print "pyDriveWire Server pid:%s msg:%s" % (pid, msg)
+    elif args.daemon:
+        daemon.start()
+        pid = daemon.getPid()
+        status = daemon.getStatus()
+        print "pyDriveWire Server %s status:%s" % (pidMsg, status)
+        sys.path.stdout.flush()
+        sys.exit(0)
+    else:
+        StartServers(args)

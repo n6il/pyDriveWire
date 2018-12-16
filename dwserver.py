@@ -65,6 +65,11 @@ class DWServer:
                 if d:
                     self.files[disk] = None
 
+	def closeAll(self):
+                for disk in range(len(self.files)):
+                    if self.files[disk]:
+                        self.close(disk)
+
 	def cmdStat(self, cmd):
 		info = self.conn.read(STATSIZ, self.timeout)
 		if not info:

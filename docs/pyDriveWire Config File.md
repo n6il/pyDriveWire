@@ -53,3 +53,8 @@ _Comments_ are any lines where the first non-whitespce character is a `#`
     
 ### Web Interface
     option uiPort 6800
+    
+#### Daemon Mode
+    option daemon True
+    option daemonPidFile /tmp/pyDriveWire.pid
+    option daemonLogFile /tmp/pyDriveWire.log
