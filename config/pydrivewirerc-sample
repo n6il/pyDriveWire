@@ -1,0 +1,19 @@
+# Main Instance
+option daemonPidFile /tmp/pyDriveWire.pid
+option daemonLogFile /tmp/pyDriveWire.log
+option accept True
+option port 65504
+option uiPort 6800
+dw server debug 1
+dw server conn debug 1
+dw disk insert 0 /demo/test.dsk
+
+[serial]
+option port /dev/tty.usbserial-AD02H09G
+option speed 115200
+dw disk insert 0 /demo/DWTERM.dsk
+
+[connect]
+option connect True
+option host mfurman-a01.local
+option port 54321
