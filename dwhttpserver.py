@@ -4,6 +4,8 @@ import cgi
 import threading
 from dwcommand import DWParser
 import os
+import tempfile
+import base64
 
 """
 class DWParser:
@@ -43,20 +45,36 @@ class GP(BaseHTTPRequestHandler):
 		self.wfile.write(f.read())
     def do_POST(self):
 	global parser
-        self._set_headers('text/plain', 200)
 	clen,pdict = cgi.parse_header(self.headers.getheader('Content-Length'))
+	mtype,pdict = cgi.parse_header(self.headers.getheader('Content-Type'))
 	data = self.rfile.read(int(clen))
+        print "POST path: %s" % self.path
+        response = 200
 	if self.path.startswith('/upload'):
 		qm = self.path.find('?')
 		if qm > 0:
 			qd = parse_qs(self.path[qm+1:])
-			name = qd['name']
-			fileName = tempfile.mktemp(prefix=name.split('/')[-1].split('.')[0], suffix='.'+name.split('.')[-1])
+			name = qd['name'][0]
+			drive = qd['drive'][0]
+                        print "upload drive: %s name: %s" % (drive, name)
+			# fileName = tempfile.mktemp(prefix=name.split('/')[-1].split('.')[0], suffix='.'+name.split('.')[-1])
+                        fileName = os.path.join(tempfile.gettempdir(), name)
+                        print fileName
 			with open(fileName, 'wb') as f:
-				f.write(data)
-			data = 'dw disk insert %s file://%s' % (qd['disk'], fileName)
-	result = parser.parse(data.lstrip().rstrip()).replace('\r', '')
-	self.wfile.write(result + '\n')
+                                comma = data.index(',')
+                                f.write(base64.b64decode(data[comma+1:]))
+			data = 'dw disk insert %s %s' % (drive, fileName)
+                        response = 200
+                        msg = "OK: drive:%s name:%s" % (drive, name)
+                else:
+                        response = 404
+                        msg = "%d: Error: Invalid upload specification: %s" % (response, self.path)
+                        self._set_headers('text/html', response)
+                        self.wfile.write("<html><body><h1>%s</h1></body></html>" % (msg))
+                        return
+        result = parser.parse(data.lstrip().rstrip()).replace('\r', '')
+        self._set_headers('text/plain', response)
+        self.wfile.write(result + '\n')
 
 class DWHttpServer:
 	def __init__(self, server, port):

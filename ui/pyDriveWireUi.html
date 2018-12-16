@@ -65,10 +65,44 @@ iframe {
 <!-- div: disk -->
 <div style="margin-left: 10%; padding: 1px 20px; background-color: LimeGreen; foreground-color: Black; height: 500px;" id="disk">
 <h2>Disk Images</h2>
-<tt>Disk 0: </tt><input name="disk0" size="40" id="disk0"><button id="disk0Insert" onclick="insert(0)">Insert</button><button id="disk0Eject" onclick="eject(0)">Eject</button><br>
-<tt>Disk 1: </tt><input name="disk1" size="40" id="disk1"><button id="disk1Insert" onclick="insert(1)">Insert</button><button id="disk1Eject" onclick="eject(1)">Eject</button><br>
-<tt>Disk 2: </tt><input name="disk2" size="40" id="disk2"><button id="disk2Insert" onclick="insert(2)">Insert</button><button id="disk2Eject" onclick="eject(2)">Eject</button><br>
-<tt>Disk 3: </tt><input name="disk3" size="40" id="disk3"><button id="disk3Insert" onclick="insert(3)">Insert</button><button id="disk3Eject" onclick="eject(3)">Eject</button><br>
+<p>To Insert a Disk Image: Select a local file or Enter a Remote file on the pyDriveWire Server and click Insert<p>
+<table border=0>
+	<tr>
+		<td>&nbsp;</td>
+		<td>Remote File</td>
+		<td>&nbsp;</td>
+		<td>&nbsp;</td>
+		<td>Local File</td>
+	</tr>
+	<tr>
+		<th><tt>Disk 0: </tt></th>
+		<td><input name="disk0" size="40" id="disk0"></td>
+		<td><button id="disk0Insert" onclick="insert(0)">Insert</button></td>
+		<td><button id="disk0Eject" onclick="eject(0)">Eject</button></td>
+		<td><input id="file0" type="file" onchange="fileSelected(0)"/></td>
+	</tr>
+	<tr>
+		<th><tt>Disk 1: </tt></th>
+		<td><input name="disk1" size="40" id="disk1"></td>
+		<td><button id="disk1Insert" onclick="insert(1)">Insert</button></td>
+		<td><button id="disk1Eject" onclick="eject(1)">Eject</button></td>
+		<td><input id="file1" type="file" onchange="fileSelected(1)"/></td>
+	</tr>
+	<tr>
+		<th><tt>Disk 2: </tt></th>
+		<td><input name="disk2" size="40" id="disk2"></td>
+		<td><button id="disk2Insert" onclick="insert(2)">Insert</button></td>
+		<td><button id="disk2Eject" onclick="eject(2)">Eject</button></td>
+		<td><input id="file2" type="file" onchange="fileSelected(2)"/></td>
+	</tr>
+	<tr>
+		<th><tt>Disk 3: </tt></th>
+		<td><input name="disk3" size="40" id="disk3"></td>
+		<td><button id="disk3Insert" onclick="insert(3)">Insert</button></td>
+		<td><button id="disk3Eject" onclick="eject(3)">Eject</button></td>
+		<td><input id="file3" type="file" onchange="fileSelected(3)"/></td>
+	</tr>
+</table>
 <button id="refresh" onclick="updateDisks()">Refresh</button><br>
 </div>
 
@@ -289,15 +323,39 @@ function httpPostAsync(data, callback)
     }
     xmlHttp.send(data);
 }
-</script>
 
-<!-- input type="file" id="input" onChange="handleFiles(this.files)"><br->
-<script>
-function handleFiles(file) {
-	console.log(file)
+
+function fileSelectedCb(response)
+{
+	updateDisks();
 }
 
 
+function fileSelected(drive)
+{
+	var input = document.getElementById('file'+drive);
+	var file = input.files[0];
+    var theUrl = window.location.toString().replace('#','')+"upload?drive="+drive+"&name="+file.name;
+	console.log(theUrl);
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open("POST", theUrl, true); // true for asynchronous 
+    xmlHttp.onreadystatechange = function() { 
+        if (this.readyState == 4 && this.status == 200)
+            fileSelectedCb(this.responseText);
+    }
+	if (file) {
+		var reader = new FileReader();
+		reader.readAsDataURL(file);
+		reader.onload = function (evt) {
+			data = evt.target.result;
+			xmlHttp.send(data);
+		}
+		reader.onerror = function (evt) {
+			data = "error reading file";
+			xmlHttp.send(data);
+		}
+	}
+}
 </script>
 </body>
 </html>

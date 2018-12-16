@@ -130,7 +130,7 @@ def CreateServer(args, instance, instances, lock):
 
         parser = DWParser(dws)
         for cmd in args.cmds:
-            print i,cmd
+            print instance,cmd
             parser.parse(cmd)
 
         return dws
