@@ -1,5 +1,7 @@
 # pyDriveWire Daemon Mode for Linux/macOS
 
+{{TOC}}
+
 When pyDriveWire is run on any Linux/Unix/macOs operating system it can be run in a daemon mode where the server in the background in a "daemon" mode.  When run in this mode there is no console repl and you must use either the Web UI or pyDwCli to control it.
 
 # Configuring Daemon mode
