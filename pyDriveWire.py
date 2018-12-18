@@ -17,6 +17,7 @@ import threading
 import atexit
 
 from daemon import Daemon
+import platform
 
 VERSION = 'v0.4'
 
@@ -54,6 +55,8 @@ def ParseArgs():
         err = "TCP Connect must supply --connect, --host, and --port"
     elif not args.accept and not args.connect and not all([args.speed, args.port]):
         err = "Serial connection must supply --speed and --port"
+    elif args.daemon and platform.system() in ['Windows']:
+        err = "Daemon mode not supported on %s" % platform.system()
     elif args.daemon and not args.uiPort and not args.cmdPort:
         err = "Daemon mode must have a user interface port, --ui-port"
     elif args.daemon and (not args.daemonPidFile or not args.daemonLogFile):
