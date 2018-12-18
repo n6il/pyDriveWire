@@ -6,6 +6,7 @@ from os import stat
 from struct import *
 import tempfile
 import urllib
+from urlparse import urlparse
 
 COCO_SECTOR_SIZE = 256
 COCO_DEFAULT_DISK_SIZE = 630
@@ -40,11 +41,12 @@ class DWFile:
         fileName = self.name
         try:
             #print self.name
-            n = self.name.index(':')
-            fileName = tempfile.mktemp(prefix=self.name.split('/')[-1].split('.')[0], suffix='.'+self.name.split('.')[-1])
-            print("Downloading: %s" % (self.name))
-            urllib.urlretrieve(self.name, fileName)
-            self.remote = True
+            pp = urlparse(self.name)
+            if pp[0].lower() in ['http', 'https', 'ftp']:
+                fileName = tempfile.mktemp(prefix=self.name.split('/')[-1].split('.')[0], suffix='.'+self.name.split('.')[-1])
+                print("Downloading: %s" % (self.name))
+                urllib.urlretrieve(self.name, fileName)
+                self.remote = True
         except ValueError:
             pass
         except:
