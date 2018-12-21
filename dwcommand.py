@@ -160,6 +160,8 @@ class DWParser:
 		self.parseTree.add("AT", atParser)
 		self.parseTree.add("ui", uiParser)
 		self.parseTree.add("mc", mcParser)
+                self.parseTree.add("help", ParseAction(self.ptWalker))
+                self.parseTree.add("?", ParseAction(self.ptWalker))
 
 	def __init__(self, server):
 		self.server=server
@@ -497,6 +499,23 @@ class DWParser:
                 ]
             del self.server.emCeeAliases[alias]
             return '\n'.join(r)
+
+        def ptWalker(self, data):
+            def walkPt(pt, nodes=[]):
+                nl = []
+                #nodes += [pt.name]
+                for name, node in pt.nodes.items():
+                    #print pt.name, name
+                    if isinstance(node, ParseNode):
+                        nl += walkPt(node, nodes + [name])
+                    else:
+                        joiner = ' '
+                        if nodes and nodes[0] == 'AT':
+                            joiner = ''
+                        nl.append(joiner.join(nodes + [name]))
+                    #print nl
+                return nl
+            return '\r\n'.join(walkPt(self.parseTree))
 
 	def parse(self, data, interact=False):
 		data = data.lstrip().strip()

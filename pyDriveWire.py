@@ -19,7 +19,7 @@ import atexit
 from daemon import Daemon
 import platform
 
-VERSION = 'v0.4'
+VERSION = 'v0.5pre'
 
 def ParseArgs():
     parser = argparse.ArgumentParser(description='pyDriveWire Server %s' % VERSION)

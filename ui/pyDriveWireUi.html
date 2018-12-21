@@ -64,6 +64,11 @@ iframe {
 
 <!-- div: disk -->
 <div style="margin-left: 10%; padding: 1px 20px; background-color: LimeGreen; foreground-color: Black; height: 500px;" id="disk">
+<div style="display: none;" id="instanceDiv">
+   <h2>Instances</h2>
+   <select name="instancePd" id="instancePd" onchange="selectInstance()">
+   </select>
+</div>
 <h2>Disk Images</h2>
 <p>To Insert a Disk Image: Select a local file or Enter a Remote file on the pyDriveWire Server and click Insert<p>
 <table border=0>
@@ -245,7 +250,7 @@ function updateDisks() {
 	updateTxt(cmd + '\n');
 	httpPostAsync(cmd, callback);
 }
-updateDisks();
+// updateDisks();
 
 function diskOpsCb(string) {
 	updateTxtCb(string.trim().replace('\r', ''));
@@ -309,6 +314,72 @@ function httpPostAsyncY()
 		});
 }
 
+function updateInstancesCb(result) {
+   updateTxtCb(result.trim().replace('\r', ''));
+   var instancePd = document.getElementById('instancePd')
+   var instanceDiv = document.getElementById('instanceDiv')
+   var resultL = result.trim().split('\n')
+
+   var first = 2
+   if (resultL.length <= first) {
+      instanceDiv.style.display = 'none';
+      updateDisks();
+      return;
+   }
+   var add = false;
+   if (instancePd.length == 0) {
+      add = true;
+   }
+   // var add = true;
+   // while (instancePd.length > 0) {
+   //    instancePd.remove(0);
+   // }
+   var current = instancePd.selectedIndex
+   for (var i=first; i < resultL.length; i++) {
+      rl = resultL[i];
+      isCurrent = rl.indexOf('*');
+      idx = rl.split(' ')[0];
+      if (isCurrent > 0) {
+         current = parseInt(idx.slice(0,-1));
+         idx = current;
+      } else {
+         idx = parseInt(idx);
+      }
+      if (add) {
+         o = document.createElement("option");
+         o.value = idx
+         o.text = rl;
+         instancePd.add(o);
+      } else {
+         instancePd.options[idx].textContent = rl;
+      }
+   }
+   instancePd.selectedIndex = current;
+   instanceDiv.style.display = 'block';
+   updateDisks();
+}
+
+
+function selectInstanceCb(string)
+{
+   updateTxtCb(string.trim().replace('\r', ''));
+   updateInstances();
+}
+
+function selectInstance() {
+   var instancePd = document.getElementById('instancePd')
+   var inst = instancePd.selectedIndex
+   var cmd = 'dw instance select ' + inst
+   updateTxt(cmd + '\n');
+   httpPostAsync(cmd, selectInstanceCb);
+}
+
+function updateInstances() {
+   var cmd = 'dw instance show'
+   updateTxt(cmd + '\n');
+   httpPostAsync(cmd, updateInstancesCb);
+}
+
 function httpPostAsync(data, callback)
 {
     var theUrl = window.location.toString()
@@ -356,6 +427,8 @@ function fileSelected(drive)
 		}
 	}
 }
+
+updateInstances();
 </script>
 </body>
 </html>

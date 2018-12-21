@@ -48,7 +48,7 @@ class GP(BaseHTTPRequestHandler):
 	clen,pdict = cgi.parse_header(self.headers.getheader('Content-Length'))
 	mtype,pdict = cgi.parse_header(self.headers.getheader('Content-Type'))
 	data = self.rfile.read(int(clen))
-        print "POST path: %s" % self.path
+        # print "POST path: %s" % self.path
         response = 200
 	if self.path.startswith('/upload'):
 		qm = self.path.find('?')
