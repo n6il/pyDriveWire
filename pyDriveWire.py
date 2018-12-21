@@ -49,12 +49,6 @@ def ParseArgs():
     err = None
     if not any([args.port, args.accept, args.connect, args.daemon, args.daemonStatus, args.daemonStop]):
         err = "Must supply one of --port, --accept, or --connect or config file"
-    elif args.accept and not args.port:
-        err = "TCP Accept must supply --accept and --port"
-    elif args.connect and not all([args.port,args.host]):
-        err = "TCP Connect must supply --connect, --host, and --port"
-    elif not args.accept and not args.connect and not all([args.speed, args.port]):
-        err = "Serial connection must supply --speed and --port"
     elif args.daemon and platform.system() in ['Windows']:
         err = "Daemon mode not supported on %s" % platform.system()
     elif args.daemon and not args.uiPort and not args.cmdPort:
@@ -65,6 +59,12 @@ def ParseArgs():
         err = "Daemon stop: Must specify --pid-file"
     elif args.daemonStatus and not args.daemonPidFile:
         err = "Daemon status:  Must specify --pid-file"
+    elif args.accept and not args.port:
+        err = "TCP Accept must supply --accept and --port"
+    elif args.connect and not all([args.port,args.host]):
+        err = "TCP Connect must supply --connect, --host, and --port"
+    elif not args.accept and not args.connect and not all([args.speed, args.port]):
+        err = "Serial connection must supply --speed and --port"
 
     if err:
         print(err)
