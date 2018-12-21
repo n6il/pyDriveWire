@@ -30,16 +30,6 @@ while True:
                 print "Bye!"
                 break
         
-        if wdata.lower() in ["help", "?"] :
-            conn = urllib.urlopen(url + '/help.html')
-            html = conn.read()
-            try:
-                foo
-                print html2text.html2text(html)
-            except:
-                print html
-            continue
-
         try:
                 wdata = re.subn('.\b', '', wdata)[0]
                 wdata = re.subn('.\x7f', '', wdata)[0]
