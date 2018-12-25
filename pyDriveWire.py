@@ -38,18 +38,26 @@ def ParseArgs():
     parser.add_argument('--stop', dest='daemonStop', action='store_true', help='Daemon Status')
     parser.add_argument('--pid-file', dest='daemonPidFile', help='Daemon Pid File')
     parser.add_argument('--log-file', dest='daemonLogFile', help='Daemon Log File')
+    parser.add_argument('--debug', '-d', dest='debug', action='count')
+    parser.add_argument('--version', '-v', action='store_true')
 
     parser.add_argument('files', metavar='FILE', nargs='*',
                     help='list of files')
 
     args = parser.parse_args()
+    daemonAct = any([args.daemonStatus, args.daemonStop])
 
-    args = ReadConfig(args)
-
-    err = None
-    if not any([args.port, args.accept, args.connect, args.daemon, args.daemonStatus, args.daemonStop]):
+    err = _processMutuallyExclusiveArgs(args)
+    if not err:
+        args = ReadConfig(args)
+        #print args
+        #err = None
+        err = _processMutuallyExclusiveArgs(args)
+    if err:
+        pass
+    elif not any([args.port, args.accept, args.connect, args.daemon, args.daemonStatus, args.daemonStop]):
         err = "Must supply one of --port, --accept, or --connect or config file"
-    elif args.daemon and platform.system() in ['Windows']:
+    elif any([args.daemon, args.daemonStatus, args.daemonStop]) and platform.system() in ['Windows']:
         err = "Daemon mode not supported on %s" % platform.system()
     elif args.daemon and not args.uiPort and not args.cmdPort:
         err = "Daemon mode must have a user interface port, --ui-port"
@@ -59,6 +67,8 @@ def ParseArgs():
         err = "Daemon stop: Must specify --pid-file"
     elif args.daemonStatus and not args.daemonPidFile:
         err = "Daemon status:  Must specify --pid-file"
+    elif daemonAct:
+        pass
     elif args.accept and not args.port:
         err = "TCP Accept must supply --accept and --port"
     elif args.connect and not all([args.port,args.host]):
@@ -67,12 +77,63 @@ def ParseArgs():
         err = "Serial connection must supply --speed and --port"
 
     if err:
-        print(err)
+        print('\nERROR: %s\n' % err)
         parser.print_usage()
         exit(1)
 
+
+    #print args
     return args
 
+def _processMutuallyExclusiveArgs(args):
+    err = None
+    accept, reject = _processMutuallyExclusiveOptions(args)
+    # print "pmea", accept, reject
+    if any(_getOpts(args, reject)):
+        allOpts = set(accept).union(set(reject))
+        err = "Mutually exclusive options.  Can't use %s at the same time" % (_getOptNames(args, allOpts))
+    return err
+
+def _getOptNames(args, opts):
+    r = [o for o in list(opts) if eval('args.%s' % o)]
+    # print "getOpts", opts, r
+    return ', '.join(r)
+
+def _getOpts(args, opts):
+    r = [eval('args.%s' % o) for o in list(opts)]
+    # print "getOpts", opts, r
+    return r
+
+def _processMutuallyExclusiveOptions(args):
+    accept = set()
+    reject = set()
+
+    serialOpts = set(['speed'])
+    connectOpts = set(['connect', 'host'])
+    acceptOpts = set(['accept'])
+    daemonActs = set(['daemonStatus', 'daemonStop'])
+    daemonOpts = daemonActs.union(set(['daemon']))
+
+    notSerialOpts = connectOpts.union(acceptOpts) - serialOpts
+    notConnectOpts = serialOpts.union(acceptOpts) - connectOpts
+    notAcceptOpts = serialOpts.union(connectOpts) - acceptOpts
+
+    if sum(_getOpts(args, daemonOpts)) > 1:
+        reject = daemonOpts
+    #elif any(_getOpts(args, daemonActs)):
+    #    reject = list(serialOpts) + list(connectOpts) + list(acceptOpts) + ['port']
+    elif any(_getOpts(args, serialOpts)): # and any(_getOpts(args, notSerialOpts)):
+        accept = serialOpts
+        reject = notSerialOpts
+    elif any(_getOpts(args, connectOpts)): # and any(_getOpts(args, notConnectOpts)):
+        accept = connectOpts
+        reject = notConnectOpts
+    elif any(_getOpts(args, acceptOpts)): # and any(_getOpts(args, notAcceptOpts)):
+        accept = acceptOpts
+        reject = notAcceptOpts
+        
+    return list(accept), list(reject)
+    
 def ReadConfig(args):
     instances = []
     args.cmds = []
@@ -80,6 +141,9 @@ def ReadConfig(args):
     i = 0
     instance = 0
     iargs = args
+    debug = args.debug
+
+    accept, reject = _processMutuallyExclusiveOptions(args)
 
     cfgFile = os.path.expanduser(args.config)
     if not os.path.exists(cfgFile):
@@ -103,17 +167,40 @@ def ReadConfig(args):
                 iargs.rtscts = False
                 iargs.files = []
                 iargs.cmds = []
+                iargs.debug = debug
                 instances.append(iargs)
                 continue
             lp = l.split(' ')
             if lp[0].lower() == 'option':
                 #args[lp[1]] = lp[2]
+                key = lp[1]
                 val = lp[2]
                 if val in ['True', 'False']:
                         val = eval(val)
-                exec('iargs.%s = val' % lp[1])
+                if key == 'debug':
+                    val = int(val)
+                    if not debug:
+                        debug = val
+
+                if instance == 0:
+                    # print key, accept, reject
+                    if key in reject:
+                        print('%d: rejecting line from config file: %s' % (instance, l))
+                        continue
+                    else:
+                        if eval('iargs.%s' % key): 
+                            print('%d: rejecting line from config file: %s' % (instance, l))
+                        else:
+                            exec('iargs.%s = val' % key)
+                else:
+                    exec('iargs.%s = val' % key)
+
                 #print "%d:option:%s" % (instance,l)
             else:
+                if args.debug >= 1 and l.startswith('dw server debug'):
+                    continue
+                if args.debug == 2 and l.startswith('dw server conn debug'):
+                    continue
                 iargs.cmds += [l]
                 #print "%d:cmd:%s" % (instance,l)
     args.instances = instances
@@ -142,7 +229,13 @@ def CreateServer(args, instance, instances, lock):
 
 
         parser = DWParser(dws)
-        for cmd in args.cmds:
+        cmds = []
+        if args.debug >= 1:
+            cmds += ['dw server debug 1']
+        if args.debug == 2:
+            cmds += ['dw server conn debug 1']
+        cmds += args.cmds
+        for cmd in cmds:
             print instance,cmd
             parser.parse(cmd)
 
@@ -214,6 +307,9 @@ if __name__ == '__main__':
 #		format='%(asctime)s %(levelname)s %(module)s:%(lineno)s.%(funcName)s %(message)s'
 
     args = ParseArgs()
+    if args.version:
+        print('pyDriveWire %s' % VERSION)
+        exit(0)
     daemon = None
     pid = None
     status = 'notRunning'
