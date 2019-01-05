@@ -13,14 +13,23 @@ class DWPrinter:
     def __init__(self):
         self.source_file_name = None
         self.source_file = None
+        self.lastCr = False
 
     def write(self, data, dropCr=True):
         if not self.source_file:
             self.source_file_name = tempfile.mktemp (".txt")
             self.source_file = open(self.source_file_name, "w")
             print("Printing: opening print buffer: %s" % (self.source_file_name))
-        if data != '\r':
+        if data == '\r':
+            self.source_file.write('\n')
+            self.lastCr = True
+        elif data == '\n':
+            if not self.lastCr:
+                self.source_file.write(data)
+            self.lastCr = False
+        else:
             self.source_file.write(data)
+            self.lastCr = False
 
     def printFlush(self):
         self.source_file.close()
