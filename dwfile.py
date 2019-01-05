@@ -126,7 +126,7 @@ class DWFile:
         #    break
 
         fmt = None
-        if not dd_tot:
+        if not all([dd_tot, dd_spt, dd_fmt_sides]):
             return fmt
             #raise Exception ("Not a valid OS-9 Image")
 
