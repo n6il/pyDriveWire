@@ -147,6 +147,7 @@ def ReadConfig(args):
 
     cfgFile = os.path.expanduser(args.config)
     if not os.path.exists(cfgFile):
+        args.instances = instances
         return args
     with open(cfgFile) as f:
         for l in f:
