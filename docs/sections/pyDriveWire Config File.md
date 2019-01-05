@@ -9,8 +9,8 @@ If the config file exists it is read in.  Options are applied to the config and 
 
 #### Note ####
     If both command line options and a config file are
-    provided the config file options override the 
-    command line options
+    provided the command line options override the 
+    config file options
 
 ## Config File Format ##
 The config file has two different types of options
@@ -33,11 +33,11 @@ _Comments_ are any lines where the first non-whitespce character is a `#`
     option uiPort 6800
     
     # commands
-    dw server debug 1
-    dw server conn debug 1
     dw disk insert 0 /demo/DWTERM.dsk
     
-    
+
+For a full description of all the config file options please see the [Command Line and Config File Options](https://github.com/n6il/pyDriveWire/blob/develop/docs/Command%20Line%20and%20Config%20File%20Options.md) guide.
+
 ### TCP/IP Accept Options ###
     option accept True
     option port 65504
@@ -54,7 +54,11 @@ _Comments_ are any lines where the first non-whitespce character is a `#`
 ### Web Interface
     option uiPort 6800
     
-#### Daemon Mode
+### Daemon Mode
     option daemon True
     option daemonPidFile /tmp/pyDriveWire.pid
     option daemonLogFile /tmp/pyDriveWire.log
+    
+### Debug Options
+    option debug <0|1|2>
+    

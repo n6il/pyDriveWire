@@ -28,8 +28,6 @@ Multiple instances can be specified.
     option accept True
     option port 65504
     option uiPort 6800
-    dw server debug 1
-    dw server conn debug 1
     dw disk insert 0 /demo/plato.dsk
     
     [serial]
