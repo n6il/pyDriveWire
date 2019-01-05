@@ -15,7 +15,7 @@ DriveWire 4 and EmCee Procotols can be used simultaneously on the server without
 2. [Getting Started](#ch2)
 3. [Command Line and Config File Options](#ch3)
 4. [Web User Interface](#ch4)
-5. [Command Line Interfaces](#ch5)
+5. [Command Console Interfaces](#ch5)
 6. [Using a Config File](#ch6)
 7. [Multiple Instances](#ch7)
 8. [Daemon Mode](#ch8)
@@ -28,7 +28,7 @@ DriveWire 4 and EmCee Procotols can be used simultaneously on the server without
 * (new for v0.5) New [Web User Interface](#ch4) (`--ui-port`)
 * (new for v0.5) [Configuration File support](#ch6)
 * (new for v0.5) [Multiple Instance Support](#ch7) — Requires config file
-* (new for v0.5) [Enhanced `pyDwCli` command line tool](#ch5)
+* (new for v0.5) [Enhanced `pyDwCli` command console tool](#ch5)
 * (new for v0.5) [Comprehensive and detailed manual for server features](#toc)
 * Remote dw command input on TCP port
 * [Experimental EmCee Protocol Support](#ch9)
@@ -196,9 +196,9 @@ The config file can either be in a default location or can be specified from the
 
 Please see the pyDriveWire Config File and Using Multiple Instances guides for more detail about the config file.
 
-Note: Command line options have prescidence over config file.  This means that if both are specified the command line version will be used.
+**Note: Command line options have prescidence over config file.  This means that if both are specified the command line version will be used.**
 
-Note: Options are noted as either instance specific (instance) or global (global).  Global options can only be specified in Instance 0.
+**Note: Options are noted as either instance specific (instance) or global (global).  Global options can only be specified in Instance 0.**
 
 ### Default Config file location
 
@@ -208,7 +208,7 @@ The default location for the config file is in your home directory: `~/.pydrivew
 * Mac: `/Users/<userid>/.pydrivewirerc`
 * Windows: `C:\Users\<userid>\.pydrivewirerc`
 
-Note: This option cannot be specified in a config file
+**Note: This option cannot be specified in a config file**
 
 ### Specify a config file location: 
 
@@ -241,7 +241,7 @@ or
 
 Serial Port mode also supports RTS/CTS flow control.
 
-Note: DO NOT use this with a CoCo or MC-10 Bit Banger port.  This is intended for use with a UART that properly implements flow control.  The RS-232 Pak or any device with a 6551 UART does not implement flow control properly.
+**Note: DO NOT use RTS/CTS with a CoCo or MC-10 Bit Banger port.  This is intended for use with a UART that properly implements flow control.  The RS-232 Pak or any device with a 6551 UART does not implement flow control properly.**
 
 ### Command Line:
 
@@ -254,7 +254,7 @@ or
 
     option rtscts [True|False]
     
-Note: Omitting this option line defaults to `False`
+**Note: Omitting this option line defaults to `False`**
 
 ## TCP Server (Accept Incoming Connections) (instance)
 
@@ -307,9 +307,9 @@ or
     option uiPort <ui_port>
     
 ## Debugging (global)
-The Debugging option on the command line or config file is _global_ and is applied to All Instances.
+The Debugging option on the command line or config file is _global_ and is applied to All Instances.  See the [Debugging](ch#11) section for detail.
 
-> Note: The config file option _must_ be put in Instance 0.
+**Note: The config file option _must_ be put in Instance 0.**
 
 * Default: No Debugging (Level 0)
      * Command Line: Default without any option
@@ -324,51 +324,71 @@ The Debugging option on the command line or config file is _global_ and is appli
  
 ## Start pyDriveWire in Daemon Mode (global)
 
-> Note: If you are using a config file it is recommended to put the pid file and log file options in the config file and to run the server with `--daemon -C <config_file>`
+Detailed manual for [Daemon Mode](ch#8)
 
-> Note: If your config file is in the default location you do not need to specify it on the command line
+**Note: If you are using a config file it is recommended to put the pid file and log file options in the config file and to run the server with `--daemon -C <config_file>`**
 
-### Command Line:
-
-    --daemon [-C <config_file>] [--pid-file <pid_file> --log-file <log_file>]
+**Note: If your config file is in the default location you do not need to specify it on the command line**
 
 ### Config file:
 
-    option daemon True/False
     option daemonPidFile <pid_file>
     option daemonLogFile <log_file>
     
-    
+### Command Line:
+With Config File in **default** location:
+
+    --daemon
+
+Specify config file location:
+
+    --daemon [-C <config_file>]
+
+Without Config File:
+
+    --daemon [--pid-file <pid_file> --log-file <log_file>]
+
 ## pyDriveWire in Daemon Mode Status
 
-> Note: Either the config file or pid file option is required.
+**Note: Either the config file or pid file option is required.**
 
-> Note: This option cannot be specified in a config file
+**Note: This option cannot be specified in a config file**
 
-> Note: If your config file is in the default location you do not need to specify it on the command line
+**Note: If your config file is in the default location you do not need to specify it on the command line**
 
 
 ### Command Line:
+With Config File in **default** location:
+
+    --status
+
+Specify config file location:
 
     --status [-C <config_file>]
 
-or
+or specify pid file location:
 
     --status [--pid-file <pid_file>]
 
 ## Stop pyDriveWire in Daemon Mode
 
-> Note: Either the config file or pid file option is required.
+**Note: Either the config file or pid file option is required.**
 
-> Note: This option cannot be specified in a config file
+**Note: This option cannot be specified in a config file**
 
-> Note: If your config file is in the default location you do not need to specify it on the command line
+**Note: If your config file is in the default location you do not need to specify it on the command line**
 
 ### Command Line:
+With Config File in **default** location:
+
+    --stop
+
+Specify config file location:
+
 
     --stop [-C <config_file>]
 
-or
+or specify pid file location:
 
     --stop [--pid-file <pid_file>]
 
@@ -377,9 +397,178 @@ or
 
 # 4. <a name="ch4"></a>Web User Interface
 
+![](webui_1.png)
+
+## Disk Images Screen
+
+The Disk Images screen allows you to manage which disk images are mounted in the pyDriveWireServer.
+
+![](webui_2.png)
+
+1. Instance Selector
+2. Remote File Input Box
+3. Insert
+4. Eject
+5. Local File Selector
+6. Refresh Button
+
+## 1. Instance Selector
+
+The Instance Selector allows you to change the current instance.  The instance changes immediately upon selection and the Disk Images Box (2) is automatically updated.
+
+**Note: If there is only one instance this pull down will now show up.**
+
+## 2. Remote File Input Box
+
+Each line in the Disk Images Section has a text box (2) for each virtual disk on the server. The text box shows the currently mounted disk image or `None` if no disk is mounted.
+
+The Remote File Box can accept the following types of input:
+
+* A file path to a file ***on the pyDriveWire Server***
+* A URL to a Disk Image
+
+Example: A file path:
+
+    /tmp/DWTERM.dsk
+   
+Example: A URL:
+    
+    http://www.ocs.net/~n6il/DWTERM.dsk
+
+**Note: This box shows the location of the disk image ***on the pyDriveWire Server*** which may be a different location than the Local File (5)**
+
+## 3. Insert Button
+
+Clicking the `Insert` button will mount the file named in the adjacent Remote File Input Box (2).
+
+## 4. Eject Button
+
+To Eject a disk image click the `Eject` button.  The Remote File Box (2) will change to `None`.
+
+## 5. Local File Selector
+
+To Mount a disk image ***which resides on the local computer***, click the `Choose File` button.  A file selection dialog box will pop up.  The selected file is automatically uploaded to the pyDriveWire server
+
+
+## 6. Refresh Button
+To refresh the currently mounted disk images click the Refresh button.
+
+## Command Console Screen
+
+The Command Console screen allows you to run commands on the pyDriveWire server and also shows all the commands that have been run on the server by the user interface.
+
+![](webui_3.png)
+
+The screen has 2 parts: A scollable window with all the commands and command output, and second text box to enter commands and a button submit those commands to the server
+
+The command window is designed to be interactive so that you can easily explore the available commands without looking up in the manual. Please see the [Command Console Interfaces](#ch5) manual section for more detail.
+
 [Back to top](#toc)
 
-# 5. <a name="ch5"></a>Command Line Interfaces
+# 5. <a name="ch5"></a>Command Console Interfaces
+
+pyDriveWire can be controlled in multiple ways by using different Command Console Interfaces.  Those interfaces are:
+
+1. The pyDriveWire "REPL" Interface
+2. pyDwCli
+3. Web UI Command Console
+4. NitrOS-9 `dw` command
+
+## The pyDriveWire "REPL" Interface
+If you are a command line person this is for you.  If the pyDriveWire server is invoked without Daemon Mode it will start up what is called a "REPL" (**R**ead **E**xecute **P**rint **L**oop) command console interface.  This is a fancy way of saying that it prints a prompt and waits for your input.
+
+Suppose you started pyDriveWire as follows:
+
+    ./pyDriveWire --accept --port 65504 /demo/DWTERM.dsk
+    
+If you hit enter on this command pyDriveWire will print some initialization info and then Greet you with a command prompt where you can type any DriveWire Command:
+
+    $ ./pyDriveWire -C /tmp/empty --accept --port 65504
+    Accept connection on 65504
+    <dwsocket.DWSocketServer instance at 0x0000000106d22ea0>: Starting _readHandler...
+    accepting
+    pyDriveWire>  
+
+Simply type your commands at this prompt.  See the tutorial below.
+
+## pyDwCli
+
+pyDwCli is a standalone command line tool which you can use to control the pyDriveWire server.  
+
+To use pyDwCli you must set up the WebUI.  See the [Web User Interface](#ch4) manual section for a bit more detail on this, but in short you either put the option in your [Config File](#ch6) 
+
+    option uiPort 6800
+    
+or from the comand line:
+
+    ./pyDriveWire --ui-port 6800 [...]
+    
+Once the Web UI is running you can use the pyDwCli.  
+
+pyDwCli has 2 modes: Interactive Mode and Single Command Mode
+
+### pyDwCli Interactive/REPL Mode
+To run in the pyDwCli Interactive/REPL mode, you would run it as follows.  Change `localhost` and `6800` to the correct hostname and port number:
+
+    $ ./pyDwCli http://localhost:6800
+    pyDriveWire>  dw disk show
+    
+    Drive  File
+    -----  --------------------------------------
+    0      None
+    1      None
+    2      None
+    3      None
+    pyDriveWire> 
+
+and you can type any DriveWire commands at the prompt.  Type `quit` to exit:
+
+    pyDriveWire> quit
+    Bye!
+    $
+
+### pyDwCli Single Command Mode
+pyDwCli can also run a single optional command specified on the command line.  This is useful for scripting control of pyDriveWire:
+
+    $ ./pyDwCli http://localhost:6800 dw instance show
+    
+    Inst.  Type
+    -----  --------------------------------------
+    0*     dwsocket.DWSocketServer localhost:65504
+    1      dwsocket.DWSocketServer localhost:65505
+
+## Command Console Tutorial
+Suppose the user doesn't know what command to type and just typed help:
+
+    pyDriveWire> help
+    : Invalid command: help
+    commands: dw tcp AT ui mc
+    
+The server responded that help is not a valid command but it listed out the valid possible command prefixes dw tcp AT ui mc. The user continues their exploration:
+
+    pyDriveWire> dw
+    dw: Invalid command: dw
+    dw commands: disk server port
+    
+Here the user typed dw and the server responded with all of the available commands under dw. If the user was interested in disk operations they could type dw disk to see what sub commands are available:
+
+    pyDriveWire> dw disk 
+    disk: Invalid command: disk
+    disk commands: insert reset eject show
+    
+The user is interested to show what disk images are mounted so this time the issued the full command:
+
+    pyDriveWire> dw disk show
+    
+    
+    Drive  File
+    -----  --------------------------------------
+    0      /Users/mfurman/Downloads/plato.dsk
+    1      None
+    2      None
+    3      None
+    
+If you already know the command you want you can of course type it directly without going through the exploratory steps above.
 
 [Back to top](#toc)
 
@@ -393,24 +582,33 @@ There are two ways to provide a config file to pyDriveWire:
 
 If the config file exists it is read in.  Options are applied to the config and commands are run through the command parser.
 
-#### Note ####
-    If both command line options and a config file are
+**Note: If both command line options and a config file are
     provided the command line options override the 
-    config file options
+    config file options**
 
 ## Config File Format ##
 The config file has two different types of options
 
 1. Options
 2. Commands
+3. Instance Tags
+4. Comments
 
 _Options_ -- Option entries can be used to set any of the command line options to pyDriveWire.  Options always start with the word `option` and have the following format:
 
     option <optionName> <optionValue>
 
-_Commands_ are any lines in the config file that are not options.  These are standard pyDriveWire commands and they are run through the command parser immediately on start-up so some of the commands may not make sense.
+_Commands_ -- are any lines in the config file that are not options, instance tags, or comments.  These are standard pyDriveWire commands and they are run through the command parser immediately on start-up.
 
-_Comments_ are any lines where the first non-whitespce character is a `#`
+    dw disk insert 0 /demo/DWTERM.dsk
+
+_Instance Tags_ -- Tags are used to tell pyDriveWire that you want multiple instances.  Please see the [Multiple Instances](#ch7) manual section for more detail on how to configure this feature.
+
+    [second instance]
+   
+_Comments_  -- are any lines where the first non-whitespce character is a `#`
+
+    # This is a comment
 
 ### Example Config File ###
     # options
@@ -441,7 +639,8 @@ For a full description of all the config file options please see the [Command Li
     option uiPort 6800
     
 ### Daemon Mode
-    option daemon True
+use with `--daemon` command line option
+
     option daemonPidFile /tmp/pyDriveWire.pid
     option daemonLogFile /tmp/pyDriveWire.log
     
@@ -453,7 +652,7 @@ For a full description of all the config file options please see the [Command Li
 # 7. <a name="ch7"></a>Multiple Instances
 pyDriveWire allows you to configure and use multiple instances which all run in parallel.  Each instance talks to one DriveWire client and each can mount different disk images.  The instances are configured in a config file to specify the connection point and any options you wish to set for for each instance.
 
-Note:  At the current time instances can only be specified in the config file and can only be started or stopped along with the main invocation of pyDriveWire.
+**Note:  At the current time instances can only be specified in the config file and can only be started or stopped along with the main invocation of pyDriveWire.**
 
 ## Configuring Multiple Instances
 
@@ -501,7 +700,7 @@ Instance 2 makes an outgoing TCP/IP connection to the specified host and port.
 
 pyDriveWire has a few commands to control instances.  These commands should only be used from the command line interface, the web interface, or pyDwCli.
 
-Note: Using instance commands from a DriveWire Client is not recommended.
+**Note: Using instance commands from a DriveWire Client is not recommended.**
 
 * `dw instance show`
 * `dw instance select <inst>`
@@ -535,7 +734,7 @@ The command prompt will also change to show the current instance.  You can see i
 # 8. <a name="ch8"></a>Daemon Mode
 When pyDriveWire is run on any Linux/Unix/macOs operating system it can be run in a daemon mode where the server in the background in a "daemon" mode.  When run in this mode there is no console repl and you must use either the Web UI or pyDwCli to control it.
 
-Note: This mode is _not_ supported on Windows
+**Note: This mode is _not_ supported on Windows**
 
 # Configuring Daemon mode
 
@@ -543,53 +742,19 @@ Daemon mode can be enabled from either the config file or from the command line.
 
 ## Daemon mode from a config file
 
-Either put this in your `~/.pydrivewirerc` file, or invoke the server with `pyDriveWire -C <config_file>`
+The easiest way to use Daemon mode is to create a config file (See [Using a Config File](#ch6)) and put the following options in it in instance 0:
 
     option uiPort 6800
-    option daemon True
     option daemonPidFile /tmp/pyDriveWire.pid
     option daemonLogFile /tmp/pyDriveWire.log
     [... additional options required ...]
 
-## Command Line Options
+With the config file in the default location of `~/.pydrivewirerc` you can then start the pyDriveWire server in daemon mode with a single option:
 
-    $ ./pyDriveWire -h
-    usage: pyDriveWire.py [-U UIPORT] [-C CONFIG]
-                          [--daemon] [--status] [--stop]
-                          [--pid-file DAEMONPIDFILE] [--log-file DAEMONLOGFILE]
-                          [FILE [FILE ...]]
-
-    pyDriveWire Server v0.4
-
-    positional arguments:
-      FILE                  list of files
-
-    optional arguments:
-      -U UIPORT, --ui-port UIPORT
-                            pyDriveWire UI Port
-      -C CONFIG, --config CONFIG
-                            Config File
-      --daemon              Daemon Mode, No Repl
-      --status              Daemon Status
-      --stop                Daemon Status
-      --pid-file DAEMONPIDFILE
-                            Daemon Pid File
-      --log-file DAEMONLOGFILE
-                            Daemon Log File
-
-## Starting daemon mode from the command line
-
-The server can be invoked as follows from the command line:
-
-    ./pyDriveWire \
-            --ui-port 6800 \
-            --daemon \
-            --pid-file /tmp/pyDriveWire.pid \
-            --log-file /tmp/pyDriveWire.log \
-            [... additional required options ...]
-            
-This will start the server in `daemon` mode with a web UI listening on port `6800`.
+    ./pyDriveWire --daemon
     
+
+
 ## Checking server status
 
 Example: Daemon mode is not running
@@ -613,6 +778,20 @@ Example: Deamon mode is running
 
     $ ./pyDriveWire --status
     pyDriveWire Server status:notRunning
+
+## Starting daemon mode from the command line
+
+The server can be invoked as follows from the command line:
+
+    ./pyDriveWire \
+            --ui-port 6800 \
+            --daemon \
+            --pid-file /tmp/pyDriveWire.pid \
+            --log-file /tmp/pyDriveWire.log \
+            [... additional required options ...]
+            
+This will start the server in `daemon` mode with a web UI listening on port `6800`.
+
 
 [Back to top](#toc)
 
@@ -638,10 +817,9 @@ The following file formats are supported:
 ## Notes
 
 1. You must use 38400 baud to use the EmCee protocol on  a MC-10 running MCX Basic
-2. Saving of files is not currently supported but is in progress
-3. The `SETDIR` command works differently than the standard EmCee Server.
-4. At the current time pyDriveWire _only_ supports `.C10` and `.CAS` formatted files.  WAV and BIN file support is planned for a future update.
-5. At the current time you cannot open a `.C10` or `.CAS` file from the command line.  Use the `LOAD` or `LOADM` command.
+2. The `SETDIR` command works differently than the standard EmCee Server.
+3. At the current time pyDriveWire _only_ supports `.C10` and `.CAS` formatted files.  WAV and BIN file support is planned for a future update.
+4. At the current time you cannot open a `.C10` or `.CAS` file from the command line.  Use the `LOAD` or `LOADM` command.
 
 ## Using pyDriveWire's EmCee Server
 
@@ -801,7 +979,7 @@ The console log will explain where the output PDF went:
     Printing: closing print buffer: /var/folders/1y/cjrxv35d76bc54myg7hy7k1c0000gn/T/tmp2zG0Pb.txt
 
 
-Sample: file.pdf
+Sample: [printing_sample.pdf](printing_sample.pdf)
 
 ## Use from Disk Extended Color Basic
 Robert Gault has written some code to redirect printing in BASIC to the DriveWire Printer.
@@ -818,6 +996,8 @@ Donwload: [Drivewire Printing With Disk Basic(Robert Gault).zip](http://www.colo
 
 # <a name="ch11"></a>11. Debugging
 
+pyDriveWire server has extremely powerful debugging capabilities.  These far surpass what is available in any other DriveWire server out there in both conciseness, readability, and utility.
+
 pyDriveWire has 3 levels of debugging: 
 
 * Default: No Debugging (Level 0)
@@ -826,7 +1006,7 @@ pyDriveWire has 3 levels of debugging:
 
 The Debugging option on the command line or config file is _global_ and is applied to All Instances.
 
-Note: The config file option _must_ be put in the first instance.
+**Note: The config file option _must_ be put in the first instance.**
 
 ### Default: Debug Level 0
 
@@ -842,26 +1022,88 @@ You may also specify this in the config file:
 This debugging level displays one line for each command the DriveWire or EmCee client sends to the server.  See the pyDriveWire Debugging Guide for more detail.
 
 
-### Command Line:
+#### Command Line:
 
     -d
 
-### Config file:
+#### Config file:
 
     option debug 1
+
+#### Sample Output
+If you typed `DIR` at a HDBDOS prompt you might see something like this:
+
+    cmd=d2 cmdReadEx disk=0 lsn=322 rc=0 f=
+    cmd=d2 cmdReadEx disk=0 lsn=307 rc=0 f=
+    cmd=d2 cmdReadEx disk=0 lsn=308 rc=0 f=
+
+* `cmd=d2 cmdReadEx` -- This is the DriveWire Command that the client sent to the server.  In this case it's a `READEX` command  
+* The command reading from `disk=0`
+* Sector `lsn=322`
+* The result code is usually printed as `rc=N` and `0` means Success.
+
+
+
 
 ### Debug Level 2: Connection Debugging
 
 This debugging level includes command debug level 1 and in addition to that displays a HexDump of every byte the pyDriveWire server sends and receives from the client.   This can be extremely verbose and slows down the pyDriveWire server slightly so it is not recommended for normal use.  See the pyDriveWire Debugging Guide for more detail.
 
-### Command Line:
+#### Command Line:
 
     -dd
 
-### Config file:
+#### Config file:
 
     option debug 2
     
+#### Sample Output
+Debug Level 2 includes level 1 debugging and is even more verbose:
+
+    socket read: <dwsocket.DWSocketServer instance at 0x0000000107cfef20> len: 1
+    0000: |d2                               | |.                |
+    socket read: <dwsocket.DWSocketServer instance at 0x0000000107cfef20> len: 4
+    0000: |00000142                         | |...B             |
+    socket write: <dwsocket.DWSocketServer instance at 0x0000000107cfef20> len: 256
+    0000: |ffffffffffffffff ffffffffffffffff| |........ ........|
+    0010: |ffffffffffffffff ffffffffffffffff| |........ ........|
+    0020: |ffffffffffffffff ffffffffffffffff| |........ ........|
+    0030: |ffffffffffffffff ffffffffffffffff| |........ ........|
+    0040: |ffffffffffffffff ffffffffffffffff| |........ ........|
+    0050: |ffffffffffffffff ffffffffffffffff| |........ ........|
+    0060: |ffffffffffffffff ffffffffffffffff| |........ ........|
+    0070: |ffffffffffffffff ffffffffffffffff| |........ ........|
+    0080: |ffffffffffffffff ffffffffffffffff| |........ ........|
+    0090: |ffffffffffffffff ffffffffffffffff| |........ ........|
+    00a0: |ffffffffffffffff ffffffffffffffff| |........ ........|
+    00b0: |ffffffffffffffff ffffffffffffffff| |........ ........|
+    00c0: |ffffffffffffffff ffffffffffffffff| |........ ........|
+    00d0: |ffffffffffffffff ffffffffffffffff| |........ ........|
+    00e0: |ffffffffffffffff ffffffffffffffff| |........ ........|
+    00f0: |ffffffffffffffff ffffffffffffffff| |........ ........|
+    socket read: <dwsocket.DWSocketServer instance at 0x0000000107cfef20> len: 1
+    0000: |ff                               | |.                |
+    socket read: <dwsocket.DWSocketServer instance at 0x0000000107cfef20> len: 1
+    0000: |00                               | |.                |
+    cmd=d2 cmdReadEx disk=0 lsn=322 rc=0 f=
+    socket write: <dwsocket.DWSocketServer instance at 0x0000000107cfef20> len: 1
+    0000: |00                               | |.                |
+
+Decoding this:
+
+1. pyDriveWire read 1 byte `d2` from the CoCo
+2. pyDriveWire read 4 bytes `00000142` from the CoCo
+3. pyDriveWire sent a block of 256 bytes to the CoCo
+4. pyDriveWire read 1 byte `ff` from the CoCo
+5. pyDriveWire read 1 byte `00` from the CoCo
+6. pyDriveWire indicates that the cmdReadEx is finished.  This is the same single debug line described above in debug level 1
+7. pyDriveWire sent 1 byte `00` to the CoCo
+
+### Learning more about the DriveWire Protocol
+
+If you really want to learn the internal details of how the DriveWire Protocol works read the manual!
+
+[DriveWire 4 Specification](https://sourceforge.net/p/drivewireserver/wiki/DriveWire_Specification/)
 
 [Back to top](#toc)
 
