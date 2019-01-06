@@ -4,7 +4,7 @@ Python Implementation of DriveWire 4 and EmCee Protocols
 
 PyDriveWire is a nearly complete DriveWire4 Server written in Python.  The goal is to eventually implement all of the features available.  The server also implements additional features that are not available in DriveWire4.
 
-PyDriveWire also has experimental support for the EmCee Protocol for use with MCX Basic on the TRS-80 MC-10.  
+PyDriveWire also has support for the EmCee Protocol for use with MCX Basic on the TRS-80 MC-10.  
 
 DriveWire 4 and EmCee Procotols can be used simultaneously on the server without reconfiguration.
 
@@ -22,6 +22,7 @@ DriveWire 4 and EmCee Procotols can be used simultaneously on the server without
 9. [EmCee Server](#ch9)
 10. [Experimental Printing Support](#ch10)
 11. [Debugging](#ch11)
+12. [Appendix: Supported DriveWire Commands](#ch12)
 
 # 1. <a name="ch1"></a>Features
 
@@ -1107,3 +1108,56 @@ If you really want to learn the internal details of how the DriveWire Protocol w
 
 [Back to top](#toc)
 
+# 12. <a name="ch12"></a>Appendix: Supported DriveWire Commands
+
+* `dw disk` 
+	* `dw disk show`
+	* `dw disk insert 0 <file>`
+	* `dw disk eject 0`
+	* `dw disk reset 0` -- (re-open)
+* `dw port`
+	* `dw port show`
+	* `dw port close <n>`
+*  `dw server`
+	* `dw server instance`
+	* `dw server dir [<path>]`
+	* `dw server list <file>`
+	* `dw server dump`
+	* `dw server debug <0|False|1|False>`
+	* `dw server timeout`
+	* `dw server version`
+	* `dw server conn debug <0|False|1|False>`
+* `dw instance`
+	* `dw instance show`
+	* `dw instance add`
+	* `dw instance select`
+* `tcp` commands
+	* `tcp connect <host> <port>`
+	* `tcp listen <port> ...` -- Remainder of options ignored
+	* `tcp join <channel>`
+	* `tcp kill <channel>`
+* AT Commands
+	* `AT`
+   * `ATD<host>:<port>`
+   * `ATDT<host>:<port>`
+   * `ATE`
+   * `ATH`
+   * `ATI`
+   * `ATO`
+   * `ATZ`
+* EmCee Commands
+	* `mc alias show`
+	* `mc alias add`
+	* `mc alias remove`
+	* `mc setdir`
+	* `mc getdir`
+	* `mc show`
+	* `mc eject`
+* Debugging commands
+   * `dw port debug [True|1|False|0]`
+	* `dw server debug [True|1|False|0]`
+	* `dw server conn debug [True|1|False|0]`
+	* `dw server dump`
+	* `dw server timeout <s>`
+	
+[Back to top](#toc)
