@@ -6,6 +6,7 @@ from dwtelnet import DWTelnet
 import os
 import sys
 import re
+import urlparse
 
 class ParseNode:
 	def __init__(self, name, nodes=None):
@@ -84,6 +85,7 @@ class DWParser:
 		diskParser.add("reset", ParseAction(self.doReset))
 		diskParser.add("eject", ParseAction(self.doEject))
 		diskParser.add("show", ParseAction(self.doShow))
+		diskParser.add("offset", ParseAction(self.doDiskOffset))
 
 		serverParser=ParseNode("server")
 		serverParser.add("instance", ParseAction(self.doInstanceShow))
@@ -93,6 +95,7 @@ class DWParser:
 		serverParser.add("debug", ParseAction(self.doDebug))
 		serverParser.add("timeout", ParseAction(self.doTimeout))
 		serverParser.add("version", ParseAction(self.doVersion))
+		serverParser.add("hdbdos", ParseAction(self.doHdbDos))
 		connParser=ParseNode("conn")
 		connParser.add("debug", ParseAction(self.doConnDebug))
 		serverParser.add("conn", connParser)
@@ -164,6 +167,7 @@ class DWParser:
 		self.parseTree.add("AT", atParser)
 		self.parseTree.add("ui", uiParser)
 		self.parseTree.add("mc", mcParser)
+                self.parseTree.add("telnet", ParseAction(self.doTelnet))
                 self.parseTree.add("help", ParseAction(self.ptWalker))
                 self.parseTree.add("?", ParseAction(self.ptWalker))
 
@@ -190,6 +194,27 @@ class DWParser:
 		drive = data.split(' ')[0]
 		self.server.close(int(drive))
 		return "close(%d)" % (int(drive))
+
+
+	def doHdbDos(self, data):
+		if data.startswith(('1','on','t','T','y', 'Y')):
+			self.server.hdbdos = True
+		if data.startswith(('0','off','f','F','n', 'N')):
+			self.server.hdbdos = False
+		return "hdbdos=%s" % (self.server.hdbdos)
+
+	def doDiskOffset(self, data):
+		dp = data.split(' ')
+                drive = int(dp[0])
+                offset = self.server.files[drive].offset
+                if len(dp) >= 2:
+                    try:
+                        offset = eval(dp[1])
+                        self.server.files[drive].offset = offset
+                    except:
+                        raise
+                        return "Invalid offset %s" % (hex(offset))
+		return "drive(%d) offset(%s)" % (drive, hex(offset))
 
 
 	def doInstanceSelect(self, data):
@@ -319,8 +344,12 @@ class DWParser:
 		#out.append('')
 		return '\n\r'.join(out)
 
-	def doDial1(self, data):
+	def doTelnet(self, data):
 		return self.doConnect(data[1:], telnet=True)
+		#return self.doDial(data[1:])
+
+	def doDial1(self, data):
+		return self.doConnect(data[1:], telnet=False)
 		#return self.doDial(data[1:])
 
 	def doDial(self, data):
@@ -329,14 +358,21 @@ class DWParser:
 		#i = data.index(':')
 		#if i >= 0:
 		#	data[i] = ' '
-		return self.doConnect(data, telnet=True)
+		return self.doConnect(data, telnet=False)
 
 	def doConnect(self, data, telnet=False):
-		r = data.split(':')
-		if len(r)==1:
-			r = data.split(' ')
-		if len(r)==1:
-			r.append('23')
+                pr = urlparse.urlparse(data)
+                if pr.scheme == 'telnet':
+                    d2 = pr.netloc
+                    telnet = True
+                #elif pr.scheme == '':
+                else:
+                    d2 = data
+                r = d2.split(':')
+                if len(r)==1:
+                        r = d2.split(' ')
+                if len(r)==1:
+                        r.append('23')
 		(host,port) = r
 		print "host (%s)" % host
 		print "port (%s)" % port

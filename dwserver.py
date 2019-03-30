@@ -34,6 +34,8 @@ class DWServer:
                 self.emCeeAliases = {}
                 self.instances = instances
                 self.instance = instance
+                self.hdbdos = args.hdbdos
+                self.offset = eval(args.offset)
 
 	def registerConn(self, conn):
 		n = None
@@ -53,6 +55,8 @@ class DWServer:
 		self.files[disk] = DWFile(fileName,"rb+")
 		print('Opened: disk=%d file=%s' % (disk, fileName))
 		self.files[disk].file.seek(0)
+		self.files[disk].hdbdos = self.hdbdos
+		self.files[disk].offset = self.offset
 
 	def close(self, disk):
 		d = self.files[disk]
@@ -100,13 +104,19 @@ class DWServer:
                 # XXX: Not needed if set on open and updated on write
                 #if rc == E_OK and lsn == 0:
                 #        self.files[disk].guessMaxLsn()
-                if rc == E_OK and lsn >= self.files[disk].maxLsn:
+                if rc == E_OK and lsn >= self.files[disk].maxLsn and not self.hdbdos:
                         rc = E_EOF
 		if rc == E_OK:
 			try:
+                                if self.hdbdos:
+                                        disk = lsn/630
+                                        lsn = lsn - (disk*630)
+                                else:
+                                        lsn += self.files[disk].offset
 				self.files[disk].file.seek(lsn*SECSIZ)
 				assert(self.files[disk].file.tell() == (lsn*SECSIZ))
 			except:
+                                raise
 				rc = E_SEEK
 				data = NULL_SECTOR
 				print "   rc=%d" % rc
@@ -147,10 +157,16 @@ class DWServer:
                 # XXX: not needed if it's set on open and updated on write
                 #if rc == E_OK and lsn == 0:
                 #        self.files[disk].guessMaxLsn()
-                if rc == E_OK and lsn >= self.files[disk].maxLsn:
+                if rc == E_OK and lsn >= self.files[disk].maxLsn and not self.hdbdos:
                         rc = E_EOF
 		if rc == E_OK:
 			try:
+                                if self.hdbdos:
+                                        disk = lsn/630
+                                        lsn = lsn - (disk*630)
+                                        flags +="H"
+                                else:
+                                        lsn += self.files[disk].offset
 				self.files[disk].file.seek(lsn*SECSIZ)
 				assert(self.files[disk].file.tell() == (lsn*SECSIZ))
 			except:
@@ -235,6 +251,12 @@ class DWServer:
                         rc = E_EOF
 		if rc == E_OK:
 			try:
+                                if self.hdbdos:
+                                        disk = lsn/630
+                                        lsn = lsn - (disk*630)
+                                        flags += "H"
+                                else:
+                                        lsn += self.files[disk].offset
 				self.files[disk].file.seek(lsn*SECSIZ)
 			except:
 				traceback.print_exc()

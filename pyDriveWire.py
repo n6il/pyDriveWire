@@ -40,6 +40,8 @@ def ParseArgs():
     parser.add_argument('--log-file', dest='daemonLogFile', help='Daemon Log File')
     parser.add_argument('--debug', '-d', dest='debug', action='count')
     parser.add_argument('--version', '-v', action='store_true')
+    parser.add_argument('--hdbdos', dest='hdbdos', action='store_true', help='HDBDos Mode')
+    parser.add_argument('--offset', dest='offset', help='Number of sector offset for sector 0', default='0')
 
     parser.add_argument('files', metavar='FILE', nargs='*',
                     help='list of files')
@@ -169,6 +171,8 @@ def ReadConfig(args):
                 iargs.files = []
                 iargs.cmds = []
                 iargs.debug = debug
+                iargs.offset = args.offset
+                iargs.hdbdos = args.hdbdos
                 instances.append(iargs)
                 continue
             lp = l.split(' ')
@@ -237,8 +241,7 @@ def CreateServer(args, instance, instances, lock):
             cmds += ['dw server conn debug 1']
         cmds += args.cmds
         for cmd in cmds:
-            print instance,cmd
-            parser.parse(cmd)
+            print parser.parse(cmd)
 
         return dws
 
@@ -308,6 +311,7 @@ if __name__ == '__main__':
 #		format='%(asctime)s %(levelname)s %(module)s:%(lineno)s.%(funcName)s %(message)s'
 
     args = ParseArgs()
+    print args.hdbdos
     if args.version:
         print('pyDriveWire %s' % VERSION)
         exit(0)

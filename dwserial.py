@@ -2,6 +2,7 @@
 import serial
 from dwio import DWIO
 import dwlib
+import time
 
 class DWSerial(DWIO):
 	def __init__(self, port, speed, rtscts=False):
@@ -45,6 +46,7 @@ class DWSerial(DWIO):
 	def _write(self, data):
 		if self.abort:
 			return -1
+                #time.sleep(0.010)
 		if self.debug and data:
 			print "serwrite: len=%d %s"%(len(data),dwlib.canonicalize(data))
 		return self.ser.write(data)

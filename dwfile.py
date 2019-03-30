@@ -31,6 +31,7 @@ class DWFile:
         self._doOpen()
         self.guessMaxLsn()
         self.os9Image = False
+        self.offset = 0
 
     def _delete(self):
         print("Deleting temporary file: %s" % self.file.name)
