@@ -76,6 +76,7 @@ MC_RETNAM = chr(0x24)
 MC_DIRNAM = chr(0x44)
 MC_SETDIR = chr(0x43)
 MC_REWRBLK = chr(0x77)
+MC_PRINT = chr(0x50)
 
 # EmCee Errors
 E_MC_FC = 8

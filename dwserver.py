@@ -836,6 +836,13 @@ class DWServer:
             if self.debug:
 		print("cmd=%0x cmdEmCeeSetDir" % ord(cmd))
 
+        def cmdEmCeePrint(self, cmd):
+            data = self.conn.read(1, self.timeout)
+            if self.vprinter:
+                self.vprinter.write(data)
+            if self.debug:
+                print("cmd=%0x cmdEmCeePrint byte=%0x" % (ord(cmd),ord(data)))
+
         def cmdEmCeeErr(self, cmd):
             if self.debug:
 		print("cmd=%0x cmdEmCeeErr" % ord(cmd))
@@ -853,6 +860,7 @@ class DWServer:
                 MC_DIRNAM: cmdEmCeeDirName,
                 MC_SETDIR: cmdEmCeeSetDir,
                 MC_REWRBLK: cmdEmCeeWriteBlock,
+                MC_PRINT: cmdEmCeePrint,
         }
 
         def doEmCeeCmd(self, cmd):
@@ -861,7 +869,7 @@ class DWServer:
                 try:
                     f=DWServer.mccommand[mccmd]
                 except:
-                    f= lambda s,x: DWServer.mcErr(s,x)
+                    f= lambda s,x: DWServer.cmdEmCeeErr(s,x)
                 f(self, mccmd)
 
 	# DriveWire Command jump table

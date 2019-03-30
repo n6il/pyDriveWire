@@ -107,11 +107,15 @@ class DWParser:
 		instanceParser.add("add", ParseAction(self.doInstanceShow))
 		instanceParser.add("select", ParseAction(self.doInstanceSelect))
 
+		printParser=ParseNode("printer")
+		printParser.add("flush", ParseAction(self.doPrintFlush))
+
 		dwParser=ParseNode("dw")
 		dwParser.add("disk", diskParser)
 		dwParser.add("server", serverParser)
 		dwParser.add("port", portParser)
 		dwParser.add("instance", instanceParser)
+		dwParser.add("printer", printParser)
 
 		tcpParser=ParseNode("tcp")
 		tcpParser.add("connect", ParseAction(self.doConnect))
@@ -499,6 +503,11 @@ class DWParser:
                 ]
             del self.server.emCeeAliases[alias]
             return '\n'.join(r)
+
+        def doPrintFlush(self, data):
+            if self.server.vprinter:
+                self.server.vprinter.printFlush()
+                return("Print buffer flushed")
 
         def ptWalker(self, data):
             def walkPt(pt, nodes=[]):
