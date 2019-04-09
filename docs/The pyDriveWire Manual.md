@@ -22,7 +22,8 @@ DriveWire 4 and EmCee Procotols can be used simultaneously on the server without
 9. [EmCee Server](#ch9)
 10. [Experimental Printing Support](#ch10)
 11. [Debugging](#ch11)
-12. [Appendix: Supported DriveWire Commands](#ch12)
+12. [HDB-DOS Mode](#ch12)
+13. [Appendix: Supported DriveWire Commands](#ch13)
 
 # 1. <a name="ch1"></a>Features
 
@@ -1108,13 +1109,134 @@ If you really want to learn the internal details of how the DriveWire Protocol w
 
 [Back to top](#toc)
 
-# 12. <a name="ch12"></a>Appendix: Supported DriveWire Commands
+# 12. <a name="ch12"></a>HDB-DOS Mode
+DriveWire4 added a "HDB-DOS" mode to better support HDB-DOS disk images.  pyDriveWire has enhanced support for this.
+
+This is not the easiest DriveWire feature to understand and use properly.  To use it successfully you will need to know a few peices of information about your disk image
+
+1. Is the image a _HDB-DOS Hard Drive Image_, a _NitrOS-9 Drive Image_, or a _Combined NitrOS-9/HDB-DOS Drive Image_?
+2. What is the starting sector offset of the HDB-DOS part of the drive image?
+3. How is your HDB-DOS ROM's starting sector offset Configured?
+
+pyDriveWire has 2 options:
+
+* `hdbdos` mode
+* Sector `offset`
+
+Please note that HDB-DOS mode is not exactly what you may think at first glance.
+
+## HDB-DOS Hard Drive Images
+For most HDB-DOS hard drives images the `offset` is 0 and `hdbdos` should be disabled.
+
+## NitrOS-9 Hard Drive Images
+For most HDB-DOS hard drives images the `offset` is 0 and `hdbdos` should be disabled.
+
+## Combined NitrOS-9/HDB-DOS Drive Images
+For Combined NitrOS-9/HDB-DOS Drive images you will need to know two peices of information to get pyDriveWire configured properly.
+
+1. What is the starting sector offset of the HDB-DOS part of the drive image?
+2. How is your HDB-DOS ROM's starting sector offset Configured?
+
+These types of hard drive images are normally 128MB in size and divided into two sections, the first for NitrOS-9, and the second for HDB-DOS.
+
+The NitrOS-9 section normally starts at the beginning of the drive at sector 0 through sector 0x59FFF.  This yeilds an approximately 94MB NitrOS-9 file systyem.
+
+The HDB-DOS section follows the NitrOS-9 section.  The starting sector of this section immediately follows the NitrOS-9 section which is normally sector `0x5A000`.
+
+Lastly, you need to know whether your HDB-DOS ROM has been patched or not.  
+
+If your HDB-DOS ROM has NOT been patched, you will need to set an offset in the server to access the HDB-DOS section of the Disk.  Note that you will need to disable this server offset in order to use NitrOS-9:
+
+    dw disk insert 0 /demo/combined.vhd
+    dw disk offset 0 0x5a000
+    
+If your HDB-DOS ROM has been patched, you DO NOT need to set an offset as it is built-into the ROM image itself:
+
+    dw disk insert 0 /demo/combined.vhd
+    dw disk offset 0 0
+
+## HDB-DOS Mode
+
+Now we'll describe the HDB-DOS mode in DriveWire/pyDriveWire. 
+
+There is a specific case where this is useful.  Suppose that you downloaded a 160k floppy disk image from the Color Computer Archive and you wanted to transfer this image to a physical disk and your machine is running HDB-DOS.  The way that you can accomplish this is by using the HDB-DOS mode in DriveWire/pyDriveWire.
+
+pyDriveWire has the `hdbdos` mode disabled by default.  In this default mode, HDB-DOS selects which image it wants by the _sector offset_ rather than the drive number (See Below: Understanding Hard Drive Images).  The `drivewire` drive is selected by the `DRIVE#` command, and the default is 0.  With `hdbdos` mode disabled, if you accessed `DRIVE#0: DRIVE 4` you would be accessing DriveWire image mounted in slot 0 at sector 2520.
+
+When the `hdbdos` setting is set to true this behavior is changed.  HDB-DOS will still select drive 4 by sector offset but pyDriveWire determines the drive number by dividing this back out and in this case  pyDriveWire will then access virtual disk iamge 4.
+
+On your color computer if you issue the `DRIVE ON` command this enables the physical floppy disks on Drive 0-3.  DriveWire drives 0-3 are not accessible again until you issue `DRIVE OFF`.
+
+Then if you wanted to copy the downloaded disk image to a physical floppy you could insert the drive image in pyDriveWire drive 4 and then copy it:
+
+    dw server hdbdos True
+    dw disk insert 4 /path/to/disk/image.dsk
+    dw disk offset 4 0
+    
+    DRIVE ON
+    BACKUP 4 to 0
+
+## Understanding Hard Drive Images
+Each standard RSDOS disk is composed of 35 Tracks each containing 18 sectors for a total of 630 sectors on each disk. 
+
+HDB-DOS was designed to work with Hard Drives which are many multiples the capacity of a floppy disk.  HDB-DOS allowed for multiple drives to reside on one hard drive.  The way that it did this was by placing the drive images sequentially on the disk one after the other:
+     
+     HDB-DOS Hard Drive Layout
+     
+    +--- RS-Dos Drive Sector
+    |          
+    |   +============+===========+============+===}   {===+=============+=============+=============+
+    +-> |0        629|0       629|0        629|           |0         629|0         629|0         629| 
+        |            |           |            |           |             |             |             |
+        |  Drive 0   |  Drive 1  |   Drive 2  |  .......  |  Drive 243  |  Drive 254  |  Drive 255  |
+        |            |           |            |           |             |             |             |
+    +-> |0        629|630    1259|1260    1889|           |159390 160019|160020 160649|160650 161279|
+    |   +============+===========+============+===}   {===+=============+=============+=============+
+    |
+    +--- Hard Drive LSN
+    
+Drive 0: Starts at sector 0 at the beginning of the drive through sector 629
+Drive 1: Sector  630 - 1259
+Drive 2: Sector 1260 - 1889,
+Etc.
+    
+To swtich between the different drives, you simply issued the `DRIVE N` command.  Internally, HDB-DOS uses a very simple formula to calculate which sector it needs to go to:
+
+    HardDiskLSN = <OFFSET> + <DRIVE>*630 + <sector>
+
+For the moment, assume that `OFFSET=0`
+
+The RS-DOS directory and FAT tables are on the first few sectors of Track 17 of each disk (Sectors 306, 307, and 308)
+
+To access the directory of Drive 0: `306 = 0*630 + 0 + 306`
+and for Drive 1: `306 = 1*630 + 0 + 306`
+etc.
+
+     Combined NitrOS-9 and HDB-DOS Hard Drive Layout
+     
+                                               +--- RS-Dos Drive Sector
+                                               |          
+        +======================================+============+===}   {===+=============+
+        |                                      |0        629|           |0         629| 
+        |                                      |            |           |             |
+        |           NitrOS-9 Image             |  Drive 0   |  .......  |  Drive 255  |
+        |                                      |            |           |             |
+    +-> |0                                59FFF|5A000       |           |8138A   815FF|
+    |   +======================================+============+===}   {===+=============+
+    |
+    +--- Hard Drive LSN
+
+
+[Back to top](#toc)
+
+# 13. <a name="ch13"></a>Appendix: Supported DriveWire Commands
 
 * `dw disk` 
 	* `dw disk show`
 	* `dw disk insert 0 <file>`
 	* `dw disk eject 0`
 	* `dw disk reset 0` -- (re-open)
+	* `dw disk offset 0 <n>`
 * `dw port`
 	* `dw port show`
 	* `dw port close <n>`
@@ -1127,6 +1249,7 @@ If you really want to learn the internal details of how the DriveWire Protocol w
 	* `dw server timeout`
 	* `dw server version`
 	* `dw server conn debug <0|False|1|False>`
+	* `dw server hdbdos <0|False|1|True>`
 * `dw instance`
 	* `dw instance show`
 	* `dw instance add`
@@ -1161,3 +1284,4 @@ If you really want to learn the internal details of how the DriveWire Protocol w
 	* `dw server timeout <s>`
 	
 [Back to top](#toc)
+
