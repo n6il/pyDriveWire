@@ -500,16 +500,20 @@ class DWServer:
 			print("cmd=%0x cmdSerWrite channel=%d byte=%0x" % (ord(cmd),ord(channel),ord(byte)))
 		self.channels[channel]._cmdWorker()
 
-	def cmdPrint(self, cmd):
-		data = self.conn.read(1, self.timeout)
+        def cmdPrint(self, cmd):
+                data = self.conn.read(1, self.timeout)
 		if self.vprinter:
-			self.vprinter.write(data)
-		if self.debug:
-			print("cmd=%0x cmdPrint byte=%0x" % (ord(cmd),ord(data)))
+                        self.vprinter.write(data)
+                else:
+                        print("cmd=%0x cmdPrint byte=%0x WARN: printing not enabled" % (ord(cmd),ord(data)))
+                if self.debug:
+                        print("cmd=%0x cmdPrint byte=%0x" % (ord(cmd),ord(data)))
 
 	def cmdPrintFlush(self, cmd):
 		if self.vprinter:
 			self.vprinter.printFlush()
+                else:
+			print("cmd=%0x cmdPrintFlush WARN: printing not enabled" % (ord(cmd)))
 		if self.debug:
 			print("cmd=%0x cmdPrintFlush" % (ord(cmd)))
 
@@ -966,3 +970,4 @@ if __name__ == '__main__':
 	server = DWServer(testConn)
 	server.main()
 
+# vim: ts=8 sw=8 sts=8
