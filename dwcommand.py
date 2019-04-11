@@ -202,7 +202,8 @@ class DWParser:
 
 
 	def doHdbDos(self, data):
-		if data.startswith(('1','on','t' 'T','y', 'Y')):
+                data = data.lstrip().rstrip()
+		if data.startswith(('1','on','t', 'T','y', 'Y')):
 			self.server.hdbdos = True
 		if data.startswith(('0','off','f','F','n', 'N')):
 			self.server.hdbdos = False
@@ -288,7 +289,11 @@ class DWParser:
 		out.append( "Drive  File" )
 		out.append( "-----  --------------------------------------" )
 		i=0
-		for f in self.server.files[:4]:
+		#for f in self.server.files[:4]:
+		for f in self.server.files:
+                        if i >=4 and f is None:
+                           i += 1
+                           continue
 			name = f.name if f else f
 			if f and f.remote:
 				name += '(%s)' % f.file.name
