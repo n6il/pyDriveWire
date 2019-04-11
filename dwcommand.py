@@ -112,6 +112,11 @@ class DWParser:
 
 		printParser=ParseNode("printer")
 		printParser.add("flush", ParseAction(self.doPrintFlush))
+		printParser.add("format", ParseAction(self.doPrintFormat))
+		printParser.add("file", ParseAction(self.doPrintFile))
+		printParser.add("dir", ParseAction(self.doPrintDir))
+		printParser.add("cmd", ParseAction(self.doPrintCmd))
+		printParser.add("status", ParseAction(self.doPrintStatus))
 
 		dwParser=ParseNode("dw")
 		dwParser.add("disk", diskParser)
@@ -197,7 +202,7 @@ class DWParser:
 
 
 	def doHdbDos(self, data):
-		if data.startswith(('1','on','t','T','y', 'Y')):
+		if data.startswith(('1','on','t' 'T','y', 'Y')):
 			self.server.hdbdos = True
 		if data.startswith(('0','off','f','F','n', 'N')):
 			self.server.hdbdos = False
@@ -544,6 +549,59 @@ class DWParser:
             if self.server.vprinter:
                 self.server.vprinter.printFlush()
                 return("Print buffer flushed")
+
+        def doPrintFormat(self, data):
+            if self.server.vprinter:
+                if data.lower() in ['pdf', 'txt']:
+                    self.server.vprinter.printFormat = data
+            return "printFormat=%s" % (self.server.vprinter.printFormat)
+
+        def doPrintFile(self, data):
+            if self.server.vprinter:
+                    if self.server.vprinter.printDir is not None:
+                        return "ERROR: Can't use file and dir output at the same time"
+                    if data.startswith(('0','off','f','F','no', 'No')):
+                       data = None
+                    self.server.vprinter.printFile = data
+            return "printFile=%s" % (self.server.vprinter.printFile)
+
+        def doPrintDir(self, data):
+            if self.server.vprinter:
+                    if self.server.vprinter.printFile is not None:
+                        return "ERROR: Can't use file and dir output at the same time"
+                    if data.startswith(('0','off','f','F','no', 'No')):
+                       self.server.vprinter.printDir = None
+                    elif os.path.exists(data):
+                       self.server.vprinter.printDir = data
+            return "printDir=%s" % (self.server.vprinter.printDir)
+
+        def doPrintCmd(self, data):
+            if self.server.vprinter:
+                if data.lower() in ['pdf', 'txt']:
+                    self.server.vprinter.printCmd = data
+            return "printCmd=%s" % (self.server.vprinter.printCmd)
+
+        def doPrintStatus(self, data):
+            vp = self.server.vprinter
+            status = "Enabled" if vp else "Disabled"
+            out = ["pyDriveWire Print Engine Status: %s" % status]
+            if vp:
+                  out += ["   Output Format: %s" % vp.printFormat]
+                  if vp.printDir is not None:
+                     d = vp.printDir
+                     f = None
+                  elif vp.printFile is not None:
+                     d = None
+                     f = vp.printFile
+                  else:
+                     d = "temporary dir"
+                     f = "temporary file"
+                  out += ["   Output Directory: %s" % (d)]
+                  out += ["   Output File: %s" % (f)]
+                  out += ["   Output Command: %s" % (vp.printCmd)]
+                  out += ["   Current Print Buffer: %s" % (vp.source_file_name if vp.source_file_name else "Not open")]
+
+            return '\n\r'.join(out)
 
         def ptWalker(self, data):
             def walkPt(pt, nodes=[]):

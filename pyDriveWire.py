@@ -42,6 +42,13 @@ def ParseArgs():
     parser.add_argument('--version', '-v', action='store_true')
     parser.add_argument('--hdbdos', dest='hdbdos', action='store_true', help='HDBDos Mode')
     parser.add_argument('--offset', dest='offset', help='Number of sector offset for sector 0', default='0')
+    printer = parser.add_argument_group('printer', 'Printer Options')
+    printer.add_argument('--print-format', dest='printFormat', choices=['pdf', 'txt'], help='Printer output format, default: %(default)s', default="pdf") 
+    #printer.add_argument('--print-mode', dest='printMode', choices=['dir', 'file'], help='Printer output collation method, default: %(default)s', default="dir") 
+    printerLoc = printer.add_mutually_exclusive_group()
+    printerLoc.add_argument('--print-dir', dest='printDir', help='Spool directory to send printer output')
+    printerLoc.add_argument('--print-file', dest='printFile', help='File to send printer output, Note: Will be overwritten')
+    printer.add_argument('--print-cmd', dest='printCmd', help='Command to run on flushed printer output')
 
     parser.add_argument('files', metavar='FILE', nargs='*',
                     help='list of files')
@@ -165,7 +172,7 @@ def ReadConfig(args):
                 iargs.host = None
                 iargs.port = None
                 iargs.speed = None
-                iargs.experimental = []
+                iargs.experimental = args.experimental
                 iargs.daemon = True
                 iargs.rtscts = False
                 iargs.files = []
@@ -173,6 +180,11 @@ def ReadConfig(args):
                 iargs.debug = debug
                 iargs.offset = args.offset
                 iargs.hdbdos = args.hdbdos
+                iargs.printFormat = args.printFormat
+                #iargs.printMode = None
+                iargs.printDir = args.printDir
+                iargs.printFile = args.printFile
+                iargs.printCmd = args.printCmd
                 instances.append(iargs)
                 continue
             lp = l.split(' ')
@@ -311,7 +323,6 @@ if __name__ == '__main__':
 #		format='%(asctime)s %(levelname)s %(module)s:%(lineno)s.%(funcName)s %(message)s'
 
     args = ParseArgs()
-    print args.hdbdos
     if args.version:
         print('pyDriveWire %s' % VERSION)
         exit(0)

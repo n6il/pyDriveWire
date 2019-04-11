@@ -10,14 +10,24 @@ import copy
 import os
 
 class DWPrinter:
-    def __init__(self):
+    def __init__(self, args):
         self.source_file_name = None
         self.source_file = None
         self.lastCr = False
+        self.printFormat = args.printFormat
+        #`self.printMode = args.printMode
+        self.printDir = args.printDir if args.printDir else None
+        self.printFile = args.printFile if args.printFile else None
+        self.printCmd = args.printCmd
 
     def write(self, data, dropCr=True):
         if not self.source_file:
-            self.source_file_name = tempfile.mktemp (".txt")
+            if self.printFile:
+               self.source_file_name = self.printFile
+            elif self.printDir:
+               self.source_file_name = tempfile.mktemp (".txt", self.printDir)
+            else:
+               self.source_file_name = tempfile.mktemp (".txt")
             self.source_file = open(self.source_file_name, "w")
             print("Printing: opening print buffer: %s" % (self.source_file_name))
         if data == '\r':
@@ -31,16 +41,33 @@ class DWPrinter:
             self.source_file.write(data)
             self.lastCr = False
 
-    def printFlush(self):
-        self.source_file.close()
+    def printReset(self):
         self.source_file = None
-        self._doPrinting()
-        print("Printing: closing print buffer: %s" % (self.source_file_name))
-        os.unlink(self.source_file_name)
         self.source_file_name = None
 
-    def _doPrinting(self):
-        pdf_file_name = tempfile.mktemp (".pdf")
+    def printFlush(self):
+        if not self.source_file:
+            return
+        self.source_file.close()
+        #print("Printing: closing print buffer: %s" % (self.source_file_name))
+        printFileName = None
+        if self.printFormat == 'pdf':
+            printFileName = self._doPrintingPdf()
+            os.unlink(self.source_file_name)
+        else:
+            print("Printing to: %s" % (self.source_file_name))
+            printFileName = self.source_file_name
+        if printFileName and self.printCmd:
+            cmd = '%s %s' % (self.printCmd, printFileName)
+            print("Running Command: %s" % cmd)
+            os.system(cmd)
+        self.printReset()
+
+    def _doPrintingPdf(self):
+        if self.printDir:
+           pdf_file_name = tempfile.mktemp (".pdf", self.printDir)
+        else:
+           pdf_file_name = tempfile.mktemp (".pdf")
         print("Printing to: %s" % (pdf_file_name))
 
         ### FONT ###
@@ -63,3 +90,4 @@ class DWPrinter:
         story=[Preformatted(open (self.source_file_name).read(), pre)]
         doc.build (story)
         #win32api.ShellExecute (0, "print", pdf_file_name, None, ".", 0)
+        return pdf_file_name

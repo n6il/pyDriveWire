@@ -30,8 +30,15 @@ DriveWire 4 and EmCee Procotols can be used simultaneously on the server without
 * (new for v0.5) New [Web User Interface](#ch4) (`--ui-port`)
 * (new for v0.5) [Configuration File support](#ch6)
 * (new for v0.5) [Multiple Instance Support](#ch7) — Requires config file
+* (new for v0.5) [Daemon Mode](#ch8) - Linux/macOS Only - Requires config file
 * (new for v0.5) [Enhanced `pyDwCli` command console tool](#ch5)
 * (new for v0.5) [Comprehensive and detailed manual for server features](#toc)
+* (new for v0.5) [Printing: EmCee/MCX-Basic Printing Support](#ch10)
+* (new for v0.5) [Printing: `dw printer flush` command](#ch10)
+* (new for v0.5) [Printing: Selectable output format: txt/pdf](#ch10)
+* (new for v0.5) [Printing: Selectable output directory](#ch10)
+* (new for v0.5) [Printing: Run command when print buffer is flushed](#ch10)
+* (new for v0.5) [HDB-DOS Mode and Disk image offset](#ch12)
 * Remote dw command input on TCP port
 * [Experimental EmCee Protocol Support](#ch9)
 * Supported on Linux, macOS, and Windows
@@ -958,8 +965,14 @@ Remove an alias.  The alias is always converted to upper case before addition re
 
 pyDriveWire has experimental printing support.  
 
+pyDriveWire v0.3 included experimental printing support.  The `-x printer` command line option enables it.  This support was enhanced in pyDriveWire v0.5:
 
-pyDriveWire v0.3 includes experimental printing support.  The `-x printer` command line option enables it.  Currently this only suports printing text, and the out is rendered into a PDF.
+1. MCX-Basic doesn't have a way to say "I'm finished printing now" so the `dw printer flush command` was added to spit out the current print buffer
+2. The original pyDriveWire printing feature only generated pdf file output, you can now toggle between pdf and text file output
+3. You can force pyDriveWire to always open and overwrite the same file you specify every time you  print
+4. You can configure a "spool" directory.  Every time the print buffer is flushed it will output a new file in the spool directory
+5. You can configure a command to run on the spool file every time the print buffer is flushed. for example ./pyDriveWire --print-cmd "lpr -P cocofilter %s" means that when the print buffer is flushed the resulting file will get piped to lpr
+
 
 ## Prerequisites
 
@@ -994,6 +1007,35 @@ Robert Gault has written some code to redirect printing in BASIC to the DriveWir
 
 Donwload: [Drivewire Printing With Disk Basic(Robert Gault).zip](http://www.colorcomputerarchive.com/coco/Disks/Utilities/Drivewire%20Printing%20with%20Disk%20Basic%20%28Robert%20Gault%29.zip)
 
+
+## Use from MCX-Basic on the MC-10
+MCX-Basic has support for printing over a EmCee connection.  You can use both the `LLIST` and `PRINT #-2` commands to send output to the print buffer.  One thing that MCX-Basic does not have is any way to signal to the EmCee server that it has finished printing.  The `dw printer flush` command will close the current print buffer, render the output, and finally the print buffer will be reset to prepare for the next print job.
+
+
+## Printing Configuraiton Options
+### Command Line Options
+
+    -x printer          Enable experimental printing support
+    
+    printer:
+      Printer Options
+
+      --print-format {pdf,txt}
+                        Printer output format, default: pdf
+      --print-dir PRINTDIR  Spool directory to send printer output
+      --print-file FILE
+                        File to send printer output, Note: Will be overwritten
+      --print-cmd PRINTCMD  Command to run on flushed printer output
+
+### Config File Options
+
+    option experimental printer
+    option printFormat <txt|pdf>
+    option printDir <dir>
+    option printFile <file>
+    option printCmd <cmd>
+    
+ 
 [Back to top](#toc)
 
 # <a name="ch11"></a>11. Debugging
@@ -1254,6 +1296,9 @@ etc.
 	* `dw instance show`
 	* `dw instance add`
 	* `dw instance select`
+* `dw printer`
+	* `dw printer flush`
+	* `dw printer
 * `tcp` commands
 	* `tcp connect <host> <port>`
 	* `tcp listen <port> ...` -- Remainder of options ignored

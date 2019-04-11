@@ -30,7 +30,7 @@ class DWServer:
 			if 'printer' in args.experimental:
                                 print("DWServer: Enabling experimental printing support")
                                 from dwprinter import DWPrinter
-				self.vprinter = DWPrinter()
+				self.vprinter = DWPrinter(args)
                 self.emCeeAliases = {}
                 self.instances = instances
                 self.instance = instance
