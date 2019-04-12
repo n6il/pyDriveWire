@@ -3,7 +3,7 @@ Python Implementation of DriveWire 4 and EmCee Protocols
 
 PyDriveWire is a nearly complete DriveWire4 Server written in Python.  The goal is to eventually implement all of the features available.  The server also implements additional features that are not available in DriveWire4.
 
-PyDriveWire v0.4 also has support for the EmCee Protocol for use with MCX Basic on the TRS-80 MC-10.  
+PyDriveWire v0.5 also has support for the EmCee Protocol for use with MCX Basic on the TRS-80 MC-10.  
 
 DriveWire 4 and EmCee Procotols can be used simultaneously on the server without reconfiguration.
 
@@ -12,8 +12,15 @@ Features
 * (new for v0.5) New [Web User Interface](docs/The%20pyDriveWire%20Manual.md#ch4) (`--ui-port`)
 * (new for v0.5) [Configuration File support](docs/The%20pyDriveWire%20Manual.md#ch6)
 * (new for v0.5) [Multiple Instance Support](docs/The%20pyDriveWire%20Manual.md#ch7) — Requires config file
+* (new for v0.5) [Daemon Mode](docs/The%20pyDriveWire%20Manual.md#ch8) - Linux/macOS Only - Requires config file
 * (new for v0.5) [Enhanced `pyDwCli` command console tool](docs/The%20pyDriveWire%20Manual.md#ch5)
 * (new for v0.5) [Comprehensive and detailed manual for server features](docs/The%20pyDriveWire%20Manual.md#toc)
+* (new for v0.5) [Printing: EmCee/MCX-Basic Printing Support](docs/The%20pyDriveWire%20Manual.md#ch10)
+* (new for v0.5) [Printing: `dw printer flush` command](docs/The%20pyDriveWire%20Manual.md#ch10)
+* (new for v0.5) [Printing: Selectable output format: txt/pdf](docs/The%20pyDriveWire%20Manual.md#ch10)
+* (new for v0.5) [Printing: Selectable output directory](docs/The%20pyDriveWire%20Manual.md#ch10)
+* (new for v0.5) [Printing: Run command when print buffer is flushed](docs/The%20pyDriveWire%20Manual.md#ch10)
+* (new for v0.5) [HDB-DOS Mode and Disk image offset](docs/The%20pyDriveWire%20Manual.md#ch12)
 * Remote dw command input on TCP port
 * [Experimental EmCee Protocol Support](docs/The%20pyDriveWire%20Manual.md#ch9)
 * Supported on Linux, macOS, and Windows
@@ -123,5 +130,5 @@ Examples:
 
 Supported DW Commands
 ---------------------
-The list of [Supported DriveWire Commands](docs/The%20pyDriveWire%20Manual.md#ch12) is in the pyDriveWire manual.
+The list of [Supported DriveWire Commands](docs/The%20pyDriveWire%20Manual.md#ch13) is in the pyDriveWire manual.
 

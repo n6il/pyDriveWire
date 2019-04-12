@@ -10,7 +10,6 @@ DriveWire 4 and EmCee Procotols can be used simultaneously on the server without
 
 # <a name="toc"></a>Table of Contents
 
-
 1. [Features](#ch1)
 2. [Getting Started](#ch2)
 3. [Command Line and Config File Options](#ch3)
@@ -162,10 +161,13 @@ This manual section is meant as a quick and comprehensive guide to all of the py
                           [-x EXPERIMENTAL] [-D CMDPORT] [-U UIPORT] [-C CONFIG]
                           [--daemon] [--status] [--stop]
                           [--pid-file DAEMONPIDFILE] [--log-file DAEMONLOGFILE]
-                          [--debug] [--version]
+                          [--debug] [--version] [--hdbdos] [--offset OFFSET]
+                          [--print-format {pdf,txt}]
+                          [--print-dir PRINTDIR | --print-file PRINTFILE]
+                          [--print-cmd PRINTCMD]
                           [FILE [FILE ...]]
     
-    pyDriveWire Server <version>
+    pyDriveWire Server v0.5
     
     positional arguments:
       FILE                  list of files
@@ -195,6 +197,19 @@ This manual section is meant as a quick and comprehensive guide to all of the py
                             Daemon Log File
       --debug, -d
       --version, -v
+      --hdbdos              HDBDos Mode
+      --offset OFFSET       Number of sector offset for sector 0
+    
+    printer:
+      Printer Options
+    
+      --print-format {pdf,txt}
+                            Printer output format, default: pdf
+      --print-dir PRINTDIR  Spool directory to send printer output
+      --print-file PRINTFILE
+                            File to send printer output, Note: Will be overwritten
+      --print-cmd PRINTCMD  Command to run on flushed printer output
+
 
 
 ## Config File (global)
@@ -400,6 +415,71 @@ Specify config file location:
 or specify pid file location:
 
     --stop [--pid-file <pid_file>]
+
+
+## Printer: Enable Experimental Printing Mode
+
+Please see the [Experimental Printing Support](#ch10) manual section for more detail about this feature.
+
+### Command Line
+
+    -x printer
+    
+or
+
+    --experimental printer
+
+### Config File
+    option experimental printer
+    
+## Printer: Select the output format: `txt` or `pdf`
+
+Please see the [Experimental Printing Support](#ch10) manual section for more detail about this feature.
+
+### Command Line
+
+    --print-format <txt|pdf>
+    
+### Config File
+
+    option printFormat <txt|pdf>
+    
+## Printer: Select Output File
+
+Please see the [Experimental Printing Support](#ch10) manual section for more detail about this feature.
+
+### Command Line
+
+    --print-file <filename>
+    
+### Config File
+
+    option printFile <filename>
+    
+
+## Printer: Select Output Directory
+
+Please see the [Experimental Printing Support](#ch10) manual section for more detail about this feature.
+
+### Command Line
+
+    --print-dir <directory>
+    
+### Config File
+
+    option printDir <directory>
+
+## Printer: Command
+
+Please see the [Experimental Printing Support](#ch10) manual section for more detail about this feature.
+
+### Command Line
+
+    --print-cmd <CMD>
+    
+### Config File
+
+    option printCmd <CMD>
 
 
 [Back to top](#toc)
@@ -1012,7 +1092,7 @@ Donwload: [Drivewire Printing With Disk Basic(Robert Gault).zip](http://www.colo
 MCX-Basic has support for printing over a EmCee connection.  You can use both the `LLIST` and `PRINT #-2` commands to send output to the print buffer.  One thing that MCX-Basic does not have is any way to signal to the EmCee server that it has finished printing.  The `dw printer flush` command will close the current print buffer, render the output, and finally the print buffer will be reset to prepare for the next print job.
 
 
-## Printing Configuraiton Options
+## Printing Configuration Options
 ### Command Line Options
 
     -x printer          Enable experimental printing support
@@ -1035,7 +1115,9 @@ MCX-Basic has support for printing over a EmCee connection.  You can use both th
     option printFile <file>
     option printCmd <cmd>
     
- 
+### Enabling Experimental Printing Mode
+
+The printing feature is experimental 
 [Back to top](#toc)
 
 # <a name="ch11"></a>11. Debugging
@@ -1298,7 +1380,11 @@ etc.
 	* `dw instance select`
 * `dw printer`
 	* `dw printer flush`
-	* `dw printer
+	* `dw printer format`
+	* `	dw printer file`
+	* `dw printer dir`
+	* `	dw printer cmd`
+	* `dw printer status`
 * `tcp` commands
 	* `tcp connect <host> <port>`
 	* `tcp listen <port> ...` -- Remainder of options ignored
