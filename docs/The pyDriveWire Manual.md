@@ -1051,7 +1051,7 @@ pyDriveWire v0.3 included experimental printing support.  The `-x printer` comma
 2. The original pyDriveWire printing feature only generated pdf file output, you can now toggle between pdf and text file output
 3. You can force pyDriveWire to always open and overwrite the same file you specify every time you  print
 4. You can configure a "spool" directory.  Every time the print buffer is flushed it will output a new file in the spool directory
-5. You can configure a command to run on the spool file every time the print buffer is flushed. for example ./pyDriveWire --print-cmd "lpr -P cocofilter %s" means that when the print buffer is flushed the resulting file will get piped to lpr
+5. You can configure a command to run on the spool file every time the print buffer is flushed. for example ./pyDriveWire --print-cmd "lpr -P cocofilter" means that when the print buffer is flushed the resulting file will get piped to lpr
 
 
 ## Prerequisites
@@ -1117,7 +1117,43 @@ MCX-Basic has support for printing over a EmCee connection.  You can use both th
     
 ### Enabling Experimental Printing Mode
 
-The printing feature is experimental 
+The printing feature is currently experimental.  The reason why is that it currently requires some additional modules to be installed in your Python installation.  It can be enabled by providing the `-x printer` command line or `experimental printer` option in the configuration file.
+
+### Selecting the `pdf` or `txt` output format
+
+The pyDriveWire printing engine has two output formats:
+
+* The `pdf` engine currently renders the Coco's textual printed output in a PDF file.  The PDF file uses a font which is similar to Epson FX-80 printer.
+* The `txt` engine copies the Coco's textual printed output directly to a file without any conversion.
+
+### Controlling the printer output location
+
+Without any options and by default, the pyDriveWire printing engine sends it's output to a temporary file which is placed in temporary directory.  The log messages printed to the pyDriveWire console will need to be looked at to see where the file went.  There are two options which can be used to change this behavior:
+
+* The `printDir` option can be used to provide a directory where the print engine output will go.  This directory must already exist.
+* The `printFile` option is the name of a file where _all_ of the printer output will go.  This file is created the first time the Coco/MC-10 prints anything.  The file is closed when the print buffer is flushed.  Please note that if anything more is printed after this file is created, it will be truncated and overwritten and the previous output will be lost.
+
+### Running a command when the print buffer is flushed
+
+pyDriveWire has an option to run a command on the current print buffer each time it is flushed.  The obvious way to use this is to have the output file sent to a program that will actually print it out.  The traditional command used to accomplish this any Linux/macOS/Unix system is `lpr`.  The command works like this:
+
+1. The Coco starts printing and the spool file is created
+2. The coco finishes printing and sends a print flush command
+3. The spool file is closed
+4. The command is run with the spool file provided as an argument.
+
+For example, if the following option is provided:
+
+    --print-cmd 'lpr -P cocofilter'
+
+Then whenever the print buffer is flushed the following command would be run:
+
+    lpr -P cocofilter <spool_file>
+
+For Windows you might try this:
+
+    --print-cmd "print" 
+
 [Back to top](#toc)
 
 # <a name="ch11"></a>11. Debugging
