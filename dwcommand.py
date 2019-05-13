@@ -135,7 +135,6 @@ class DWParser:
 		atParser.add("", ParseAction(lambda x: {'msg': 'OK', 'self.cmdAutoClose': False}))
 		atParser.add("Z", ParseAction(lambda x: {'msg': 'OK', 'self.cmdAutoClose': False}))
 		atParser.add("D", ParseAction(self.doDial))
-		atParser.add("DT", ParseAction(self.doDial1))
 		atParser.add("I", ParseAction(lambda x: {'msg': 'pyDriveWire %s\r\nOK'%self.server.version, 'self.cmdAutoClose': False}))
 		atParser.add("O", ParseAction(lambda x: {'msg': 'OK', 'self.cmdAutoClose': False, 'self.online': True}))
 		atParser.add("H", ParseAction(lambda x: {'msg': 'OK', 'self.cmdAutoClose': False, 'self.online': False}))
@@ -363,11 +362,6 @@ class DWParser:
 		#return self.doDial(data[1:])
 
 	def doDial(self, data):
-                if data.startswith('T'):
-                    data = data[1:]
-		#i = data.index(':')
-		#if i >= 0:
-		#	data[i] = ' '
 		return self.doConnect(data, telnet=False)
 
 	def doConnect(self, data, telnet=False):
