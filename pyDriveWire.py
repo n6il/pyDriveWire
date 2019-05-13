@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 import serial
 from dwserial import DWSerial
-from dwsocket import DWSocketServer, DWSocket
+from dwsocket import DWSocketServer, DWSocket, DWSimpleSocket
 from dwserver import DWServer
 from dwcommand import DWRepl, DWRemoteRepl, DWParser
 from dwhttpserver import DWHttpServer
@@ -231,7 +231,7 @@ def CreateServer(args, instance, instances, lock):
 		conn = DWSocketServer(port=args.port)
 	elif args.connect:
                 print "Connect to %s:%s" % (args.host,args.port)
-		conn = DWSocket(port=args.port,host=args.host)
+		conn = DWSimpleSocket(port=args.port,host=args.host,reconnect=True)
 		conn.connect()
 		conn.run()
 	else:
@@ -358,3 +358,5 @@ if __name__ == '__main__':
         sys.exit(0)
     else:
         StartServers(args)
+
+# vim: ts=8 sw=8 sts=8

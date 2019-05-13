@@ -224,6 +224,74 @@ class DWSocketListener(DWSocket):
 		for c in self.connections:
 			c.close()
 
+
+class DWSimpleSocket:
+	def __init__(self, host='localhost', port=6809, conn=None, reconnect=False):
+		self.host = host
+		self.port = int(port)
+		self.conn = conn
+                self.connected = False
+                self.abort = False
+		if self.conn:
+			self.sock = self.conn
+		else:
+			self.sock = socket.socket( socket.AF_INET, socket.SOCK_STREAM)
+			self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+		self.reconnect = reconnect
+
+        def name(self):
+            return "%s %s:%s" % (self.__class__, self.host, self.port)
+
+	def isConnected(self):
+		return self.conn != None
+
+        def run(self):
+                pass
+
+	def connect(self):
+                while self.conn == None:
+                   try:
+                      self.sock = socket.socket( socket.AF_INET, socket.SOCK_STREAM)
+                      self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                      self.sock.connect((self.host, self.port))
+                      print( "socket: %s: Connected to %s:%s" % (self, self.host, self.port))
+                      self.conn = self.sock
+                   except:
+                      if self.reconnect:
+                        time.sleep(1)
+                      else:
+                        raise
+
+        def read(self, n=1, timeout=None):
+                data = ''
+                while not self.abort and len(data) < n:
+                   d = self.conn.recv(n)
+                   while not self.abort and d == '' and self.reconnect:
+                           print( "socket: %s: Disconnected" % (self))
+                           self.close()
+                           print( "socket: %s: Reconnecting to %s:%s" % (self, self.host, self.port))
+                           self.connect()
+                           d = self.conn.recv(n)
+                   if d != '':
+                     data += d
+                return data
+
+
+        def write(self, data):
+                return self.conn.send(data)
+
+        def close(self):
+                print( "socket: %s: Closing" % (self))
+                if self.conn:
+                   self.conn.close()
+                   self.conn = None
+                self.connected = False
+
+        def cleanup(self):
+                self.abort = True
+                self.close()
+
+
 if __name__ == '__main__':
 	import sys
 
@@ -249,3 +317,6 @@ if __name__ == '__main__':
 			print rdata,
 	finally:
 		cleanup()
+
+
+# vim: ts=8 st=8 sts=8 et
