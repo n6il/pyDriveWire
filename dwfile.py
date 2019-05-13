@@ -7,6 +7,7 @@ from struct import *
 import tempfile
 import urllib
 from urlparse import urlparse
+from urllib2 import Request, urlopen
 
 COCO_SECTOR_SIZE = 256
 COCO_DEFAULT_DISK_SIZE = 630
@@ -22,14 +23,16 @@ formats = {
 
 
 class DWFile:
-    def __init__(self, name, mode='r', typ=None):
+    def __init__(self, name, mode='r', typ=None, stream=False):
         self.name = name
         self.mode = mode
         self.remote = False
         self.fmt = formats[COCO_DEFAULT_DISK_SIZE]
         self.maxLsn = self.fmt['sides']*self.fmt['tracks']*self.fmt['sectors']
+        self.stream = stream
         self._doOpen()
-        self.guessMaxLsn()
+        if not self.stream:
+           self.guessMaxLsn()
         self.os9Image = False
         self.offset = 0
 
@@ -38,8 +41,11 @@ class DWFile:
         os.unlink(self.file.name)
 
     def _doOpen(self):
-        
         fileName = self.name
+        if self.stream:
+                self.remote=True
+                self.file = DwHttpStreamingFile(fileName, ssize=COCO_SECTOR_SIZE)
+                return
         try:
             #print self.name
             pp = urlparse(self.name)
@@ -199,7 +205,51 @@ class MlFileReader:
                 data=self.file.read(length)
 		self.file.seek(prev)
 		return data
- 
+
+
+class DwHttpStreamingFile:
+
+   def __init__(self, url, pos=0, ssize=256):
+      self.url = url
+      self.name = url
+      self.ssize = ssize
+      self.pos = pos
+
+   def seek(self, pos):
+      #print("seek", self.name, pos)
+      self.pos = pos
+
+   def tell(self):
+      #print("tell", self.name, self.pos)
+      return self.pos
+
+   def read(self, count):
+      #print("read", self.name, self.pos, count)
+      start = self.pos
+      end = self.pos + count - 1
+
+      req = Request(self.url)
+      req.add_header("Range", "bytes=%d-%d" % (start, end))
+
+      content = ''
+      uh = urlopen(req)
+      if uh.code >=200 and uh.code <300:
+         content = uh.read()
+
+      return content
+
+   def write(self, data):
+      raise Exception("Write not implemented")
+
+
+   def flush(self):
+      return
+
+   def close(self):
+      return
+
+
+
 if __name__ == '__main__':
         import sys
         f = sys.argv[1]

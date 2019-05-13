@@ -51,8 +51,8 @@ class DWServer:
 		return si
 
 				
-	def open(self, disk, fileName):
-		self.files[disk] = DWFile(fileName,"rb+")
+	def open(self, disk, fileName, stream=False):
+		self.files[disk] = DWFile(fileName,"rb+", stream=stream)
 		print('Opened: disk=%d file=%s' % (disk, fileName))
 		self.files[disk].file.seek(0)
 		self.files[disk].hdbdos = self.hdbdos
@@ -64,7 +64,7 @@ class DWServer:
 			name = d.file.name
 			print('Closing: disk=%d file=%s' % (disk, d.name))
 			d.file.close()
-			if d.remote:
+			if d.remote and not d.stream:
 				d._delete()
                 if d:
                     self.files[disk] = None

@@ -181,10 +181,15 @@ class DWParser:
 
 	def doInsert(self, data):
 		opts = data.split(' ')
-		if len(opts) != 2:
-			raise Exception("dw disk insert <drive> <path>")
-		(drive, path) = opts
-		self.server.open(int(drive), path)
+		if len(opts) == 2:
+                        (drive, path) = opts
+                        stream = False
+		elif len(opts) == 3:
+                        (drive, path, s) = opts
+                        stream = True if s=='stream' else False
+                else:
+                        raise Exception("dw disk insert <drive> <path>")
+		self.server.open(int(drive), path, stream=stream)
 		return "open(%d, %s)" % (int(drive), path)
 
 	def doReset(self, data):
