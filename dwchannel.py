@@ -112,7 +112,7 @@ class DWVModem(DWIO):
 				r = "OK listening on port %s" % res.port
 				exact = True
 				reply = r + "\r" #+ r + "\r\n"
-			if isinstance(res, DWIO) or isinstance(obj, DWIO):
+			elif isinstance(res, DWIO) or isinstance(obj, DWIO):
                                 if obj:
                                     res = obj
 				self.online = True
