@@ -19,7 +19,7 @@ import atexit
 from daemon import Daemon
 import platform
 
-VERSION = 'v0.5'
+VERSION = 'v0.5a'
 
 def ParseArgs():
     parser = argparse.ArgumentParser(description='pyDriveWire Server %s' % VERSION)
@@ -42,6 +42,7 @@ def ParseArgs():
     parser.add_argument('--version', '-v', action='store_true')
     parser.add_argument('--hdbdos', dest='hdbdos', action='store_true', help='HDBDos Mode')
     parser.add_argument('--offset', dest='offset', help='Number of sector offset for sector 0', default='0')
+    parser.add_argument('--noreconnect', dest='noreconnect', action='store_true', help='Do not automatically reconnect outbound TCP server connections')
     printer = parser.add_argument_group('printer', 'Printer Options')
     printer.add_argument('--print-format', dest='printFormat', choices=['pdf', 'txt'], help='Printer output format, default: %(default)s', default="pdf") 
     #printer.add_argument('--print-mode', dest='printMode', choices=['dir', 'file'], help='Printer output collation method, default: %(default)s', default="dir") 
@@ -180,6 +181,7 @@ def ReadConfig(args):
                 iargs.debug = debug
                 iargs.offset = args.offset
                 iargs.hdbdos = args.hdbdos
+                iargs.reconnect = args.reconnect
                 iargs.printFormat = args.printFormat
                 #iargs.printMode = None
                 iargs.printDir = args.printDir
@@ -231,7 +233,7 @@ def CreateServer(args, instance, instances, lock):
 		conn = DWSocketServer(port=args.port)
 	elif args.connect:
                 print "Connect to %s:%s" % (args.host,args.port)
-		conn = DWSimpleSocket(port=args.port,host=args.host,reconnect=True)
+		conn = DWSimpleSocket(port=args.port,host=args.host,reconnect=True if not args.noreconnect else False)
 		conn.connect()
 		conn.run()
 	else:
@@ -269,8 +271,23 @@ def StartServer(args, dws):
 
 	try:
 		drive = 0
-		for f in args.files:
-			dws.open(drive, f)
+		for i,f in enumerate(args.files):
+                        if f.lower().startswith('opt='):
+                           continue
+                        stream = False
+                        mode = 'rb+'
+                        if i+1 < len(args.files):
+                           opt = args.files[i+1].lower()
+                           if opt.startswith('opt=')and len(opt) > 4:
+                              print "opt=%s" % opt
+                              for o in opt[4:].split(','):
+                                   print "opt=%s" % o
+                                   if o == 'stream':
+                                        stream = True
+                                   elif o == 'ro':
+                                        mode = 'r'
+                        print "stream=%s mode=%s" % (stream, mode)
+			dws.open(drive, f, mode=mode, stream=stream)
 			drive += 1
                 if dws.instance == 0:
                     if args.cmdPort:

@@ -1,4 +1,4 @@
-# The pyDriveWire Manual v0.5
+# The pyDriveWire Manual v0.5a
 
 Python Implementation of DriveWire 4 and EmCee Protocols
 
@@ -212,6 +212,57 @@ This manual section is meant as a quick and comprehensive guide to all of the py
 
 
 
+## Specififying Disk Images
+
+Disk images you wish to mount can be specified from the command line or config file.
+
+### Command Line:
+On the command line you can specify any number of disk images to be mounted at the time that the server starts up.  The first image listed is attached to Drive 0, next is Drive 1, etc.  If none are not specified no disk images will be mounted.
+
+    ./pyDriveWire [server_options] [<path/to/drive_0_image.dsk> [<DRIVE0_IMG_OPTIONS>] [<path/to/drive_1_image.dsk> [<DRIVE1_IMG_OPTIONS>] ...
+    
+* `<path/to/drive_0_image.dsk>` -- This is the path to the disk image to be mounted in Drive 0.  It can be full or relative path or a URL.
+* `<DRIVE0_IMG_OPTIONS>` -- options for drive_0_image.dsk
+* `<path/to/drive_1_image.dsk>` -- This is the path to the disk image to be mounted in Drive 1.  It can be full or relative.
+* `<DRIVE0_IMG_OPTIONS>` -- options for drive_1_image.dsk
+
+You can specify between 0-256 disk images.
+
+
+Mount `DWTERM.dsk` in Drive 0:
+
+    ./pyDriveWire [server_options] /demo/DWTERM.dsk
+
+Download `DWTERM.dsk` from a web server and mount it in Drive 0:
+
+    ./pyDriveWire [server_options] http://www.ocs.net/~n6il/DWTERM.dsk
+
+Mount `test.dsk` in Drive 0 and download `DWTERM.dsk` from a web server and mount it in Drive 1:
+
+    ./pyDriveWire [server_options] /demo/test.dsk http://www.ocs.net/~n6il/DWTERM.dsk
+
+
+### Image Options
+Disk image options can be specified after each disk image path in the following format:
+
+Mount `DWTERM.dsk` in Drive 0 and mark it read-only
+
+    ./pyDriveWire [server_options] /demo/DWTERM.dsk opt=ro
+    
+Stream a disk image off of a web server
+
+    ./pyDriveWire [server_options] http://www.ocs.net/~n6il/DWTERM.dsk opt=stream
+    
+Mount `test.dsk` in Drive 0 Read-Only, and Stream `cocoserve.dsk` in Drive 1.
+
+    /pyDriveWire [server_options] /demo/test.dsk opt=ro http://www.ocs.net/~n6il/DWTERM.dsk opt=stream
+  
+
+The following disk image options options are supported:
+
+* `ro` -- Read-Only disk image
+* `stream` -- Only useful for HTTP connections.  The disk image will not be downloaded to the local server.  Instead each sector will be loaded from the HTTP server on-demand whenever the CoCo asks for it.
+ 
 ## Config File (global)
 
 The pyDriveWire config file can be used to set all of the command line options.  This section tells you where to put the config file and how to specify it on the command line.  The details of the config file itself are in the [Using a Config File](#ch6) section of this manual.
@@ -313,6 +364,16 @@ or
 
     option accept True
     option port <tcp_port>
+ 
+pyDriveWire will automatically attempt to reconnect outgoing TCP connections.  This can be disabled if desired.
+   
+### Command Line   
+
+    --noreconnect
+   
+### Config File:
+
+    option noreconnect True
     
 ## Web/HTTP UI (global)
 

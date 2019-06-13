@@ -44,6 +44,7 @@ class DWFile:
         fileName = self.name
         if self.stream:
                 self.remote=True
+                print("Enabling streaming mode for %s" % fileName)
                 self.file = DwHttpStreamingFile(fileName, ssize=COCO_SECTOR_SIZE)
                 return
         try:
@@ -235,6 +236,8 @@ class DwHttpStreamingFile:
       uh = urlopen(req)
       if uh.code >=200 and uh.code <300:
          content = uh.read()
+      else:
+         print("%s %d %d" % (self.url, uh.code, len(content)))
 
       return content
 

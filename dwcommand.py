@@ -181,15 +181,18 @@ class DWParser:
 
 	def doInsert(self, data):
 		opts = data.split(' ')
-		if len(opts) == 2:
-                        (drive, path) = opts
-                        stream = False
-		elif len(opts) == 3:
-                        (drive, path, s) = opts
-                        stream = True if s=='stream' else False
-                else:
-                        raise Exception("dw disk insert <drive> <path>")
-		self.server.open(int(drive), path, stream=stream)
+                if len(opts) < 2:
+                        raise Exception("dw disk insert <drive> <path> [<opts>]")
+                drive = opts[0]
+                path = opts[1]
+                stream = False
+                mode = 'rb+'
+                for s in opts[2:]:
+                   if s.lower() == 'stream':
+                     stream = True
+                   elif s.lower() == 'ro':
+                     mode = 'r'
+		self.server.open(int(drive), path, mode=mode, stream=stream)
 		return "open(%d, %s)" % (int(drive), path)
 
 	def doReset(self, data):
@@ -325,10 +328,13 @@ class DWParser:
 		return "pyDriveWire Server %s" % self.server.version
 
 	def doDebug(self, data):
-		if data.startswith(('1','on','t','T','y', 'Y')):
+		if data.startswith(('on','t','T','y', 'Y')):
 			self.server.debug = True
-		if data.startswith(('0','off','f','F','n', 'N')):
+		if data.startswith(('off','f','F','n', 'N')):
 			self.server.debug = False
+                if data and data[0].isdigit():
+                        d = int(data[0])
+                        self.server.debug = d
 		return "debug=%s" % (self.server.debug)
 			
 	#def doDir(self, data, nxti):

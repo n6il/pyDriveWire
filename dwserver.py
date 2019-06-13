@@ -51,9 +51,9 @@ class DWServer:
 		return si
 
 				
-	def open(self, disk, fileName, stream=False):
-		self.files[disk] = DWFile(fileName,"rb+", stream=stream)
-		print('Opened: disk=%d file=%s' % (disk, fileName))
+	def open(self, disk, fileName, stream=False, mode="rb+"):
+		self.files[disk] = DWFile(fileName, mode, stream=stream)
+		print('Opened: disk=%d file=%s stream=%s mode=%s' % (disk, fileName, stream, mode))
 		self.files[disk].file.seek(0)
 		self.files[disk].hdbdos = self.hdbdos
 		self.files[disk].offset = self.offset
@@ -266,8 +266,10 @@ class DWServer:
 			try:
 				self.files[disk].file.write(data)
 				self.files[disk].file.flush()
-			except:
+			except Exception as e:
 				rc = E_WRITE
+                                if e.message == 'File not open for writing':
+                                   rc = E_WRPROT
 				print traceback.print_exc()
                 if rc == E_OK:
                     if (lsn == 0) or (not self.files[disk].os9Image and lsn >= self.files[disk].maxLsn):
@@ -330,8 +332,10 @@ class DWServer:
 			if not self.files[drive]:
 				continue
 			path = self.files[drive].file.name
+			stream = self.files[drive].stream
+			mode = self.files[drive].mode
 			self.close(drive)
-			self.open(drive, path)
+			self.open(drive, path, mode=mode, stream=stream)
 			print "cmdInit: reset(%d, %s)" % (int(drive), path)
 		if self.debug:
 			print "cmd=%0x cmdInit" % ord(cmd)
