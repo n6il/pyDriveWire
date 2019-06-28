@@ -181,7 +181,7 @@ def ReadConfig(args):
                 iargs.debug = debug
                 iargs.offset = args.offset
                 iargs.hdbdos = args.hdbdos
-                iargs.reconnect = args.reconnect
+                iargs.noreconnect = args.noreconnect
                 iargs.printFormat = args.printFormat
                 #iargs.printMode = None
                 iargs.printDir = args.printDir

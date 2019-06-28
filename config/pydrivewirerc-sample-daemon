@@ -1,5 +1,4 @@
 # Main Instance
-option daemon True
 option daemonPidFile /tmp/pyDriveWire.pid
 option daemonLogFile /tmp/pyDriveWire.log
 option accept True
