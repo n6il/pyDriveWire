@@ -5,7 +5,7 @@ import traceback
 import os
 
 from dwconstants import *
-from dwchannel import DWVModem
+from dwchannel import *
 from dwfile import DWFile
 from dwutil import *
 
@@ -297,8 +297,9 @@ class DWServer:
 				data = chr(16)
 				data += channel
 				msg = "channel=%d Closing" % nchannel
-				self.channels[channel].close()
-                                del self.channels[channel]
+                                if self.channels[channel].state == DWV_S_CLOSED:
+                                        self.channels[channel].close()
+                                        del self.channels[channel]
 				break
 			elif ow==0:
 				continue
@@ -337,6 +338,12 @@ class DWServer:
 			self.close(drive)
 			self.open(drive, path, mode=mode, stream=stream)
 			print "cmdInit: reset(%d, %s)" % (int(drive), path)
+                for channel in self.channels:
+                        self.channels[channel].close()
+                        if self.debug:
+                                        print("cmd=%0x cmdInit channel=%d closed" % (ord(cmd),ord(channel)))
+                for channel in self.channels:
+                        del self.channels[channel]
 		if self.debug:
 			print "cmd=%0x cmdInit" % ord(cmd)
 
@@ -391,8 +398,8 @@ class DWServer:
 			print("cmd=%0x cmdSerSetStat bad channel=%d code=%0x" % (ord(cmd),ord(channel),ord(code)))
 		#	return
 		elif code == SS_Close:
-			#del self.channels[channel]
 			self.channels[channel].close()
+			del self.channels[channel]
 			if self.debug:
 				print("cmd=%0x SS_Close channel=%d" % (ord(cmd),ord(channel)))
 		if self.debug:

@@ -132,13 +132,13 @@ class DWParser:
 		tcpParser.add("kill", ParseAction(self.doKill))
 
 		atParser=ATParseNode("AT")
-		atParser.add("", ParseAction(lambda x: {'msg': 'OK', 'self.cmdAutoClose': False}))
-		atParser.add("Z", ParseAction(lambda x: {'msg': 'OK', 'self.cmdAutoClose': False}))
+		atParser.add("", ParseAction(lambda x: {'msg': 'OK', 'self.cmdClass': 'AT'}))
+		atParser.add("Z", ParseAction(lambda x: {'msg': 'OK', 'self.cmdClass': 'AT'}))
 		atParser.add("D", ParseAction(self.doDial))
-		atParser.add("I", ParseAction(lambda x: {'msg': 'pyDriveWire %s\r\nOK'%self.server.version, 'self.cmdAutoClose': False}))
-		atParser.add("O", ParseAction(lambda x: {'msg': 'OK', 'self.cmdAutoClose': False, 'self.online': True}))
-		atParser.add("H", ParseAction(lambda x: {'msg': 'OK', 'self.cmdAutoClose': False, 'self.online': False}))
-		atParser.add("E", ParseAction(lambda x: {'msg': 'OK', 'self.cmdAutoClose': False, 'self.echo': True}))
+		atParser.add("I", ParseAction(lambda x: {'msg': 'pyDriveWire %s\r\nOK'%self.server.version, 'self.cmdClass': 'AT'}))
+		atParser.add("O", ParseAction(lambda x: {'msg': 'OK', 'self.cmdClass': 'AT'}))
+		atParser.add("H", ParseAction(lambda x: {'msg': 'OK', 'self.cmdClass': 'AT'}))
+		atParser.add("E", ParseAction(lambda x: {'msg': 'OK', 'self.cmdClass': 'AT', 'self.echo': True}))
 
 		uiSFileParser=ParseNode("file")
 		uiSFileParser.add("defaultdir", ParseAction(self.doUSFdefaultdir))
@@ -256,7 +256,7 @@ class DWParser:
 		if not channel in self.server.channels:
 			return "Invalid port %s" % channel
 		ch = self.server.channels[channel]
-		ch._close()
+		ch.close()
 		return "Port=n%s closing" % data
 
 	def doPortShow(self, data):
@@ -266,10 +266,11 @@ class DWParser:
 		i=0
 		for i,ch in self.server.channels.items():
 			co=ch.conn	
-			connstr = " Online" if ch.online else "Offline"
-			if co:
-				direction = " In" if ch.inbound else "Out"
-				connstr = "%s %s %s:%s" % (connstr, direction, co.host, co.port)
+                        connstr = "State: %s Class: %s" % (ch.getState(), ch.cmdClass)
+			#connstr = " Online" if ch.online else "Offline"
+			#if co:
+			#	direction = " In" if ch.inbound else "Out"
+			#	connstr = "%s %s %s:%s" % (connstr, direction, co.host, co.port)
 			out.append( "N%d      %s" % (int(ord(i)), connstr))
 		
 		out.append('')
@@ -365,17 +366,12 @@ class DWParser:
 		return '\n\r'.join(out)
 
 	def doTelnet(self, data):
-		return self.doConnect(data[1:], telnet=True)
-		#return self.doDial(data[1:])
-
-	def doDial1(self, data):
-		return self.doConnect(data[1:], telnet=False)
-		#return self.doDial(data[1:])
+		return self.doConnect(data, telnet=True, interactive=True)
 
 	def doDial(self, data):
-		return self.doConnect(data, telnet=False)
+		return self.doConnect(data, telnet=False, interactive=True)
 
-	def doConnect(self, data, telnet=False):
+	def doConnect(self, data, telnet=False, interactive=False):
                 pr = urlparse.urlparse(data)
                 if pr.scheme == 'telnet':
                     d2 = pr.netloc
@@ -396,13 +392,19 @@ class DWParser:
 		try:
 			if telnet:
 				sock = DWTelnet(host=host, port=port)
-                                res = {'msg': '\r\nCONNECTED', 'obj': sock, 'self.cmdAutoClose': False, 'self.online': True}
 			else:
 				sock = DWSocket(host=host, port=port)
+                        if telnet or interactive:
+                                res = {'msg': '\r\nCONNECTED', 'obj': sock, 'self.cmdClass': 'AT', 'self.online': True}
+                        else:
                                 res = sock
 			sock.connect()
 		except Exception as ex:
-			res = "FAIL %s" % str(ex)
+                        raise
+                        if telnet or interactive:
+                                res = {'msg': '\r\nFAIL %s' % str(ex), 'self.cmdClass': 'AT'}
+                        else:
+                                res = "FAIL %s" % str(ex)
 		return res
 
 	def doListen(self, data):
@@ -641,7 +643,7 @@ class DWParser:
 			if t2:
 				tokens.append(t2)
 			else:
-				return {'res': "OK", 'self.online':True}
+				return {'res': "OK", 'self.cmdClass': 'AT'}
 		else:
 			tokens = data.split(' ')
 		p = self.parseTree
@@ -767,3 +769,5 @@ if __name__ == '__main__':
 
 #finally:
 #	cleanup()
+
+# vim: ts=8 sw=8 sts=8
