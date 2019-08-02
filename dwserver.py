@@ -342,7 +342,7 @@ class DWServer:
                         self.channels[channel].close()
                         if self.debug:
                                         print("cmd=%0x cmdInit channel=%d closed" % (ord(cmd),ord(channel)))
-                for channel in self.channels:
+                for channel in self.channels.keys():
                         del self.channels[channel]
 		if self.debug:
 			print "cmd=%0x cmdInit" % ord(cmd)
