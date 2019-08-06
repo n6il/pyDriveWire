@@ -5,9 +5,10 @@ from reportlab.lib.units import inch
 
 import cgi
 import tempfile
-#import win32api
+# import win32api
 import copy
 import os
+
 
 class DWPrinter:
     def __init__(self, args):
@@ -15,7 +16,7 @@ class DWPrinter:
         self.source_file = None
         self.lastCr = False
         self.printFormat = args.printFormat
-        #`self.printMode = args.printMode
+        # `self.printMode = args.printMode
         self.printDir = args.printDir if args.printDir else None
         self.printFile = args.printFile if args.printFile else None
         self.printCmd = args.printCmd
@@ -23,13 +24,15 @@ class DWPrinter:
     def write(self, data, dropCr=True):
         if not self.source_file:
             if self.printFile:
-               self.source_file_name = self.printFile
+                self.source_file_name = self.printFile
             elif self.printDir:
-               self.source_file_name = tempfile.mktemp (".txt", self.printDir)
+                self.source_file_name = tempfile.mktemp(".txt", self.printDir)
             else:
-               self.source_file_name = tempfile.mktemp (".txt")
+                self.source_file_name = tempfile.mktemp(".txt")
             self.source_file = open(self.source_file_name, "w")
-            print("Printing: opening print buffer: %s" % (self.source_file_name))
+            print(
+                "Printing: opening print buffer: %s" %
+                (self.source_file_name))
         if data == '\r':
             self.source_file.write('\n')
             self.lastCr = True
@@ -49,7 +52,7 @@ class DWPrinter:
         if not self.source_file:
             return
         self.source_file.close()
-        #print("Printing: closing print buffer: %s" % (self.source_file_name))
+        # print("Printing: closing print buffer: %s" % (self.source_file_name))
         printFileName = None
         if self.printFormat == 'pdf':
             printFileName = self._doPrintingPdf()
@@ -65,29 +68,29 @@ class DWPrinter:
 
     def _doPrintingPdf(self):
         if self.printDir:
-           pdf_file_name = tempfile.mktemp (".pdf", self.printDir)
+            pdf_file_name = tempfile.mktemp(".pdf", self.printDir)
         else:
-           pdf_file_name = tempfile.mktemp (".pdf")
+            pdf_file_name = tempfile.mktemp(".pdf")
         print("Printing to: %s" % (pdf_file_name))
 
-        ### FONT ###
+        # ## FONT # ##
         from reportlab.pdfbase import pdfmetrics
         from reportlab.pdfbase.ttfonts import TTFont
         pdfmetrics.registerFont(TTFont('Epson1', 'fonts/epson1.ttf'))
-        pdfmetrics.registerFontFamily('Epson1',normal='Epson1')
-        ### FONT ###
+        pdfmetrics.registerFontFamily('Epson1', normal='Epson1')
+        # ## FONT # ##
 
-
-        styles = getSampleStyleSheet ()
+        styles = getSampleStyleSheet()
         code = styles["Code"]
         pre = code.clone('Pre', leftIndent=0, fontName='Epson1')
         normal = styles["Normal"]
         styles.add(pre)
 
-
-
-        doc = SimpleDocTemplate (pdf_file_name)
-        story=[Preformatted(open (self.source_file_name).read(), pre)]
-        doc.build (story)
-        #win32api.ShellExecute (0, "print", pdf_file_name, None, ".", 0)
+        doc = SimpleDocTemplate(pdf_file_name)
+        story = [Preformatted(open(self.source_file_name).read(), pre)]
+        doc.build(story)
+        # win32api.ShellExecute (0, "print", pdf_file_name, None, ".", 0)
         return pdf_file_name
+
+
+# vim: ts=4 sw=4 sts=4 expandtab
