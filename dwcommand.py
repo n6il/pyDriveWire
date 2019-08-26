@@ -437,7 +437,10 @@ class DWParser:
                     'self.cmdClass': 'AT',
                     'self.online': True}
             else:
-                res = sock
+                res = {
+                    'msg': None,
+                    'obj': sock,
+                    'self.cmdClass': 'TCP'}
             sock.connect()
         except Exception as ex:
             raise

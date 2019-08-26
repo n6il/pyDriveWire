@@ -19,8 +19,10 @@ _dwvStatesDict = {
     'DWV_S_CLOSING': 6,
     'DWV_S_CLOSED': 7,
     'DWV_S_END': 8,
+    'DWV_S_TCPOUT': 9,
     'DWV_C_AT': 'AT',
     'DWV_C_DW': 'DW',
+    'DWV_C_TCP': 'TCP',
 }
 dwvStates = {}
 
@@ -131,6 +133,8 @@ class DWVModem(DWIO):
             # self.online = True
             if self.cmdClass == DWV_C_AT:
                 newState = DWV_S_ONLINE
+            elif self.cmdClass == DWV_C_TCP:
+                newState = DWV_S_TCPOUT
             else:
                 newState = DWV_S_DW
             self.conn = res
@@ -163,6 +167,38 @@ class DWVModem(DWIO):
                 newState = DWV_S_DW
         self.state = newState
 
+    def writeX(self, data, ifs=('\r', '\n')):
+        if self.debug:
+            print "ch: write:", canonicalize(data)
+        wdata = ''
+        w = 0
+        pos = -1
+
+        if self.conn:
+            if self.wbuf:
+                w += self.conn.write(self.wbuf)
+                self.wbuf = ''
+            w += self.conn.write(data)
+        else:
+            if self.echo:
+                self.rq.put(data)
+                self.rb.add(len(data))
+                self.rq.put("\r")
+                self.rb.add(1)
+            if self.wbuf:
+                wbl = len(self.wbuf)
+                self.cq.put(self.wbuf)
+                self.cq.add(wbl)
+                w += wbl
+                self.wbuf = ''
+            wdata = data.lstrip().rstrip()
+            if wdata:
+                wdl = len(wdata)
+                self.cq.put(wdata)
+                self.cq.add(wdl)
+                w += wdl
+        return w
+
     def write(self, data, ifs=('\r', '\n')):
         if self.debug:
             print "ch: write:", canonicalize(data)
@@ -171,7 +207,8 @@ class DWVModem(DWIO):
         pos = -1
 
         if not self.eatTwo and self.state in [
-                DWV_S_ONLINE, DWV_S_INBOUND] and self.conn:
+                DWV_S_ONLINE, DWV_S_INBOUND,
+                DWV_S_TCPOUT] and self.conn:
             if self.wbuf:
                 w += self.conn.write(self.wbuf)
                 self.wbuf = ''
@@ -260,7 +297,7 @@ class DWVModem(DWIO):
                 newState = DWV_S_CLOSING
                 self.rb.close()
                 print("%s: channel closing" % self)
-        elif self.state in [DWV_S_ONLINE, DWV_S_INBOUND]:
+        elif self.state in [DWV_S_ONLINE, DWV_S_INBOUND, DWV_S_TCPOUT]:
             d = self._outWaiting()
             if d == -1:
                 newState = DWV_S_CLOSING
@@ -269,10 +306,11 @@ class DWVModem(DWIO):
             elif d == 0 and self.conn:
                 d = self.conn.outWaiting()
                 if d == -1:
-                    reply = "\r\nNO CARRIER\r\n"
-                    self.rb.add(len(reply))
-                    self.rq.put(reply)
-                    if self.state == DWV_S_INBOUND:
+                    if self.state != DWV_S_TCPOUT:
+                        reply = "\r\nNO CARRIER\r\n"
+                        self.rb.add(len(reply))
+                        self.rq.put(reply)
+                    if self.state in [DWV_S_INBOUND, DWV_S_TCPOUT]:
                         newState = DWV_S_CLOSING
                     else:
                         newState = DWV_S_COMMAND
