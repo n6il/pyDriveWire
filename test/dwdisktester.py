@@ -75,6 +75,7 @@ if True:
          cs.send(sc)
          # Get the RC
          rc = ord(cs.recv(1))
+         print("lsn=%d fc=%s sc=%s" % (lsn, hex(unpack(">H", fc)[0]), hex(unpack(">H", sc)[0])))
          assert(fc == sc)
          print("OP_READEX lsn %d len %d %d" % (lsn, len(data), rc))
          #msg = "%d ..." % lsn
