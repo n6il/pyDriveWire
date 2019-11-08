@@ -221,14 +221,18 @@ class DWParser:
         if len(opts) < 2:
             raise Exception("dw disk insert <drive> <path> [<opts>]")
         drive = opts[0]
-        path = opts[1]
+        pathStart = len(drive)+1
+        pathEnd = len(data)
         stream = False
         mode = 'rb+'
         for s in opts[2:]:
             if s.lower() == 'stream':
                 stream = True
+                pathEnd -= 7 # len(' stream')
             elif s.lower() == 'ro':
                 mode = 'r'
+                pathEnd -= 3 # len(' ro')
+        path = data[pathStart:pathEnd]
         self.server.open(int(drive), path, mode=mode, stream=stream)
         return "open(%d, %s)" % (int(drive), path)
 
