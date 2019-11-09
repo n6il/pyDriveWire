@@ -239,7 +239,7 @@ function updateDisksCb(string) {
 	for ( i=2; i<len; i++) {
 		var e = lines[i].split(/ +/);
 		var d = document.getElementById('disk' + e[0]);
-		d.value = e[1]
+		d.value = e.slice(1).join(' ')
 	}
 
 }
