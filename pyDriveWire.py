@@ -255,7 +255,7 @@ def ReadConfig(args):
     with open(cfgFile) as f:
         for line in f:
             line = line.lstrip().rstrip()
-            if line.startswith('# ') or line == '':
+            if line.startswith('#') or line == '':
                 continue
             if line.startswith('['):
                 instName = line[1:-1]
