@@ -1,4 +1,4 @@
-# pyDriveWire v0.5a
+# pyDriveWire v0.5b
 Python Implementation of DriveWire 4 and EmCee Protocols
 
 PyDriveWire is a nearly complete DriveWire4 Server written in Python.  The goal is to eventually implement all of the features available.  The server also implements additional features that are not available in DriveWire4.

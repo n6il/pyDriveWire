@@ -1,4 +1,4 @@
-# The pyDriveWire Manual v0.5a
+# The pyDriveWire Manual v0.5b
 
 Python Implementation of DriveWire 4 and EmCee Protocols
 
@@ -167,7 +167,7 @@ This manual section is meant as a quick and comprehensive guide to all of the py
                           [--print-cmd PRINTCMD]
                           [FILE [FILE ...]]
     
-    pyDriveWire Server v0.5
+    pyDriveWire Server v0.5b
     
     positional arguments:
       FILE                  list of files
