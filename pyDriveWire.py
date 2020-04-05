@@ -19,7 +19,7 @@ import atexit
 from daemon import Daemon
 import platform
 
-VERSION = 'v0.5a'
+VERSION = 'v0.5c-dev'
 
 
 def ParseArgs():
