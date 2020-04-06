@@ -6,6 +6,7 @@ from dwcommand import DWParser
 import os
 import tempfile
 import base64
+import sys
 
 """
 class DWParser:
@@ -29,11 +30,17 @@ class GP(BaseHTTPRequestHandler):
 
     def do_GET(self):
         response = 200
-        path = 'ui%s' % self.path
+        if getattr(sys, 'frozen', False):
+            # we are running in a bundle
+            bundle_dir = sys._MEIPASS
+        else:
+            # we are running in a normal Python environment
+            bundle_dir = os.path.dirname(os.path.abspath(__file__))
         if self.path in ['/', '/index.html']:
-            path = 'ui/pyDriveWireUi.html'
-            response = 200
-        elif os.path.exists(path):
+            path = os.path.join(bundle_dir, "ui", 'pyDriveWireUi.html')
+        else:
+            path = os.path.join(bundle_dir, "ui", self.path[1:])
+        if os.path.exists(path):
             response = 200
         else:
             response = 404
@@ -45,6 +52,7 @@ class GP(BaseHTTPRequestHandler):
             return
         # print parse_qs(self.path[2:])
         # self.wfile.write("<html><body><h1>Get Request Received!</h1></body></html>")
+
         with open(path) as f:
             self.wfile.write(f.read())
 
