@@ -174,7 +174,7 @@ def ParseArgs():
     if err:
         print('\nERROR: %s\n' % err)
         parser.print_usage()
-        exit(1)
+        sys.exit(1)
 
     # print args
     return args
@@ -447,7 +447,7 @@ if __name__ == '__main__':
     args = ParseArgs()
     if args.version:
         print('pyDriveWire %s' % VERSION)
-        exit(0)
+        sys.exit(0)
     daemon = None
     pid = None
     status = 'notRunning'

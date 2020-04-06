@@ -5,7 +5,7 @@ import sys
 
 if len(sys.argv) < 2:
     print "Usage: pyDwCli <url> [<cmd>]"
-    exit(1)
+    sys.exit(1)
 
 url = sys.argv[1]
 cmd = None
