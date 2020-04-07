@@ -176,6 +176,9 @@ def ParseArgs():
         parser.print_usage()
         sys.exit(1)
 
+    # Frozen overrides
+    if getattr(sys, 'frozen', False):
+        args.experimental = ['printer']
     # print args
     return args
 
