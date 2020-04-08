@@ -176,13 +176,15 @@ class DWIO:
         if self.rt:
             self.rt.abort = True
             print "%s: Shutting down async read thread: %s" % (self, self.rt)
-            self.rt.join()
+            if self.rt.is_alive():
+                self.rt.join()
             self.rt = None
         # if self.wt and self.wt.is_alive() and not self.wt._Thread__stopped:
         if self.wt:
             print "%s: Shutting down async write thread: %s" % (self, self.wt)
             self.wt.abort = True
-            self.wt.join()
+            if self.wt.is_alive():
+                self.wt.join()
             self.wt = None
 
     def cleanup(self):

@@ -201,28 +201,39 @@ class DWSocketListener(DWSocket):
         raise Exception("Oppps, don't call me")
 
     def _accept(self):
-        while not self.abort:
-            self.conn = None
-            try:
-                print("%s: Listening on: %s" % (self, self.port))
-                r = self.sock.listen(0)
-                (sock, addr) = self.sock.accept()
-                print("%s: Accepted Connection: %s" % (self, str(addr)))
-                conn = DWSocket(conn=sock, port=self.port, addr=addr)
-                self.connections.append(conn)
-                if self.acceptCb:
-                    self.acceptCb(conn)
+        try:
+            print("%s: Listening on: %s" % (self, self.port))
+            r = self.sock.listen(0)
+            fd = self.sock.fileno()
 
-            except Exception as ex:
-                print("Server Aborted", str(ex))
+            while not self.abort:
+                ri = []
+                #print "select: %s" % fd
+                (ri, _, _) = select.select([fd], [], [], 1)
 
-            if self.conn:
-                break
-            print "looping"
+                if any(ri):
+                    try:
+                        (sock, addr) = self.sock.accept()
+                        print("%s: Accepted Connection: %s" % (self, str(addr)))
+                        conn = DWSocket(conn=sock, port=self.port, addr=addr)
+                        self.connections.append(conn)
+                        if self.acceptCb:
+                            print("%s: Calling Callback: %s" % (self,self.acceptCb))
+                            self.acceptCb(conn)
+                    except Exception as ex:
+                        print("Listener socket failure, port=%s" % (self.port, str(ex)))
+
+        except Exception as ex:
+            print("Server Aborted, port=%s" % self.port, str(ex))
+        finally:
+            self._close()
+            self.sock.close()
+
 
     def _close(self):
         self.connected = False
         self.abort = True
+        print("%s: Closing up shop port=%s" % (self, self.port))
         for c in self.connections:
             c.close()
 

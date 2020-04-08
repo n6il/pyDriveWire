@@ -281,7 +281,7 @@ class DWVModem(DWIO):
             if self.closingTime is None:
                 self.closingTime = 10
             if self.closingTime > 0:
-                self.closingTime = - 1
+                self.closingTime -= 1
             else:
                 self.state = DWV_S_END
                 self.closingTime = None
@@ -312,6 +312,7 @@ class DWVModem(DWIO):
                         self.rq.put(reply)
                     if self.state in [DWV_S_INBOUND, DWV_S_TCPOUT]:
                         newState = DWV_S_CLOSING
+                        self.rb.close()
                     else:
                         newState = DWV_S_COMMAND
                     d = self._outWaiting()

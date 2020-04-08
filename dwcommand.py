@@ -297,6 +297,7 @@ class DWParser:
             return "Invalid port %s" % channel
         ch = self.server.channels[channel]
         ch.close()
+        del self.server.channels[channel]
         return "Port=n%s closing" % data
 
     def doPortShow(self, data):
