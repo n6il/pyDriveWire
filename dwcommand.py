@@ -7,6 +7,7 @@ import os
 import sys
 import re
 import urlparse
+import tempfile
 
 
 class ParseNode:
@@ -121,6 +122,7 @@ class DWParser:
         printParser.add("format", ParseAction(self.doPrintFormat))
         printParser.add("file", ParseAction(self.doPrintFile))
         printParser.add("dir", ParseAction(self.doPrintDir))
+        printParser.add("prefix", ParseAction(self.doPrintPrefix))
         printParser.add("cmd", ParseAction(self.doPrintCmd))
         printParser.add("status", ParseAction(self.doPrintStatus))
 
@@ -623,7 +625,7 @@ class DWParser:
         if self.server.vprinter:
             if self.server.vprinter.printDir is not None:
                 return "ERROR: Can't use file and dir output at the same time"
-            if data.startswith(('0', 'off', 'f', 'F', 'no', 'No')):
+            if data.lower() in ['0', 'off', 'false', 'no', 'default']:
                 data = None
             self.server.vprinter.printFile = data
         return "printFile=%s" % (self.server.vprinter.printFile)
@@ -632,15 +634,27 @@ class DWParser:
         if self.server.vprinter:
             if self.server.vprinter.printFile is not None:
                 return "ERROR: Can't use file and dir output at the same time"
-            if data.startswith(('0', 'off', 'f', 'F', 'no', 'No')):
+            if data.lower() in ['0', 'off', 'false', 'no', 'default']:
                 self.server.vprinter.printDir = None
+            if data.lower() in ['default']:
+                self.server.vprinter.printDir = '/tmp' if platform.system() == 'Darwin' else tempfile.gettempdir()
             elif os.path.exists(data):
                 self.server.vprinter.printDir = data
         return "printDir=%s" % (self.server.vprinter.printDir)
 
+    def doPrintPrefix(self, data):
+        if self.server.vprinter:
+            if data.lower() in ['0', 'off', 'false', 'no', 'default']:
+                self.server.vprinter.printPrefix = 'cocoprints'
+            else:
+                self.server.vprinter.printPrefix = data
+        return "printCmd=%s" % (self.server.vprinter.printPrefix)
+
     def doPrintCmd(self, data):
         if self.server.vprinter:
-            if data.lower() in ['pdf', 'txt']:
+            if data.lower() in ['0', 'off', 'false', 'no', 'default']:
+                self.server.vprinter.printCmd = None
+            else:
                 self.server.vprinter.printCmd = data
         return "printCmd=%s" % (self.server.vprinter.printCmd)
 
@@ -650,16 +664,17 @@ class DWParser:
         out = ["pyDriveWire Print Engine Status: %s" % status]
         if vp:
             out += ["   Output Format: %s" % vp.printFormat]
-            if vp.printDir is not None:
-                d = vp.printDir
-                f = None
-            elif vp.printFile is not None:
+            if vp.printFile is not None:
                 d = None
                 f = vp.printFile
+            elif vp.printDir is not None:
+                d = vp.printDir
+                f = None
             else:
                 d = "temporary dir"
                 f = "temporary file"
             out += ["   Output Directory: %s" % (d)]
+            out += ["   File Prefix: %s" % (vp.printPrefix)]
             out += ["   Output File: %s" % (f)]
             out += ["   Output Command: %s" % (vp.printCmd)]
             out += ["   Current Print Buffer: %s" %

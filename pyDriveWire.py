@@ -18,6 +18,7 @@ import atexit
 
 from daemon import Daemon
 import platform
+import tempfile
 
 VERSION = 'v0.5c-dev'
 
@@ -126,7 +127,13 @@ def ParseArgs():
     printerLoc.add_argument(
         '--print-dir',
         dest='printDir',
-        help='Spool directory to send printer output')
+        help='Spool directory to send printer output, default: %(default)s',
+        default='/tmp' if platform.system() == 'Darwin' else tempfile.gettempdir())
+    printerLoc.add_argument(
+        '--print-prefix',
+        dest='printPrefix',
+        help='File name prefix for files in the spool directory, default: %(default)s',
+        default='cocoprints')
     printerLoc.add_argument(
         '--print-file',
         dest='printFile',
@@ -281,6 +288,7 @@ def ReadConfig(args):
                 iargs.printFormat = args.printFormat
                 # iargs.printMode = None
                 iargs.printDir = args.printDir
+                iargs.printPrefix = args.printPrefix
                 iargs.printFile = args.printFile
                 iargs.printCmd = args.printCmd
                 instances.append(iargs)
