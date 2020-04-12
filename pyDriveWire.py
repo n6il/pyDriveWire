@@ -22,6 +22,14 @@ import tempfile
 
 VERSION = 'v0.5c-dev'
 
+defaultConfigValues = {
+    'config': '~/.pydrivewirerc',
+    'offset': '0',
+    'printFormat': 'pdf',
+    'printDir': '/tmp' if platform.system() == 'Darwin' else tempfile.gettempdir(),
+    'printPrefix': 'cocoprints',
+}
+
 
 def ParseArgs():
     parser = argparse.ArgumentParser(
@@ -72,7 +80,7 @@ def ParseArgs():
         '--config',
         dest='config',
         help='Config File',
-        default="~/.pydrivewirerc")
+        default=defaultConfigValues['config'])
     parser.add_argument(
         '--daemon',
         dest='daemon',
@@ -107,7 +115,7 @@ def ParseArgs():
         '--offset',
         dest='offset',
         help='Number of sector offset for sector 0',
-        default='0')
+        default=defaultConfigValues['offset'])
     parser.add_argument(
         '--noreconnect',
         dest='noreconnect',
@@ -121,19 +129,19 @@ def ParseArgs():
             'pdf',
             'txt'],
         help='Printer output format, default: %(default)s',
-        default="pdf")
+        default=defaultConfigValues['printFormat'])
     # printer.add_argument('--print-mode', dest='printMode', choices=['dir', 'file'], help='Printer output collation method, default: %(default)s', default="dir")
     printerLoc = printer.add_mutually_exclusive_group()
     printerLoc.add_argument(
         '--print-dir',
         dest='printDir',
         help='Spool directory to send printer output, default: %(default)s',
-        default='/tmp' if platform.system() == 'Darwin' else tempfile.gettempdir())
+        default=defaultConfigValues['printDir'])
     printerLoc.add_argument(
         '--print-prefix',
         dest='printPrefix',
         help='File name prefix for files in the spool directory, default: %(default)s',
-        default='cocoprints')
+        default=defaultConfigValues['printPrefix'])
     printerLoc.add_argument(
         '--print-file',
         dest='printFile',
@@ -309,15 +317,24 @@ def ReadConfig(args):
                     # print key, accept, reject
                     if key in reject:
                         print(
-                            '%d: rejecting line from config file: %s' %
+                            '%d: rejecting line from config file (R): %s' %
                             (instance, line))
                         continue
                     else:
-                        if eval('iargs.%s' % key):
+                        v = eval('iargs.%s' % key)
+                        has = defaultConfigValues.has_key(key)
+                        if v and has and v != defaultConfigValues[key]:
                             print(
-                                '%d: rejecting line from config file: %s' %
+                                '%d: rejecting line from config file (D): %s' %
+                                (instance, line))
+                        elif v and not has:
+                            print(
+                                '%d: rejecting line from config file (O): %s' %
                                 (instance, line))
                         else:
+                            #print(
+                            #    '%d: accepting line from config file: %s' %
+                            #    (instance, line))
                             exec('iargs.%s = val' % key)
                 else:
                     exec('iargs.%s = val' % key)
