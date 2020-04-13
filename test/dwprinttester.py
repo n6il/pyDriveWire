@@ -17,7 +17,11 @@ def dwPrint(s, data, debug=False):
 
 dws = socket.create_connection(('localhost', 65504))
 
-with open(__file__) as f:
+if len(sys.argv) == 2:
+    fn = sys.argv[1]
+else:
+    fn = __file__
+with open(fn) as f:
     data = f.read()
     dwPrint(dws, data, debug=True)
     dws.close()
