@@ -24,7 +24,6 @@ class DWPrinter:
         self.printCmd = args.printCmd
         self.printPrefix = args.printPrefix
         self.spoolNum = 1
-        print self.printDir, self.printFile, self.printCmd, self.printPrefix
 
     def _getNextSpoolFile(self, extension=None):
         if not extension:
@@ -63,6 +62,11 @@ class DWPrinter:
         elif data == '\n':
             if not self.lastCr:
                 self.source_file.write(data)
+            self.lastCr = False
+        # XXX: Need to deal with the high-ascii characters properly, this
+        # will just dump them
+        elif data >126:
+            self.source_file.write('.')
             self.lastCr = False
         else:
             self.source_file.write(data)
