@@ -279,6 +279,8 @@ def ReadConfig(args):
                 instName = line[1:-1]
                 instance += 1
                 iargs = Namespace()
+                iargs.instName = instName
+                iargs.instance = instance
                 iargs.accept = False
                 iargs.connect = False
                 iargs.host = None

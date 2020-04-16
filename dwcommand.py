@@ -305,7 +305,11 @@ class DWParser:
             c = ' '
             if i == self.server.instance:
                 c = '*'
-            out.append("%d%c     %s" % (i, c, inst.conn.name()))
+            if 'instName' in inst.args:
+                name = '[%s]' % inst.args.instName
+            else:
+                name = '(main)'
+            out.append("%d%c     %s %s" % (i, c, name, inst.conn.name()))
             i += 1
 
         out.append('')
@@ -701,12 +705,18 @@ class DWParser:
 
         return '\n\r'.join(out)
 
-    def genConfig(self):
+    def genConfigForServer(self, server=None):
         out = []
-        server = self.server
+        if server == None:
+            server = self.server
         args = server.args.__dict__
+        instance = args.get('instance', 0)
+        if instance > 0:
+            out += ['','[%s]' % args['instName'] ]
         for k,v in args.items():
-            if k in ['files', 'cmds', 'instances', 'config']:
+            if k in ['files', 'cmds', 'instances', 'config', 'instance', 'instName', 'daemon']:
+                continue
+            if instance > 0 and k in ['experimental', 'uiPort', 'daemonStatus', 'daemonStop', 'daemonPidFile', 'daemonLogFile']:
                 continue
             if k == 'hdbdos':
                 v = server.hdbdos
@@ -721,6 +731,13 @@ class DWParser:
             if d:
                 out += ["dw disk insert %d %s" % (i, d.name)]
             i += 1
+        return out
+
+    def genConfig(self):
+        out = []
+        server = self.server
+        for instance in server.instances:
+            out += self.genConfigForServer(instance)
         return out
 
     def doConfigShow(self, data):
