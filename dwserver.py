@@ -37,6 +37,7 @@ class DWServer:
         self.instance = instance
         self.hdbdos = args.hdbdos
         self.offset = eval(args.offset)
+        self.args = args
 
     def registerConn(self, conn):
         n = None

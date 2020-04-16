@@ -127,12 +127,17 @@ class DWParser:
         printParser.add("cmd", ParseAction(self.doPrintCmd))
         printParser.add("status", ParseAction(self.doPrintStatus))
 
+        configParser = ParseNode("config")
+        configParser.add("show", ParseAction(self.doConfigShow))
+        configParser.add("save", ParseAction(self.doConfigSave))
+
         dwParser = ParseNode("dw")
         dwParser.add("disk", diskParser)
         dwParser.add("server", serverParser)
         dwParser.add("port", portParser)
         dwParser.add("instance", instanceParser)
         dwParser.add("printer", printParser)
+        dwParser.add("config", configParser)
 
         tcpParser = ParseNode("tcp")
         tcpParser.add("connect", ParseAction(self.doConnect))
@@ -695,6 +700,41 @@ class DWParser:
                     (vp.source_file_name if vp.source_file_name else "Not open")]
 
         return '\n\r'.join(out)
+
+    def genConfig(self):
+        out = []
+        server = self.server
+        args = server.args.__dict__
+        for k,v in args.items():
+            if k in ['files', 'cmds', 'instances', 'config']:
+                continue
+            if k == 'hdbdos':
+                v = server.hdbdos
+            elif k == 'debug':
+                v = server.debug
+            elif k == 'offset' and v == '0':
+                v = None
+            if v not in [None, False]:
+                out += ["option %s %s" % (k,v)]
+        i=0
+        for d in server.files:
+            if d:
+                out += ["dw disk insert %d %s" % (i, d.name)]
+            i += 1
+        return out
+
+    def doConfigShow(self, data):
+        out =  self.genConfig()
+        return '\n\r'.join(out)
+
+    def doConfigSave(self, data):
+        out =  self.genConfig()
+        outFile = data
+        if not outFile:
+            outFile = self.server.args.config
+        with open(outFile, 'w') as f:
+            f.write('\n'.join(out))
+        return "Config Saved to: %s" % outFile
 
     def ptWalker(self, data):
         def walkPt(pt, nodes=[]):
