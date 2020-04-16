@@ -93,6 +93,7 @@ class DWParser:
         diskParser.add("eject", ParseAction(self.doEject))
         diskParser.add("show", ParseAction(self.doShow))
         diskParser.add("offset", ParseAction(self.doDiskOffset))
+        diskParser.add("create", ParseAction(self.doDiskCreate))
 
         serverParser = ParseNode("server")
         serverParser.add("instance", ParseAction(self.doInstanceShow))
@@ -238,6 +239,19 @@ class DWParser:
         self.server.open(int(drive), path, mode=mode, stream=stream)
         return "open(%d, %s)" % (int(drive), path)
 
+    def doDiskCreate(self, data):
+        opts = data.split(' ')
+        if len(opts) < 2:
+            raise Exception("dw disk create <drive> <path> [<opts>]")
+        drive = opts[0]
+        pathStart = len(drive)+1
+        pathEnd = len(data)
+        stream = False
+        mode = 'ab+'
+        path = data[pathStart:pathEnd]
+        self.server.open(int(drive), path, mode=mode, stream=stream, create=True)
+        return "create(%d, %s)" % (int(drive), path)
+
     def doReset(self, data):
         drive = int(data.split(' ')[0])
         path = self.server.files[drive].file.name
@@ -348,7 +362,7 @@ class DWParser:
             name = f.name if f else f
             if f and f.remote:
                 name += '(%s)' % f.file.name
-            out.append("%d      %s" % (i, name))
+            out.append(" %3d   %s" % (i, name))
             i += 1
 
         out.append('')

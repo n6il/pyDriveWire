@@ -51,11 +51,11 @@ class DWServer:
         self.connections[si] = conn
         return si
 
-    def open(self, disk, fileName, stream=False, mode="rb+"):
+    def open(self, disk, fileName, stream=False, mode="rb+", create=False):
         self.files[disk] = DWFile(fileName, mode, stream=stream)
         print(
-            'Opened: disk=%d file=%s stream=%s mode=%s' %
-            (disk, fileName, stream, mode))
+            '%s: disk=%d file=%s stream=%s mode=%s' %
+            ('Created' if create else 'Opened', disk, fileName, stream, mode))
         self.files[disk].file.seek(0)
         self.files[disk].hdbdos = self.hdbdos
         self.files[disk].offset = self.offset

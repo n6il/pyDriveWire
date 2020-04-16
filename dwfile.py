@@ -34,7 +34,10 @@ class DWFile:
         self.stream = stream
         self._doOpen()
         if not self.stream:
-            self.guessMaxLsn()
+            try:
+                self.guessMaxLsn()
+            except:
+                pass
         self.os9Image = False
         self.offset = 0
 
@@ -127,6 +130,8 @@ class DWFile:
             lsn0 = self.file.read(COCO_SECTOR_SIZE)
             self.file.seek(oldLoc)
         dd_tot = None
+        dd_spt = None
+        dd_fmt_sides = None
         try:
             dd_tot = unpack(">I", "\x00" + lsn0[0x0:3])[0]
             dd_tks = unpack(">B", lsn0[0x3])[0]
