@@ -8,7 +8,7 @@ from dwlib import canonicalize
 
 
 class DWSocket(DWIO):
-    def __init__(self, host='localhost', port=6809, conn=None, addr=None):
+    def __init__(self, host='localhost', port=6809, conn=None, addr=None, debug=False):
         DWIO.__init__(self, threaded=True)
         self.host = host
         self.port = int(port)
@@ -20,6 +20,11 @@ class DWSocket(DWIO):
             self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         self.addr = addr
         self.binding = None
+        self.debug = debug
+
+    def _print(self, msg):
+        if self.debug:
+            print(msg)
 
     def name(self):
         return "%s %s:%s" % (self.__class__, self.host, self.port)
@@ -31,7 +36,7 @@ class DWSocket(DWIO):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         self.sock.connect((self.host, self.port))
-        print "socket: %s: connecting to %s:%s" % (self, self.host, self.port)
+        self._print("socket: %s: connecting to %s:%s" % (self, self.host, self.port))
         self.conn = self.sock
 
     def _read(self, count=256):
@@ -42,7 +47,7 @@ class DWSocket(DWIO):
         try:
             (ri, _, _) = select.select([self.conn.fileno()], [], [], 1)
         except Exception as e:
-            print str(e)
+            print(str(e))
             raise Exception("Connection closed")
             self._close()
         if any(ri):
@@ -56,7 +61,7 @@ class DWSocket(DWIO):
         # if data:
         # 	print "r",data
         if self.debug and data is not None:
-            print "socket read:", self, canonicalize(data)
+            self._print("%s: socket read: %s" % (self, canonicalize(data)))
         return data
 
     def _write(self, data):
@@ -67,7 +72,7 @@ class DWSocket(DWIO):
         try:
             (_, wi, _) = select.select([], [self.conn.fileno()], [], 1)
         except Exception as e:
-            print str(e)
+            print(str(e))
             raise ("Connection closed")
             self._close()
             n = -1
@@ -77,7 +82,7 @@ class DWSocket(DWIO):
                 if self.debug:
                     print "socket write:", self, canonicalize(data)
             except Exception as e:
-                print str(e)
+                print(str(e))
                 self._close()
                 n = -1
 
@@ -90,8 +95,8 @@ class DWSocket(DWIO):
         try:
             (ri, _, _) = select.select([self.conn.fileno()], [], [], 1)
         except Exception as e:
-            print str(e)
-            print "Connection closed", self
+            print(str(e))
+            self._print("Connection closed: %s" % self)
             self._close()
         return any(ri)
         # return self.sock.in_waiting
@@ -121,7 +126,7 @@ class DWSocket(DWIO):
             # print str(e)
             # print "Connection closed"
         if any(ri + wi):
-            print "Closing: connection", self
+            self._print("Closing: connection: %s" %  self)
             try:
                 # self.conn.shutdown(socket.SHUT_RDWR)
                 self.conn.close()
@@ -141,7 +146,7 @@ class DWSocket(DWIO):
         self.abort = True
         self._close()
         if self.sock:
-            print "Closing: socket", self
+            self._print("Closing: socket: %s" % self)
             try:
                 self.sock.close()
             except BaseException:
@@ -150,8 +155,8 @@ class DWSocket(DWIO):
 
 
 class DWSocketServer(DWSocket):
-    def __init__(self, host='localhost', port=6809):
-        DWSocket.__init__(self, host=host, port=port)
+    def __init__(self, host='localhost', port=6809, debug=False):
+        DWSocket.__init__(self, host=host, port=port, debug=debug)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.bind(('0.0.0.0', self.port))
 
@@ -161,18 +166,18 @@ class DWSocketServer(DWSocket):
             try:
                 r = self.sock.listen(0)
                 (self.conn, self.addr) = self.sock.accept()
-                print("Accepted Connection: %s" % str(self.addr))
+                self._print("Accepted Connection: %s" % str(self.addr))
             except Exception as ex:
                 print("Server Aborted", str(ex))
 
             if self.conn:
                 break
-            print "looping"
+            self._print("looping")
 
     def _read(self, count=256):
         data = None
         if not self.conn:
-            print "accepting"
+            self._print("accepting")
             self.accept()
         data = ''
         try:
@@ -185,8 +190,8 @@ class DWSocketServer(DWSocket):
 
 
 class DWSocketListener(DWSocket):
-    def __init__(self, host='localhost', port=6809, acceptCb=None):
-        DWSocket.__init__(self, host=host, port=port)
+    def __init__(self, host='localhost', port=6809, acceptCb=None, debug=False):
+        DWSocket.__init__(self, host=host, port=port, debug=debug)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.bind(('0.0.0.0', self.port))
         self.connections = []
@@ -194,7 +199,7 @@ class DWSocketListener(DWSocket):
         self.at.daemon = True
 
     def registerCb(self, cb):
-        print "%s: Callback registration: %s" % (self, cb)
+        self._print("%s: Callback registration: %s" % (self, cb))
         self.acceptCb = cb
 
     def accept(self):
@@ -218,7 +223,7 @@ class DWSocketListener(DWSocket):
                         conn = DWSocket(conn=sock, port=self.port, addr=addr)
                         self.connections.append(conn)
                         if self.acceptCb:
-                            print("%s: Calling Callback: %s" % (self,self.acceptCb))
+                            self._print("%s: Calling Callback: %s" % (self,self.acceptCb))
                             self.acceptCb(conn)
                     except Exception as ex:
                         print("Listener socket failure, port=%s" % (self.port, str(ex)))
@@ -233,7 +238,7 @@ class DWSocketListener(DWSocket):
     def _close(self):
         self.connected = False
         self.abort = True
-        print("%s: Closing up shop port=%s" % (self, self.port))
+        self._print("%s: Closing up shop port=%s" % (self, self.port))
         for c in self.connections:
             c.close()
 
@@ -244,7 +249,8 @@ class DWSimpleSocket:
             host='localhost',
             port=6809,
             conn=None,
-            reconnect=False):
+            reconnect=False,
+            debug=False):
         self.host = host
         self.port = int(port)
         self.conn = conn
@@ -256,6 +262,7 @@ class DWSimpleSocket:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         self.reconnect = reconnect
+        self.debug = debug
 
     def name(self):
         return "%s %s:%s" % (self.__class__, self.host, self.port)

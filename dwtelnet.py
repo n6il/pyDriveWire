@@ -6,8 +6,8 @@ from dwlib import canonicalize
 
 
 class DWTelnet(DWIO):
-    def __init__(self, host='localhost', port=23):
-        DWIO.__init__(self, threaded=True)
+    def __init__(self, host='localhost', port=23, debug=False):
+        DWIO.__init__(self, threaded=True, debug=debug)
         self.host = host
         self.port = int(port)
         self.conn = None
@@ -51,7 +51,7 @@ class DWTelnet(DWIO):
         return len(data)
 
     def _close(self):
-        print "Closing Connection..."
+        self._print("Closing Connection...")
         try:
             self.conn.close()
         except BaseException:

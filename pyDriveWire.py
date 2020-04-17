@@ -357,19 +357,20 @@ def ReadConfig(args):
 def CreateServer(args, instance, instances, lock):
     if args.accept:
         print("Accept connection on %s" % args.port)
-        conn = DWSocketServer(port=args.port)
+        conn = DWSocketServer(port=args.port, debug=args.debug)
     elif args.connect:
-        print "Connect to %s:%s" % (args.host, args.port)
+        print("Connect to %s:%s" % (args.host, args.port))
         conn = DWSimpleSocket(
             port=args.port,
             host=args.host,
-            reconnect=True if not args.noreconnect else False)
+            reconnect=True if not args.noreconnect else False,
+            debug=args.debug)
         conn.connect()
         conn.run()
     else:
-        print "Serial Port: %s at %s, RTS/CTS=%s" % (
-            args.port, args.speed, args.rtscts)
-        conn = DWSerial(args.port, args.speed, rtscts=args.rtscts)
+        print( "Serial Port: %s at %s, RTS/CTS=%s" % (
+            args.port, args.speed, args.rtscts) )
+        conn = DWSerial(args.port, args.speed, rtscts=args.rtscts, debug=args.debug)
         conn.connect()
 
     dws = DWServer(args, conn, VERSION, instances, instance)
@@ -426,6 +427,14 @@ def StartServer(args, dws):
             if args.uiPort:
                 dwhts = DWHttpServer(dws, int(args.uiPort))
             if not args.daemon:
+                time.sleep(1)
+                print("")
+                print("*"*40)
+                print("* pyDriveWire Server %s" % VERSION)
+                print("*")
+                print("* Enter commands at the prompt")
+                print("*"*40)
+                print("")
                 dwr = DWRepl(dws)
         dws.main()
     except BaseException:

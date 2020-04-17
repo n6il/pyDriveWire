@@ -42,7 +42,7 @@ class QPC:
 
 
 class DWIO:
-    def __init__(self, rwf=None, inf=None, outf=None, threaded=False):
+    def __init__(self, rwf=None, inf=None, outf=None, threaded=False, debug=False):
         self.abort = False
 
         if rwf:
@@ -65,12 +65,16 @@ class DWIO:
             self.wt = None
         self.wq = Queue.Queue()
         self.connected = False
-        self.debug = False
+        self.debug = debug
+
+    def _print(self, msg):
+        if self.debug:
+            print(msg)
 
     def run(self, read=True, write=True):
         if not self.threaded:
             return
-        print "%s: Starting threads..." % self
+        self._print("%s: Starting threads..." % self)
         self.rt.start()
         self.wt.start()
 
@@ -168,20 +172,20 @@ class DWIO:
         pass
 
     def close(self):
-        print "%s: Closing connection" % self
+        self._print("%s: Closing connection" % self)
         self.abort = True
         self.rb.close()
         self._close()
         # if self.wt and self.wt.is_alive() and not self.wt._Thread__stopped:
         if self.rt:
             self.rt.abort = True
-            print "%s: Shutting down async read thread: %s" % (self, self.rt)
+            self._print("%s: Shutting down async read thread: %s" % (self, self.rt))
             if self.rt.is_alive():
                 self.rt.join()
             self.rt = None
         # if self.wt and self.wt.is_alive() and not self.wt._Thread__stopped:
         if self.wt:
-            print "%s: Shutting down async write thread: %s" % (self, self.wt)
+            self._print("%s: Shutting down async write thread: %s" % (self, self.wt))
             self.wt.abort = True
             if self.wt.is_alive():
                 self.wt.join()
@@ -194,18 +198,18 @@ class DWIO:
         pass
 
     def _readHandler(self):
-        print "%s: Starting _readHandler..." % self
+        self._print("%s: Starting _readHandler..." % self)
         while not self.abort:
             try:
                 d = self._read()
             except Exception as e:
-                print str(e)
+                print(str(e))
                 break
             if d:
                 # print "put: (%s)" % d
                 self.rb.add(len(d))
                 self.rq.put(d)
-        print "%s: Exiting _readHandler..." % self
+        self._print("%s: Exiting _readHandler..." % self)
 
     def _read(self, rlen=None):
         data = ''
@@ -219,7 +223,7 @@ class DWIO:
         return data
 
     def _writeHandler(self):
-        print "%s: Starting _writeHandler..." % self
+        self._print("%s: Starting _writeHandler..." % self)
         while not self.abort:
             d = ''
             try:
@@ -231,7 +235,7 @@ class DWIO:
             if d:
                 # "wh: %d" % len(d)
                 self._write(d)
-        print "%s: Exiting _writeHandler..." % self
+        self._print("%s: Exiting _writeHandler..." % self)
 
     def _write(self, data):
         # print "dwio._write %s" % self

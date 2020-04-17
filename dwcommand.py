@@ -371,7 +371,7 @@ class DWParser:
             name = f.name if f else f
             if f and f.remote:
                 name += '(%s)' % f.file.name
-            out.append(" %3d   %s" % (i, name))
+            out.append("%-3d    %s" % (i, name))
             i += 1
 
         out.append('')
@@ -382,7 +382,7 @@ class DWParser:
             self.server.conn.debug = True
         if data.startswith(('0', 'off', 'f', 'F', 'n', 'N')):
             self.server.conn.debug = False
-        return "debug=%s" % (self.server.conn.debug)
+        return "connDebug=%s" % (self.server.conn.debug)
 
     def doTimeout(self, data):
         opts = data.split(' ')
@@ -395,6 +395,7 @@ class DWParser:
         return "pyDriveWire Server %s" % self.server.version
 
     def doDebug(self, data):
+        out = []
         if data.startswith(('on', 't', 'T', 'y', 'Y')):
             self.server.debug = True
         if data.startswith(('off', 'f', 'F', 'n', 'N')):
@@ -402,7 +403,12 @@ class DWParser:
         if data and data[0].isdigit():
             d = int(data[0])
             self.server.debug = d
-        return "debug=%s" % (self.server.debug)
+            if d == 2:
+                out += [self.doConnDebug('1')]
+            elif d == 0:
+                out += [self.doConnDebug('0')]
+        out += ["debug=%s" % (self.server.debug)]
+        return '\r\n'.join(out)
 
     # def doDir(self, data, nxti):
     def doDir(self, data):
@@ -457,9 +463,9 @@ class DWParser:
             raise Exception("telnet: Bad Host/Port: %s" % data)
         try:
             if telnet:
-                sock = DWTelnet(host=host, port=port)
+                sock = DWTelnet(host=host, port=port, debug=self.server.debug)
             else:
-                sock = DWSocket(host=host, port=port)
+                sock = DWSocket(host=host, port=port, debug=self.server.debug)
             if telnet or interactive:
                 res = {
                     'msg': '\r\nCONNECTED',

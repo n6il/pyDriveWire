@@ -6,12 +6,13 @@ import time
 
 
 class DWSerial(DWIO):
-    def __init__(self, port, speed, rtscts=False):
+    def __init__(self, port, speed, rtscts=False, debug=False):
         DWIO.__init__(self, threaded=True)
         self.port = port
         self.speed = speed
         self.rtscts = rtscts
         self.ser = None
+        self.debug = debug
 
     def name(self):
         return "%s %s %s" % (self.__class__, self.port, self.speed)
