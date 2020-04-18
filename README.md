@@ -19,20 +19,20 @@ DriveWire 4 and EmCee Procotols can be used simultaneously on the server without
 * (new for v0.5c) `dw config save` command
 * (new for v0.5c) `dw disk create` command
 * (new for v0.5c) Major re-work of Virtual Serial Channels
-* (new for v0.5c) [Printing Support Enhancements](docs/the%20pyDriveWire%20Manual.md#ch10)
-* [Web User Interface](docs/the%20pyDriveWire%20Manual.md#ch4) (`--ui-port`)
-* [Configuration File support](docs/the%20pyDriveWire%20Manual.md#ch6)
-* [Multiple Instance Support](docs/the%20pyDriveWire%20Manual.md#ch7) — Requires config file
-* [Daemon Mode](docs/the%20pyDriveWire%20Manual.md#ch8) - Linux/macOS Only - Requires config file
-* [Enhanced `pyDwCli` command console tool](docs/the%20pyDriveWire%20Manual.md#ch5)
-* [Comprehensive and detailed manual for server features](docs/the%20pyDriveWire%20Manual.md#toc)
-* [Printing: EmCee/MCX-Basic Printing Support](docs/the%20pyDriveWire%20Manual.md#ch10)
-* [HDB-DOS Mode and Disk image offset](docs/the%20pyDriveWire%20Manual.md#ch12)
+* (new for v0.5c) [Printing Support Enhancements](docs/The%20pyDriveWire%20Manual.md#ch10)
+* [Web User Interface](docs/The%20pyDriveWire%20Manual.md#ch4) (`--ui-port`)
+* [Configuration File support](docs/The%20pyDriveWire%20Manual.md#ch6)
+* [Multiple Instance Support](docs/The%20pyDriveWire%20Manual.md#ch7) — Requires config file
+* [Daemon Mode](docs/The%20pyDriveWire%20Manual.md#ch8) - Linux/macOS Only - Requires config file
+* [Enhanced `pyDwCli` command console tool](docs/The%20pyDriveWire%20Manual.md#ch5)
+* [Comprehensive and detailed manual for server features](docs/The%20pyDriveWire%20Manual.md#toc)
+* [Printing: EmCee/MCX-Basic Printing Support](docs/The%20pyDriveWire%20Manual.md#ch10)
+* [HDB-DOS Mode and Disk image offset](docs/The%20pyDriveWire%20Manual.md#ch12)
 * Remote dw command input on TCP port
-* [EmCee Protocol Support](docs/the%20pyDriveWire%20Manual.md#ch9)
+* [EmCee Protocol Support](docs/The%20pyDriveWire%20Manual.md#ch9)
 * Supported on Linux, macOS, and Windows
 * `dw server dir` and `dw server list` enhanced to run on _ALL_ OSes (Mac/Windows/Linux, etc)
-* [Experimental printing support prints to PDF or text file](docs/the%20pyDriveWire%20Manual.md#ch10)
+* [Experimental printing support prints to PDF or text file](docs/The%20pyDriveWire%20Manual.md#ch10)
 * Connections to serial ports at all supported baud rates: 38400, 57600, 115200, 230400, 460800, 921600
 * Listen for incoming connection on any TCP port with a default of 65504
 * Ability to make outgoing TCP connections for serial-net converters
@@ -79,7 +79,7 @@ Using a Binary Package is very simple:
 2. Unzip the package
 3. The package contains two executable programs `pyDriveWire` and `pyDwCli` and a copy of this manual.
 4. Run the `pyDriveWire` executable.  See next section for examples:
-5. Full details of the command line options are in the [Command Line and Config File Options](docs/the%20pyDriveWire%20Manual.md#ch3) section.
+5. Full details of the command line options are in the [Command Line and Config File Options](docs/The%20pyDriveWire%20Manual.md#ch3) section.
 
 ## 2.2 Running a Binary Package
 Example: Run pyDriveWire with the HTTP UI on port 6800 and use a serial port:
@@ -99,7 +99,7 @@ Example: Run pyDriveWire with the HTTP UI on port 6800 and the Becker port conne
 1. Install Docker Desktop
 2. Clone the container: `docker pull mikeyn6il/pydrivewire`
 3. Run the container.  See next section for examples.  
-4. Full details of the command line options are in the [Command Line and Config File Options](docs/the%20pyDriveWire%20Manual.md#ch3) section.
+4. Full details of the command line options are in the [Command Line and Config File Options](docs/The%20pyDriveWire%20Manual.md#ch3) section.
 
 ## 2.4 Running The Docker Container
 Example: Run pyDriveWire with the HTTP UI on port 6800 and use a serial port:
@@ -141,5 +141,5 @@ greatly increased speed
 
 ## 2.5 Installation Details<a name="ch2.1"></a>
 
-Please see [The pyDriveWire Manual - Chapter 2](docs/the%20pyDriveWire%20Manual.md#ch2) for detailed installation instructions
+Please see [The pyDriveWire Manual - Chapter 2](docs/The%20pyDriveWire%20Manual.md#ch2) for detailed installation instructions
 
