@@ -1,4 +1,4 @@
-# The pyDriveWire Manual v0.5c-dev
+# The pyDriveWire Manual v0.5c
 
 Python Implementation of DriveWire 4 and EmCee Protocols
 
@@ -26,23 +26,25 @@ DriveWire 4 and EmCee Procotols can be used simultaneously on the server without
 
 # 1. <a name="ch1"></a>Features
 
-* (new for v0.5) New [Web User Interface](#ch4) (`--ui-port`)
-* (new for v0.5) [Configuration File support](#ch6)
-* (new for v0.5) [Multiple Instance Support](#ch7) — Requires config file
-* (new for v0.5) [Daemon Mode](#ch8) - Linux/macOS Only - Requires config file
-* (new for v0.5) [Enhanced `pyDwCli` command console tool](#ch5)
-* (new for v0.5) [Comprehensive and detailed manual for server features](#toc)
-* (new for v0.5) [Printing: EmCee/MCX-Basic Printing Support](#ch10)
-* (new for v0.5) [Printing: `dw printer flush` command](#ch10)
-* (new for v0.5) [Printing: Selectable output format: txt/pdf](#ch10)
-* (new for v0.5) [Printing: Selectable output directory](#ch10)
-* (new for v0.5) [Printing: Run command when print buffer is flushed](#ch10)
-* (new for v0.5) [HDB-DOS Mode and Disk image offset](#ch12)
+* (new for v0.5c) [New Easy Installation Methods: Binary Package, Docker](#ch2)
+* (new for v0.5c) `dw config show` command
+* (new for v0.5c) `dw config save` command
+* (new for v0.5c) `dw disk create` command
+* (new for v0.5c) Major re-work of Virtual Serial Channels
+* (new for v0.5c) [Printing Support Enhancements](#ch10)
+* [Web User Interface](#ch4) (`--ui-port`)
+* [Configuration File support](#ch6)
+* [Multiple Instance Support](#ch7) — Requires config file
+* [Daemon Mode](#ch8) - Linux/macOS Only - Requires config file
+* [Enhanced `pyDwCli` command console tool](#ch5)
+* [Comprehensive and detailed manual for server features](#toc)
+* [Printing: EmCee/MCX-Basic Printing Support](#ch10)
+* [HDB-DOS Mode and Disk image offset](#ch12)
 * Remote dw command input on TCP port
-* [Experimental EmCee Protocol Support](#ch9)
+* [EmCee Protocol Support](#ch9)
 * Supported on Linux, macOS, and Windows
 * `dw server dir` and `dw server list` enhanced to run on _ALL_ OSes (Mac/Windows/Linux, etc)
-* [Experimental printing support prints to PDF file](#ch10)
+* [Experimental printing support prints to PDF or text file](#ch10)
 * Connections to serial ports at all supported baud rates: 38400, 57600, 115200, 230400, 460800, 921600
 * Listen for incoming connection on any TCP port with a default of 65504
 * Ability to make outgoing TCP connections for serial-net converters
@@ -63,21 +65,94 @@ DriveWire 4 and EmCee Procotols can be used simultaneously on the server without
 [Back to top](#toc)
 
 # 2. <a name="ch2"></a>Getting Started
-## 2.1 Requirements<a name="ch2.1"></a>
+
+(new for v0.5c) pyDriveWire has two Easy Installtion Methods: Binary Package and Docker.  These options are designed for Ease Of Use and do not require a complex series of installation steps.   pyDriveWire can also be run directly from any `pypy` or `python` install if it meets the appropriate requirements.
+
+In terms of performance, the Python and Binary Package installation methods are fully functional but have the lowest performance.  Docker provides a medium level of performance.  pypy should be used to get the maximum performance out of pyDriveWire.
+
+
+## 2.1 Binary Package Installation
+Binary packages are available at the following location:
+
+[https://github.com/n6il/pyDriveWire/releases/latest](https://github.com/n6il/pyDriveWire/releases/latest)
+
+Packages are available for the following operating systems:
+
+* `linux-x86_64` -- Any modern 64-bit Linux 
+* `win-x64` -- 64-bit Windows (Windows 7 or later)
+* `win32` -- 32-bit Windows (Windows 7 or later)
+*  `rpi3` -- Raspberry Pi 3 (Raspbian Buster)
+*  `rpi4` -- Raspberry Pi 4 (Raspbian Jesse)
+*  `macOs` -- macOs (High Sierra or later)
+
+Using a Binary Package is very simple:
+
+1. Download the package for your operating system
+2. Unzip the package
+3. The package contains two executable programs `pyDriveWire` and `pyDwCli` and a copy of this manual.
+4. Run the `pyDriveWire` executable.  See next section for examples:
+5. Full details of the command line options are in the [Command Line and Config File Options](#ch3) section.
+
+## 2.2 Running a Binary Package
+Example: Run pyDriveWire with the HTTP UI on port 6800 and use a serial port:
+
+    pyDriveWire --ui-port 6800 --port /dev/ttyUSB0 --speed 460800
+    
+Example: Run pyDriveWire with the HTTP UI on port 6800 and use a serial port and mount two disk images:
+
+    pyDriveWire --ui-port 6800 --port /dev/ttyUSB0 --speed 460800 \
+    	/demo/test1.dsk /demo/test2.dsk
+
+Example: Run pyDriveWire with the HTTP UI on port 6800 and the Becker port connection on port 65504:
+
+    pyDriveWire --ui-port 6800 --accept --port 65504
+
+## 2.3 Docker
+1. Install Docker Desktop
+2. Clone the container: `docker pull mikeyn6il/pydrivewire`
+3. Run the container.  See next section for examples.  
+4. Full details of the command line options are in the [Command Line and Config File Options](#ch3) section.
+
+## 2.4 Running The Docker Container
+Example: Run pyDriveWire with the HTTP UI on port 6800 and use a serial port:
+
+    docker run -i -p 6800:6800/tcp -p 65504:65504/tcp \
+    	--device /dev/ttyUSB0:/dev/ttyUSB0 mikeyn6il/pydrivewire:latest \
+    	--ui-port 6800 --port /dev/ttyUSB0 --speed 460800
+
+For Windows use the following `--device` option:
+
+    --device COM4:/dev/ttyUSB0
+
+Example: Run pyDriveWire with the HTTP UI on port 6800 and use a serial port and use a HTTP disk image:
+
+    docker run -i -p 6800:6800/tcp -p 65504:65504/tcp \
+    	--device /dev/ttyUSB0:/dev/ttyUSB0 mikeyn6il/pydrivewire:latest \
+    	--ui-port 6800 --port /dev/ttyUSB0 --speed 460800 \
+    	http://www.ocs.net/~n6il/DWTERM.dsk
+
+Example: Run pyDriveWire with the HTTP UI on port 6800 and the Becker port connection on port 65504:
+
+    docker run -i -p 6800:6800/tcp -p 65504:65504/tcp \
+    	mikeyn6il:pydrivewire/latest \
+    	--ui-port 6800 --accept --port 65504
+
+ 
+## 2.4 Installation Requirements<a name="ch2.1"></a>
 
 * pypy -- For maximum performance it is recommended to run the server with
 pypy.  pypy is a Python interpreter that does JIT compilation and results in
 greatly increased speed
 * pyserial -- Install using pip
 
-## 2.2 Supported Operating Systems
+## 2.5 Supported Operating Systems
 * Any OS where you can run Python, including but not limited to:
 * Linux
 * macOS
 * Windows
 
 
-## 2.3 Installation (Linux/macOS/UNIX)
+## 2.6 Installation (Linux/macOS/UNIX)
 * Download Latest: [https://github.com/n6il/pyDriveWire/releases](https://github.com/n6il/pyDriveWire/releases)
 * Mac: `brew install pypy; pypy -m pip install pyserial`
 * Ubuntu: `apt-get install pypy; pypy -m pip install pyserial`
@@ -87,7 +162,7 @@ _Experimental Printing Support_
 * `pypy -m pip install reportlab`
 
 
-## 2.4 Installation (Windows)
+## 2.7 Installation (Windows)
 
 There are multiple ways to get Python and pyDriveWire installed on Windows.
 As long as the basic requirements are met you can use any method to install
@@ -167,7 +242,7 @@ This manual section is meant as a quick and comprehensive guide to all of the py
                           [--print-cmd PRINTCMD]
                           [FILE [FILE ...]]
     
-    pyDriveWire Server v0.5c-dev
+    pyDriveWire Server v0.5c
     
     positional arguments:
       FILE                  list of files
@@ -529,6 +604,17 @@ Please see the [Experimental Printing Support](#ch10) manual section for more de
 ### Config File
 
     option printDir <directory>
+
+## Printer: Spool File Prefix
+Please see the [Experimental Printing Support](#ch10) manual section for more detail about this feature.
+
+### Command Line
+
+    --print-prefix <directory>
+    
+### Config File
+
+    option printPrefix <directory>
 
 ## Printer: Command
 
@@ -1163,8 +1249,11 @@ MCX-Basic has support for printing over a EmCee connection.  You can use both th
 
       --print-format {pdf,txt}
                         Printer output format, default: pdf
-      --print-dir PRINTDIR  Spool directory to send printer output
-      --print-file FILE
+      --print-dir PRINTDIR  Spool directory to send printer output, default: /tmp
+      --print-prefix PRINTPREFIX
+                        File name prefix for files in the spool directory,
+                        default: cocoprints
+      --print-file PRINTFILE
                         File to send printer output, Note: Will be overwritten
       --print-cmd PRINTCMD  Command to run on flushed printer output
 
@@ -1173,9 +1262,18 @@ MCX-Basic has support for printing over a EmCee connection.  You can use both th
     option experimental printer
     option printFormat <txt|pdf>
     option printDir <dir>
+    option printPrefix <prefix>
     option printFile <file>
     option printCmd <cmd>
     
+### Commands
+
+    dw printer format <txt|pdf>
+    dw printer dir <dir>
+    dw printer prefix <prefix>
+    dw printer file <file>
+    dw printer command <cmd>
+
 ### Enabling Experimental Printing Mode
 
 The printing feature is currently experimental.  The reason why is that it currently requires some additional modules to be installed in your Python installation.  It can be enabled by providing the `-x printer` command line or `experimental printer` option in the configuration file.
@@ -1189,9 +1287,10 @@ The pyDriveWire printing engine has two output formats:
 
 ### Controlling the printer output location
 
-Without any options and by default, the pyDriveWire printing engine sends it's output to a temporary file which is placed in temporary directory.  The log messages printed to the pyDriveWire console will need to be looked at to see where the file went.  There are two options which can be used to change this behavior:
+pyDriveWire has a simple built-in print spooler.  By default without any options the spool directory is a temporary directory such as `/tmp`.   The print spooler automatically creates spool files using the `printPrefix` option as the prefix of the filename followed by a number.  The default prefix is `cocoprints` so the files would be `cocoprints0001.pdf`, `cocoprints0002.pdf`, etc.  A log message with the output file name is printed to the pyDriveWire console for at the end of each print job.  You can run the command `dw printer status` to see the current configuration.  There are four options which can be used to change this behavior:
 
-* The `printDir` option can be used to provide a directory where the print engine output will go.  This directory must already exist.
+* The `printDir` option can be used to provide a directory where the print engine output will go.  This directory must already exist.  The default is a temporary directory such as `/tmp`
+* The `printPrefix` option sets the filename prefix for spool files.  The spool files are automatically created using the `printPrefix` option as the prefix of the filename followed by a number.  The default prefix is `cocoprints` so the files would be `cocoprints0001.pdf`, `cocoprints0002.pdf`, etc.
 * The `printFile` option is the name of a file where _all_ of the printer output will go.  This file is created the first time the Coco/MC-10 prints anything.  The file is closed when the print buffer is flushed.  Please note that if anything more is printed after this file is created, it will be truncated and overwritten and the previous output will be lost.
 
 ### Running a command when the print buffer is flushed
@@ -1454,10 +1553,11 @@ etc.
 
 * `dw disk` 
 	* `dw disk show`
-	* `dw disk insert 0 <file>`
-	* `dw disk eject 0`
-	* `dw disk reset 0` -- (re-open)
-	* `dw disk offset 0 <n>`
+	* `dw disk insert <drive> <file>`
+	* `dw disk eject <drive>`
+	* `dw disk reset <drive>` -- (re-open)
+	* `dw disk offset <drive> <n>`
+	* `dw disk create <drive> <offset>`
 * `dw port`
 	* `dw port show`
 	* `dw port close <n>`

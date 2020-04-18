@@ -20,7 +20,7 @@ from daemon import Daemon
 import platform
 import tempfile
 
-VERSION = 'v0.5c-dev'
+VERSION = 'v0.5c'
 
 defaultConfigValues = {
     'config': '~/.pydrivewirerc',

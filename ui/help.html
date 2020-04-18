@@ -1,56 +1,1193 @@
+<!DOCTYPE html>
 <html>
+
+<head>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>The pyDriveWire Manual</title>
+
+
+<style type="text/css">
+body {
+  font-family: Helvetica, arial, sans-serif;
+  font-size: 12px;
+  line-height: 1.6;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  background-color: white;
+  padding: 30px; }
+
+body > *:first-child {
+  margin-top: 0 !important; }
+body > *:last-child {
+  margin-bottom: 0 !important; }
+
+a {
+  color: #4183C4; }
+a.absent {
+  color: #cc0000; }
+a.anchor {
+  display: block;
+  padding-left: 30px;
+  margin-left: -30px;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0; }
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 20px 0 10px;
+  padding: 0;
+  font-weight: bold;
+  -webkit-font-smoothing: antialiased;
+  cursor: text;
+  position: relative; }
+
+h1:hover a.anchor, h2:hover a.anchor, h3:hover a.anchor, h4:hover a.anchor, h5:hover a.anchor, h6:hover a.anchor {
+  background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA09pVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoMTMuMCAyMDEyMDMwNS5tLjQxNSAyMDEyLzAzLzA1OjIxOjAwOjAwKSAgKE1hY2ludG9zaCkiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6OUM2NjlDQjI4ODBGMTFFMTg1ODlEODNERDJBRjUwQTQiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6OUM2NjlDQjM4ODBGMTFFMTg1ODlEODNERDJBRjUwQTQiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo5QzY2OUNCMDg4MEYxMUUxODU4OUQ4M0REMkFGNTBBNCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo5QzY2OUNCMTg4MEYxMUUxODU4OUQ4M0REMkFGNTBBNCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PsQhXeAAAABfSURBVHjaYvz//z8DJYCRUgMYQAbAMBQIAvEqkBQWXI6sHqwHiwG70TTBxGaiWwjCTGgOUgJiF1J8wMRAIUA34B4Q76HUBelAfJYSA0CuMIEaRP8wGIkGMA54bgQIMACAmkXJi0hKJQAAAABJRU5ErkJggg==) no-repeat 10px center;
+  text-decoration: none; }
+
+h1 tt, h1 code {
+  font-size: inherit; }
+
+h2 tt, h2 code {
+  font-size: inherit; }
+
+h3 tt, h3 code {
+  font-size: inherit; }
+
+h4 tt, h4 code {
+  font-size: inherit; }
+
+h5 tt, h5 code {
+  font-size: inherit; }
+
+h6 tt, h6 code {
+  font-size: inherit; }
+
+h1 {
+  font-size: 24px;
+  color: black; }
+
+h2 {
+  font-size: 22px;
+  border-bottom: 1px solid #cccccc;
+  color: black; }
+
+h3 {
+  font-size: 16px; }
+
+h4 {
+  font-size: 14px; }
+
+h5 {
+  font-size: 12px; }
+
+h6 {
+  color: #777777;
+  font-size: 14px; }
+
+p, blockquote, ul, ol, dl, li, table, pre {
+  margin: 15px 0; }
+
+hr {
+  background: transparent url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAECAYAAACtBE5DAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6OENDRjNBN0E2NTZBMTFFMEI3QjRBODM4NzJDMjlGNDgiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6OENDRjNBN0I2NTZBMTFFMEI3QjRBODM4NzJDMjlGNDgiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo4Q0NGM0E3ODY1NkExMUUwQjdCNEE4Mzg3MkMyOUY0OCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo4Q0NGM0E3OTY1NkExMUUwQjdCNEE4Mzg3MkMyOUY0OCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PqqezsUAAAAfSURBVHjaYmRABcYwBiM2QSA4y4hNEKYDQxAEAAIMAHNGAzhkPOlYAAAAAElFTkSuQmCC) repeat-x 0 0;
+  border: 0 none;
+  color: #cccccc;
+  height: 4px;
+  padding: 0;
+}
+
+body > h2:first-child {
+  margin-top: 0;
+  padding-top: 0; }
+body > h1:first-child {
+  margin-top: 0;
+  padding-top: 0; }
+  body > h1:first-child + h2 {
+    margin-top: 0;
+    padding-top: 0; }
+body > h3:first-child, body > h4:first-child, body > h5:first-child, body > h6:first-child {
+  margin-top: 0;
+  padding-top: 0; }
+
+a:first-child h1, a:first-child h2, a:first-child h3, a:first-child h4, a:first-child h5, a:first-child h6 {
+  margin-top: 0;
+  padding-top: 0; }
+
+h1 p, h2 p, h3 p, h4 p, h5 p, h6 p {
+  margin-top: 0; }
+
+li p.first {
+  display: inline-block; }
+li {
+  margin: 0; }
+ul, ol {
+  padding-left: 30px; }
+
+ul :first-child, ol :first-child {
+  margin-top: 0; }
+
+dl {
+  padding: 0; }
+  dl dt {
+    font-size: 14px;
+    font-weight: bold;
+    font-style: italic;
+    padding: 0;
+    margin: 15px 0 5px; }
+    dl dt:first-child {
+      padding: 0; }
+    dl dt > :first-child {
+      margin-top: 0; }
+    dl dt > :last-child {
+      margin-bottom: 0; }
+  dl dd {
+    margin: 0 0 15px;
+    padding: 0 15px; }
+    dl dd > :first-child {
+      margin-top: 0; }
+    dl dd > :last-child {
+      margin-bottom: 0; }
+
+blockquote {
+  border-left: 4px solid #dddddd;
+  padding: 0 15px;
+  color: #777777; }
+  blockquote > :first-child {
+    margin-top: 0; }
+  blockquote > :last-child {
+    margin-bottom: 0; }
+
+table {
+  padding: 0;border-collapse: collapse; }
+  table tr {
+    border-top: 1px solid #cccccc;
+    background-color: white;
+    margin: 0;
+    padding: 0; }
+    table tr:nth-child(2n) {
+      background-color: #f8f8f8; }
+    table tr th {
+      font-weight: bold;
+      border: 1px solid #cccccc;
+      margin: 0;
+      padding: 6px 13px; }
+    table tr td {
+      border: 1px solid #cccccc;
+      margin: 0;
+      padding: 6px 13px; }
+    table tr th :first-child, table tr td :first-child {
+      margin-top: 0; }
+    table tr th :last-child, table tr td :last-child {
+      margin-bottom: 0; }
+
+img {
+  max-width: 100%; }
+
+span.frame {
+  display: block;
+  overflow: hidden; }
+  span.frame > span {
+    border: 1px solid #dddddd;
+    display: block;
+    float: left;
+    overflow: hidden;
+    margin: 13px 0 0;
+    padding: 7px;
+    width: auto; }
+  span.frame span img {
+    display: block;
+    float: left; }
+  span.frame span span {
+    clear: both;
+    color: #333333;
+    display: block;
+    padding: 5px 0 0; }
+span.align-center {
+  display: block;
+  overflow: hidden;
+  clear: both; }
+  span.align-center > span {
+    display: block;
+    overflow: hidden;
+    margin: 13px auto 0;
+    text-align: center; }
+  span.align-center span img {
+    margin: 0 auto;
+    text-align: center; }
+span.align-right {
+  display: block;
+  overflow: hidden;
+  clear: both; }
+  span.align-right > span {
+    display: block;
+    overflow: hidden;
+    margin: 13px 0 0;
+    text-align: right; }
+  span.align-right span img {
+    margin: 0;
+    text-align: right; }
+span.float-left {
+  display: block;
+  margin-right: 13px;
+  overflow: hidden;
+  float: left; }
+  span.float-left span {
+    margin: 13px 0 0; }
+span.float-right {
+  display: block;
+  margin-left: 13px;
+  overflow: hidden;
+  float: right; }
+  span.float-right > span {
+    display: block;
+    overflow: hidden;
+    margin: 13px auto 0;
+    text-align: right; }
+
+code, tt {
+  margin: 0 2px;
+  padding: 0 5px;
+  white-space: nowrap;
+  border: 1px solid #eaeaea;
+  font-size: 10px;
+  background-color: #f8f8f8;
+  border-radius: 3px; }
+
+pre code {
+  margin: 0;
+  padding: 0;
+  white-space: pre;
+  border: none;
+  background: transparent; }
+
+.highlight pre {
+  background-color: #f8f8f8;
+  border: 1px solid #cccccc;
+  font-size: 10px;
+  line-height: 12px;
+  overflow: auto;
+  padding: 6px 10px;
+  border-radius: 3px; }
+
+pre {
+  background-color: #f8f8f8;
+  border: 1px solid #cccccc;
+  font-size: 10px;
+  line-height: 12px;
+  overflow: auto;
+  padding: 6px 10px;
+  border-radius: 3px; }
+  pre code, pre tt {
+    background-color: transparent;
+    border: none; }
+
+sup {
+    font-size: 0.83em;
+    vertical-align: super;
+    line-height: 0;
+}
+
+kbd {
+  display: inline-block;
+  padding: 3px 5px;
+  font-size: 11px;
+  line-height: 10px;
+  color: #555;
+  vertical-align: middle;
+  background-color: #fcfcfc;
+  border: solid 1px #ccc;
+  border-bottom-color: #bbb;
+  border-radius: 3px;
+  box-shadow: inset 0 -1px 0 #bbb
+}
+
+* {
+	-webkit-print-color-adjust: exact;
+}
+@media screen and (min-width: 914px) {
+    body {
+        width: 854px;
+        margin:0 auto;
+    }
+}
+@media print {
+	table, pre {
+		page-break-inside: avoid;
+	}
+	pre {
+		word-wrap: break-word;
+	}
+  body {
+    padding: 2cm; 
+  }
+}
+</style>
+
+
+</head>
+
 <body>
-<h1 id="top">pyDriveWire Server Help</h1>
-<ol id="toc">
-	<li>User Interface<ol>
-		<li><a href="#Disk_Images">Disk Images</a></li>
-		<li><a href="#Command_Console">Command Console</a></li>
-		<li>bar</li>
-	</ol></li>
-	<li><a href="#Commands">DriveWire Commands</a></li>
-	</ol></li>
+
+<h1 id="toc_0">The pyDriveWire Manual v0.5c</h1>
+
+<p>Python Implementation of DriveWire 4 and EmCee Protocols</p>
+
+<p>PyDriveWire is a nearly complete DriveWire4 Server written in Python.  The goal is to eventually implement all of the features available.  The server also implements additional features that are not available in DriveWire4.</p>
+
+<p>PyDriveWire also has support for the EmCee Protocol for use with MCX Basic on the TRS-80 MC-10.  </p>
+
+<p>DriveWire 4 and EmCee Procotols can be used simultaneously on the server without reconfiguration.</p>
+
+<h1 id="toc_1"><a name="toc"></a>Table of Contents</h1>
+
+<ol>
+<li><a href="#ch1">Features</a></li>
+<li><a href="#ch2">Getting Started</a></li>
+<li><a href="#ch3">Command Line and Config File Options</a></li>
+<li><a href="#ch4">Web User Interface</a></li>
+<li><a href="#ch5">Command Console Interfaces</a></li>
+<li><a href="#ch6">Using a Config File</a></li>
+<li><a href="#ch7">Multiple Instances</a></li>
+<li><a href="#ch8">Daemon Mode</a></li>
+<li><a href="#ch9">EmCee Server</a></li>
+<li><a href="#ch10">Experimental Printing Support</a></li>
+<li><a href="#ch11">Debugging</a></li>
+<li><a href="#ch12">HDB-DOS Mode</a></li>
+<li><a href="#ch13">Appendix: Supported DriveWire Commands</a></li>
 </ol>
-<div id="Disk_Images">
-<h2>Disk Images</h2>
+
+<h1 id="toc_2">1. <a name="ch1"></a>Features</h1>
+
+<ul>
+<li>(new for v0.5c) <a href="#ch2">New Easy Installation Methods: Binary Package, Docker</a></li>
+<li>(new for v0.5c) <code>dw config show</code> command</li>
+<li>(new for v0.5c) <code>dw config save</code> command</li>
+<li>(new for v0.5c) <code>dw disk create</code> command</li>
+<li>(new for v0.5c) Major re-work of Virtual Serial Channels</li>
+<li>(new for v0.5c) <a href="#ch10">Printing Support Enhancements</a></li>
+<li><a href="#ch4">Web User Interface</a> (<code>--ui-port</code>)</li>
+<li><a href="#ch6">Configuration File support</a></li>
+<li><a href="#ch7">Multiple Instance Support</a> — Requires config file</li>
+<li><a href="#ch8">Daemon Mode</a> - Linux/macOS Only - Requires config file</li>
+<li><a href="#ch5">Enhanced <code>pyDwCli</code> command console tool</a></li>
+<li><a href="#toc">Comprehensive and detailed manual for server features</a></li>
+<li><a href="#ch10">Printing: EmCee/MCX-Basic Printing Support</a></li>
+<li><a href="#ch12">HDB-DOS Mode and Disk image offset</a></li>
+<li>Remote dw command input on TCP port</li>
+<li><a href="#ch9">EmCee Protocol Support</a></li>
+<li>Supported on Linux, macOS, and Windows</li>
+<li><code>dw server dir</code> and <code>dw server list</code> enhanced to run on <em>ALL</em> OSes (Mac/Windows/Linux, etc)</li>
+<li><a href="#ch10">Experimental printing support prints to PDF or text file</a></li>
+<li>Connections to serial ports at all supported baud rates: 38400, 57600, 115200, 230400, 460800, 921600</li>
+<li>Listen for incoming connection on any TCP port with a default of 65504</li>
+<li>Ability to make outgoing TCP connections for serial-net converters</li>
+<li>Disks to be mounted can be specified on the command line</li>
+<li>Interactive CLI allowing all dw commands to be run</li>
+<li>Support for DriveWire 4 virtual ports
+
+<ul>
+<li><code>dw</code> commmands over vport</li>
+<li><code>AT</code> Modem-style connections</li>
+<li>Outbound connections with <code>ATD</code>/<code>ATDT</code> or <code>tcp connect</code></li>
+<li>Inbound vports via <code>tcp listen/join/kill</code> commands</li>
+</ul></li>
+</ul>
+
+<h2 id="toc_3">Notable Missing Features</h2>
+
+<ul>
+<li>MIDI</li>
+<li>OS9 <code>/Z</code> console windows</li>
+<li>MShell Support</li>
+</ul>
+
+<p><a href="#toc">Back to top</a></p>
+
+<h1 id="toc_4">2. <a name="ch2"></a>Getting Started</h1>
+
+<p>(new for v0.5c) pyDriveWire has two Easy Installtion Methods: Binary Package and Docker.  These options are designed for Ease Of Use and do not require a complex series of installation steps.   pyDriveWire can also be run directly from any <code>pypy</code> or <code>python</code> install if it meets the appropriate requirements.</p>
+
+<p>In terms of performance, the Python and Binary Package installation methods are fully functional but have the lowest performance.  Docker provides a medium level of performance.  pypy should be used to get the maximum performance out of pyDriveWire.</p>
+
+<h2 id="toc_5">2.1 Binary Package Installation</h2>
+
+<p>Binary packages are available at the following location:</p>
+
+<p><a href="https://github.com/n6il/pyDriveWire/releases/latest">https://github.com/n6il/pyDriveWire/releases/latest</a></p>
+
+<p>Packages are available for the following operating systems:</p>
+
+<ul>
+<li><code>linux-x86_64</code> -- Any modern 64-bit Linux </li>
+<li><code>win-x64</code> -- 64-bit Windows (Windows 7 or later)</li>
+<li><code>win32</code> -- 32-bit Windows (Windows 7 or later)</li>
+<li> <code>rpi3</code> -- Raspberry Pi 3 (Raspbian Buster)</li>
+<li> <code>rpi4</code> -- Raspberry Pi 4 (Raspbian Jesse)</li>
+<li> <code>macOs</code> -- macOs (High Sierra or later)</li>
+</ul>
+
+<p>Using a Binary Package is very simple:</p>
+
+<ol>
+<li>Download the package for your operating system</li>
+<li>Unzip the package</li>
+<li>The package contains two executable programs <code>pyDriveWire</code> and <code>pyDwCli</code> and a copy of this manual.</li>
+<li>Run the <code>pyDriveWire</code> executable.  See next section for examples:</li>
+<li>Full details of the command line options are in the <a href="#ch3">Command Line and Config File Options</a> section.</li>
+</ol>
+
+<h2 id="toc_6">2.2 Running a Binary Package</h2>
+
+<p>Example: Run pyDriveWire with the HTTP UI on port 6800 and use a serial port:</p>
+
+<div><pre><code class="language-none">pyDriveWire --ui-port 6800 --port /dev/ttyUSB0 --speed 460800</code></pre></div>
+
+<p>Example: Run pyDriveWire with the HTTP UI on port 6800 and use a serial port and mount two disk images:</p>
+
+<div><pre><code class="language-none">pyDriveWire --ui-port 6800 --port /dev/ttyUSB0 --speed 460800 \
+    /demo/test1.dsk /demo/test2.dsk</code></pre></div>
+
+<p>Example: Run pyDriveWire with the HTTP UI on port 6800 and the Becker port connection on port 65504:</p>
+
+<div><pre><code class="language-none">pyDriveWire --ui-port 6800 --accept --port 65504</code></pre></div>
+
+<h2 id="toc_7">2.3 Docker</h2>
+
+<ol>
+<li>Install Docker Desktop</li>
+<li>Clone the container: <code>docker pull mikeyn6il/pydrivewire</code></li>
+<li>Run the container.  See next section for examples.<br></li>
+<li>Full details of the command line options are in the <a href="#ch3">Command Line and Config File Options</a> section.</li>
+</ol>
+
+<h2 id="toc_8">2.4 Running The Docker Container</h2>
+
+<p>Example: Run pyDriveWire with the HTTP UI on port 6800 and use a serial port:</p>
+
+<div><pre><code class="language-none">docker run -i -p 6800:6800/tcp -p 65504:65504/tcp \
+    --device /dev/ttyUSB0:/dev/ttyUSB0 mikeyn6il/pydrivewire:latest \
+    --ui-port 6800 --port /dev/ttyUSB0 --speed 460800</code></pre></div>
+
+<p>For Windows use the following <code>--device</code> option:</p>
+
+<div><pre><code class="language-none">--device COM4:/dev/ttyUSB0</code></pre></div>
+
+<p>Example: Run pyDriveWire with the HTTP UI on port 6800 and use a serial port and use a HTTP disk image:</p>
+
+<div><pre><code class="language-none">docker run -i -p 6800:6800/tcp -p 65504:65504/tcp \
+    --device /dev/ttyUSB0:/dev/ttyUSB0 mikeyn6il/pydrivewire:latest \
+    --ui-port 6800 --port /dev/ttyUSB0 --speed 460800 \
+    http://www.ocs.net/~n6il/DWTERM.dsk</code></pre></div>
+
+<p>Example: Run pyDriveWire with the HTTP UI on port 6800 and the Becker port connection on port 65504:</p>
+
+<div><pre><code class="language-none">docker run -i -p 6800:6800/tcp -p 65504:65504/tcp \
+    mikeyn6il:pydrivewire/latest \
+    --ui-port 6800 --accept --port 65504</code></pre></div>
+
+<h2 id="toc_9">2.4 Installation Requirements<a name="ch2.1"></a></h2>
+
+<ul>
+<li>pypy -- For maximum performance it is recommended to run the server with
+pypy.  pypy is a Python interpreter that does JIT compilation and results in
+greatly increased speed</li>
+<li>pyserial -- Install using pip</li>
+</ul>
+
+<h2 id="toc_10">2.5 Supported Operating Systems</h2>
+
+<ul>
+<li>Any OS where you can run Python, including but not limited to:</li>
+<li>Linux</li>
+<li>macOS</li>
+<li>Windows</li>
+</ul>
+
+<h2 id="toc_11">2.6 Installation (Linux/macOS/UNIX)</h2>
+
+<ul>
+<li>Download Latest: <a href="https://github.com/n6il/pyDriveWire/releases">https://github.com/n6il/pyDriveWire/releases</a></li>
+<li>Mac: <code>brew install pypy; pypy -m pip install pyserial</code></li>
+<li>Ubuntu: <code>apt-get install pypy; pypy -m pip install pyserial</code></li>
+</ul>
+
+<p><em>Experimental Printing Support</em></p>
+
+<ul>
+<li><code>pypy -m pip install reportlab</code></li>
+</ul>
+
+<h2 id="toc_12">2.7 Installation (Windows)</h2>
+
+<p>There are multiple ways to get Python and pyDriveWire installed on Windows.
+As long as the basic requirements are met you can use any method to install
+PyPy or Python.  The requirements and two fully-tested example installation
+workflows are below.</p>
+
+<h3 id="toc_13">Requirements</h3>
+
+<ul>
+<li>pyDriveWire is a Python 2.7 script.  It may or may not run on Python3
+(will likely migrate at a later time). </li>
+<li>PyPy is preferred over CPython.  Pypy has Just-In-Time compilation and
+pyDriveWire will run a lot faster (and likely will also use lower CPU)
+than CPython, but pyDriveWire is completely compatible with either one.</li>
+<li>Use the latest version of  <em>Python 2.7 Compatible PyPy for Windows</em> or
+Python 2.7.X</li>
+<li>PyPy or Python should be installed in the system PATH</li>
+<li>PIP is required for installing required python modules</li>
+<li>PySerial module (use pip to install)</li>
+<li>Experimental Printing Support requires the ReportLab module (use pip to
+install)</li>
+</ul>
+
+<h3 id="toc_14">Bleeding Edge/Experimental/Pre-Release Features</h3>
+
+<p>The instructions below direct you to install the latest <em>stable release</em>
+from the GitHub releases page.  If you would like to try out or help to
+test the latest pyDriveWire code you can obtain pyDriveWire from it&#39;s
+<code>develop</code> branch.  You can download a static zip file from GitHub or clone
+the repository and switch to the <code>develop</code> branch.</p>
+
+<p>We&#39;re more than happy to accept merge requests or bug reports for any
+version you are trying.</p>
+
+<h3 id="toc_15">pyDriveWire Windows Installation Instructions (pypy)</h3>
+
+<ol>
+<li>Obtain the latest copy of <em>Python 2.7 Compatible PyPy for Windows</em>  from
+https://www.pypy.org/download.html</li>
+<li>Extract it to the <code>C:\Program Files (x86)</code> folder</li>
+<li>Add 2 entries to your system path:<br>
+a. the folder where you extracted PyPy to<br>
+b. the folder above and add <code>\bin</code> to the end</li>
+<li>Download pip: https://bootstrap.pypa.io/get-pip.py</li>
+<li>Install Pip. Open a command prompt and type: <code>pypy get-pip.py</code></li>
+<li>Install pyserial: <code>pip install pyserial</code></li>
+<li>Download (or git clone) the latest pyDriveWire release package from
+https://github.com/n6il/pyDriveWire/releases and extract it.</li>
+<li>Versions 0.4 and later have a <code>pyDriveWire.bat</code> batch file you can run.
+Earlier versions can be started from the command prompt: <code>pypy
+pyDriveWire.py &lt;options&gt;</code></li>
+</ol>
+
+<h3 id="toc_16">pyDriveWire Windows Installation Instructions (msys2/CPython)</h3>
+
+<ol>
+<li>Obtain the latest version of the Mame MSYS2 development package from:
+https://www.mamedev.org/tools/</li>
+<li>Extract it in <code>C:\</code> so the path is either <code>C:\msys64</code> or <code>C:\msys32</code></li>
+<li>Launch the <code>mingw64</code> shell</li>
+<li>Download pip. In the mingw64 shell type: <code>wget https://bootstrap.pypa.io/get-pip.py</code></li>
+<li>Install Pip: <code>python get-pip.py</code></li>
+<li>Install pyserial: <code>pip install pyserial</code></li>
+<li>Download (or git clone) the latest pyDriveWire release package from
+https://github.com/n6il/pyDriveWire/releases and extract it.</li>
+<li>From the mingw64 shell you can invoke pyDriveWire using the shell script: <code>./pyDriveWire &lt;options&gt;</code></li>
+</ol>
+
+<p><a href="#toc">Back to top</a></p>
+
+<h1 id="toc_17">3. <a name="ch3"></a>Command Line and Config File Options</h1>
+
+<p>This manual section is meant as a quick and comprehensive guide to all of the pyDriveWire configuraiton options.  Many of the options have a detailed manual page which describes that individual feature.  There will be a link to those pages.</p>
+
+<h2 id="toc_18">Command Line Parameter Summary</h2>
+
+<div><pre><code class="language-none">usage: pyDriveWire.py [-h] [-s SPEED] [-a] [-c] [-H HOST] [-p PORT] [-R]
+                      [-x EXPERIMENTAL] [-D CMDPORT] [-U UIPORT] [-C CONFIG]
+                      [--daemon] [--status] [--stop]
+                      [--pid-file DAEMONPIDFILE] [--log-file DAEMONLOGFILE]
+                      [--debug] [--version] [--hdbdos] [--offset OFFSET]
+                      [--print-format {pdf,txt}]
+                      [--print-dir PRINTDIR | --print-file PRINTFILE]
+                      [--print-cmd PRINTCMD]
+                      [FILE [FILE ...]]
+
+pyDriveWire Server v0.5c
+
+positional arguments:
+  FILE                  list of files
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -s SPEED, --speed SPEED
+                        Serial port speed
+  -a, --accept          Accept incoming TCP connections on --port
+  -c, --connect         Connect to TCP connections --host --port
+  -H HOST, --host HOST  Hostname/IP
+  -p PORT, --port PORT  Port to use
+  -R, --rtscts          Serial: Enable RTS/CTS Flow Control
+  -x EXPERIMENTAL       experimental options
+  -D CMDPORT, --cmd-port CMDPORT
+                        Remote dw command input
+  -U UIPORT, --ui-port UIPORT
+                        pyDriveWire UI Port
+  -C CONFIG, --config CONFIG
+                        Config File
+  --daemon              Daemon Mode, No Repl
+  --status              Daemon Status
+  --stop                Daemon Status
+  --pid-file DAEMONPIDFILE
+                        Daemon Pid File
+  --log-file DAEMONLOGFILE
+                        Daemon Log File
+  --debug, -d
+  --version, -v
+  --hdbdos              HDBDos Mode
+  --offset OFFSET       Number of sector offset for sector 0
+
+printer:
+  Printer Options
+
+  --print-format {pdf,txt}
+                        Printer output format, default: pdf
+  --print-dir PRINTDIR  Spool directory to send printer output
+  --print-file PRINTFILE
+                        File to send printer output, Note: Will be overwritten
+  --print-cmd PRINTCMD  Command to run on flushed printer output</code></pre></div>
+
+<h2 id="toc_19">Specififying Disk Images</h2>
+
+<p>Disk images you wish to mount can be specified from the command line or config file.</p>
+
+<h3 id="toc_20">Command Line:</h3>
+
+<p>On the command line you can specify any number of disk images to be mounted at the time that the server starts up.  The first image listed is attached to Drive 0, next is Drive 1, etc.  If none are not specified no disk images will be mounted.</p>
+
+<div><pre><code class="language-none">./pyDriveWire [server_options] [&lt;path/to/drive_0_image.dsk&gt; [&lt;DRIVE0_IMG_OPTIONS&gt;] [&lt;path/to/drive_1_image.dsk&gt; [&lt;DRIVE1_IMG_OPTIONS&gt;] ...</code></pre></div>
+
+<ul>
+<li><code>&lt;path/to/drive_0_image.dsk&gt;</code> -- This is the path to the disk image to be mounted in Drive 0.  It can be full or relative path or a URL.</li>
+<li><code>&lt;DRIVE0_IMG_OPTIONS&gt;</code> -- options for drive<em>0</em>image.dsk</li>
+<li><code>&lt;path/to/drive_1_image.dsk&gt;</code> -- This is the path to the disk image to be mounted in Drive 1.  It can be full or relative.</li>
+<li><code>&lt;DRIVE0_IMG_OPTIONS&gt;</code> -- options for drive<em>1</em>image.dsk</li>
+</ul>
+
+<p>You can specify between 0-256 disk images.</p>
+
+<p>Mount <code>DWTERM.dsk</code> in Drive 0:</p>
+
+<div><pre><code class="language-none">./pyDriveWire [server_options] /demo/DWTERM.dsk</code></pre></div>
+
+<p>Download <code>DWTERM.dsk</code> from a web server and mount it in Drive 0:</p>
+
+<div><pre><code class="language-none">./pyDriveWire [server_options] http://www.ocs.net/~n6il/DWTERM.dsk</code></pre></div>
+
+<p>Mount <code>test.dsk</code> in Drive 0 and download <code>DWTERM.dsk</code> from a web server and mount it in Drive 1:</p>
+
+<div><pre><code class="language-none">./pyDriveWire [server_options] /demo/test.dsk http://www.ocs.net/~n6il/DWTERM.dsk</code></pre></div>
+
+<h3 id="toc_21">Image Options</h3>
+
+<p>Disk image options can be specified after each disk image path in the following format:</p>
+
+<p>Mount <code>DWTERM.dsk</code> in Drive 0 and mark it read-only</p>
+
+<div><pre><code class="language-none">./pyDriveWire [server_options] /demo/DWTERM.dsk opt=ro</code></pre></div>
+
+<p>Stream a disk image off of a web server</p>
+
+<div><pre><code class="language-none">./pyDriveWire [server_options] http://www.ocs.net/~n6il/DWTERM.dsk opt=stream</code></pre></div>
+
+<p>Mount <code>test.dsk</code> in Drive 0 Read-Only, and Stream <code>cocoserve.dsk</code> in Drive 1.</p>
+
+<div><pre><code class="language-none">/pyDriveWire [server_options] /demo/test.dsk opt=ro http://www.ocs.net/~n6il/DWTERM.dsk opt=stream</code></pre></div>
+
+<p>The following disk image options options are supported:</p>
+
+<ul>
+<li><code>ro</code> -- Read-Only disk image</li>
+<li><code>stream</code> -- Only useful for HTTP connections.  The disk image will not be downloaded to the local server.  Instead each sector will be loaded from the HTTP server on-demand whenever the CoCo asks for it.</li>
+</ul>
+
+<h2 id="toc_22">Config File (global)</h2>
+
+<p>The pyDriveWire config file can be used to set all of the command line options.  This section tells you where to put the config file and how to specify it on the command line.  The details of the config file itself are in the <a href="#ch6">Using a Config File</a> section of this manual.</p>
+
+<p>The config file can either be in a default location or can be specified from the command line.</p>
+
+<p>Please see the pyDriveWire Config File and Using Multiple Instances guides for more detail about the config file.</p>
+
+<p><strong>Note: Command line options have prescidence over config file.  This means that if both are specified the command line version will be used.</strong></p>
+
+<p><strong>Note: Options are noted as either instance specific (instance) or global (global).  Global options can only be specified in Instance 0.</strong></p>
+
+<h3 id="toc_23">Default Config file location</h3>
+
+<p>The default location for the config file is in your home directory: <code>~/.pydrivewirerc</code></p>
+
+<ul>
+<li>Linux: <code>/home/&lt;userid&gt;/.pydrivewirerc</code></li>
+<li>Mac: <code>/Users/&lt;userid&gt;/.pydrivewirerc</code></li>
+<li>Windows: <code>C:\Users\&lt;userid&gt;\.pydrivewirerc</code></li>
+</ul>
+
+<p><strong>Note: This option cannot be specified in a config file</strong></p>
+
+<h3 id="toc_24">Specify a config file location:</h3>
+
+<div><pre><code class="language-none">-C &lt;config_file&gt;</code></pre></div>
+
+<p>or</p>
+
+<div><pre><code class="language-none">--config &lt;config_file&gt; </code></pre></div>
+
+<h2 id="toc_25">Serial Port (instance)</h2>
+
+<p>pyDriveWire will start a server instance which listens for the DriveWire or EmCee client on <code>&lt;serial_port&gt;</code> at <code>&lt;baud&gt;</code> </p>
+
+<ul>
+<li>Linux/Mac:  This should be a device such as <code>/dev/ttyUSB0</code></li>
+<li>Windows: <code>COM1</code></li>
+</ul>
+
+<h3 id="toc_26">Command Line:</h3>
+
+<div><pre><code class="language-none">--port &lt;serial_port&gt; --speed &lt;baud&gt;</code></pre></div>
+
+<p>or</p>
+
+<div><pre><code class="language-none">-p &lt;serial_port&gt; -s &lt;baud&gt;`</code></pre></div>
+
+<h3 id="toc_27">Config File:</h3>
+
+<div><pre><code class="language-none">option port &lt;serial_port&gt;
+option speed &lt;baud&gt;</code></pre></div>
+
+<p>Serial Port mode also supports RTS/CTS flow control.</p>
+
+<p><strong>Note: DO NOT use RTS/CTS with a CoCo or MC-10 Bit Banger port.  This is intended for use with a UART that properly implements flow control.  The RS-232 Pak or any device with a 6551 UART does not implement flow control properly.</strong></p>
+
+<h3 id="toc_28">Command Line:</h3>
+
+<div><pre><code class="language-none">-R</code></pre></div>
+
+<p>or</p>
+
+<div><pre><code class="language-none">--rtscts</code></pre></div>
+
+<h3 id="toc_29">Config File:</h3>
+
+<div><pre><code class="language-none">option rtscts [True|False]</code></pre></div>
+
+<p><strong>Note: Omitting this option line defaults to <code>False</code></strong></p>
+
+<h2 id="toc_30">TCP Server (Accept Incoming Connections) (instance)</h2>
+
+<p>pyDriveWire will start a server instance which listens for the DriveWire or EmCee client on <code>&lt;tcp_port&gt;</code>.  Note that only one client can connect to each port.</p>
+
+<h3 id="toc_31">Command Line:</h3>
+
+<div><pre><code class="language-none">--accept --port &lt;tcp_port&gt;</code></pre></div>
+
+<p>or</p>
+
+<div><pre><code class="language-none">-a -c &lt;tcp_port&gt;</code></pre></div>
+
+<h3 id="toc_32">Config File:</h3>
+
+<div><pre><code class="language-none">option accept True
+option port &lt;tcp_port&gt;</code></pre></div>
+
+<h2 id="toc_33">Outgoing TCP Connections (instance)</h2>
+
+<p>pyDriveWire will start a server instance which makes an outgoing TCP connection to <code>&lt;hostname&gt;:&lt;tcp_port&gt;</code>.  Once that connection has been established pyDriveWire will listen for DriveWire or EmCee commands on that connection.  This is useful for many Telnet-To-Serial bridge devices.</p>
+
+<h3 id="toc_34">Command Line</h3>
+
+<div><pre><code class="language-none">--connect --host &lt;hostname&gt; --port &lt;tcp_port&gt;</code></pre></div>
+
+<p>or</p>
+
+<div><pre><code class="language-none">-c -H &lt;hostname&gt; -p &lt;tcp_port&gt;</code></pre></div>
+
+<h3 id="toc_35">Config File:</h3>
+
+<div><pre><code class="language-none">option accept True
+option port &lt;tcp_port&gt;</code></pre></div>
+
+<p>pyDriveWire will automatically attempt to reconnect outgoing TCP connections.  This can be disabled if desired.</p>
+
+<h3 id="toc_36">Command Line</h3>
+
+<div><pre><code class="language-none">--noreconnect</code></pre></div>
+
+<h3 id="toc_37">Config File:</h3>
+
+<div><pre><code class="language-none">option noreconnect True</code></pre></div>
+
+<h2 id="toc_38">Web/HTTP UI (global)</h2>
+
+<p>pyDriveWire has a Web/HTTP User Interface.  See the <a href="#ch4">Web User Interface</a> manual for more details.</p>
+
+<h3 id="toc_39">Command Line:</h3>
+
+<div><pre><code class="language-none">-U &lt;ui_port&gt;</code></pre></div>
+
+<p>or</p>
+
+<div><pre><code class="language-none">--ui-port &lt;ui_port&gt;</code></pre></div>
+
+<h3 id="toc_40">Config File:</h3>
+
+<div><pre><code class="language-none">option uiPort &lt;ui_port&gt;</code></pre></div>
+
+<h2 id="toc_41">Debugging (global)</h2>
+
+<p>The Debugging option on the command line or config file is <em>global</em> and is applied to All Instances.  See the <a href="ch#11">Debugging</a> section for detail.</p>
+
+<p><strong>Note: The config file option <em>must</em> be put in Instance 0.</strong></p>
+
+<ul>
+<li>Default: No Debugging (Level 0)
+
+<ul>
+<li>Command Line: Default without any option</li>
+<li>Config File: Default without any option</li>
+<li>Config File (optional): <code>option debug 0</code></li>
+</ul></li>
+<li>Command Debugging (Level 1) 
+
+<ul>
+<li>Command Line: <code>-d</code> </li>
+<li>Config File: <code>option debug 1</code></li>
+</ul></li>
+<li>Connection Debugging (Level 2)
+
+<ul>
+<li>Command Line: <code>-dd</code> </li>
+<li>Config File: <code>option debug 2</code></li>
+</ul></li>
+</ul>
+
+<h2 id="toc_42">Start pyDriveWire in Daemon Mode (global)</h2>
+
+<p>Detailed manual for <a href="ch#8">Daemon Mode</a></p>
+
+<p><strong>Note: If you are using a config file it is recommended to put the pid file and log file options in the config file and to run the server with <code>--daemon -C &lt;config_file&gt;</code></strong></p>
+
+<p><strong>Note: If your config file is in the default location you do not need to specify it on the command line</strong></p>
+
+<h3 id="toc_43">Config file:</h3>
+
+<div><pre><code class="language-none">option daemonPidFile &lt;pid_file&gt;
+option daemonLogFile &lt;log_file&gt;</code></pre></div>
+
+<h3 id="toc_44">Command Line:</h3>
+
+<p>With Config File in <strong>default</strong> location:</p>
+
+<div><pre><code class="language-none">--daemon</code></pre></div>
+
+<p>Specify config file location:</p>
+
+<div><pre><code class="language-none">--daemon [-C &lt;config_file&gt;]</code></pre></div>
+
+<p>Without Config File:</p>
+
+<div><pre><code class="language-none">--daemon [--pid-file &lt;pid_file&gt; --log-file &lt;log_file&gt;]</code></pre></div>
+
+<h2 id="toc_45">pyDriveWire in Daemon Mode Status</h2>
+
+<p><strong>Note: Either the config file or pid file option is required.</strong></p>
+
+<p><strong>Note: This option cannot be specified in a config file</strong></p>
+
+<p><strong>Note: If your config file is in the default location you do not need to specify it on the command line</strong></p>
+
+<h3 id="toc_46">Command Line:</h3>
+
+<p>With Config File in <strong>default</strong> location:</p>
+
+<div><pre><code class="language-none">--status</code></pre></div>
+
+<p>Specify config file location:</p>
+
+<div><pre><code class="language-none">--status [-C &lt;config_file&gt;]</code></pre></div>
+
+<p>or specify pid file location:</p>
+
+<div><pre><code class="language-none">--status [--pid-file &lt;pid_file&gt;]</code></pre></div>
+
+<h2 id="toc_47">Stop pyDriveWire in Daemon Mode</h2>
+
+<p><strong>Note: Either the config file or pid file option is required.</strong></p>
+
+<p><strong>Note: This option cannot be specified in a config file</strong></p>
+
+<p><strong>Note: If your config file is in the default location you do not need to specify it on the command line</strong></p>
+
+<h3 id="toc_48">Command Line:</h3>
+
+<p>With Config File in <strong>default</strong> location:</p>
+
+<div><pre><code class="language-none">--stop</code></pre></div>
+
+<p>Specify config file location:</p>
+
+<div><pre><code class="language-none">--stop [-C &lt;config_file&gt;]</code></pre></div>
+
+<p>or specify pid file location:</p>
+
+<div><pre><code class="language-none">--stop [--pid-file &lt;pid_file&gt;]</code></pre></div>
+
+<h2 id="toc_49">Printer: Enable Experimental Printing Mode</h2>
+
+<p>Please see the <a href="#ch10">Experimental Printing Support</a> manual section for more detail about this feature.</p>
+
+<h3 id="toc_50">Command Line</h3>
+
+<div><pre><code class="language-none">-x printer</code></pre></div>
+
+<p>or</p>
+
+<div><pre><code class="language-none">--experimental printer</code></pre></div>
+
+<h3 id="toc_51">Config File</h3>
+
+<div><pre><code class="language-none">option experimental printer</code></pre></div>
+
+<h2 id="toc_52">Printer: Select the output format: <code>txt</code> or <code>pdf</code></h2>
+
+<p>Please see the <a href="#ch10">Experimental Printing Support</a> manual section for more detail about this feature.</p>
+
+<h3 id="toc_53">Command Line</h3>
+
+<div><pre><code class="language-none">--print-format &lt;txt|pdf&gt;</code></pre></div>
+
+<h3 id="toc_54">Config File</h3>
+
+<div><pre><code class="language-none">option printFormat &lt;txt|pdf&gt;</code></pre></div>
+
+<h2 id="toc_55">Printer: Select Output File</h2>
+
+<p>Please see the <a href="#ch10">Experimental Printing Support</a> manual section for more detail about this feature.</p>
+
+<h3 id="toc_56">Command Line</h3>
+
+<div><pre><code class="language-none">--print-file &lt;filename&gt;</code></pre></div>
+
+<h3 id="toc_57">Config File</h3>
+
+<div><pre><code class="language-none">option printFile &lt;filename&gt;</code></pre></div>
+
+<h2 id="toc_58">Printer: Select Output Directory</h2>
+
+<p>Please see the <a href="#ch10">Experimental Printing Support</a> manual section for more detail about this feature.</p>
+
+<h3 id="toc_59">Command Line</h3>
+
+<div><pre><code class="language-none">--print-dir &lt;directory&gt;</code></pre></div>
+
+<h3 id="toc_60">Config File</h3>
+
+<div><pre><code class="language-none">option printDir &lt;directory&gt;</code></pre></div>
+
+<h2 id="toc_61">Printer: Spool File Prefix</h2>
+
+<p>Please see the <a href="#ch10">Experimental Printing Support</a> manual section for more detail about this feature.</p>
+
+<h3 id="toc_62">Command Line</h3>
+
+<div><pre><code class="language-none">--print-prefix &lt;directory&gt;</code></pre></div>
+
+<h3 id="toc_63">Config File</h3>
+
+<div><pre><code class="language-none">option printPrefix &lt;directory&gt;</code></pre></div>
+
+<h2 id="toc_64">Printer: Command</h2>
+
+<p>Please see the <a href="#ch10">Experimental Printing Support</a> manual section for more detail about this feature.</p>
+
+<h3 id="toc_65">Command Line</h3>
+
+<div><pre><code class="language-none">--print-cmd &lt;CMD&gt;</code></pre></div>
+
+<h3 id="toc_66">Config File</h3>
+
+<div><pre><code class="language-none">option printCmd &lt;CMD&gt;</code></pre></div>
+
+<p><a href="#toc">Back to top</a></p>
+
+<h1 id="toc_67">4. <a name="ch4"></a>Web User Interface</h1>
+
+<p><img src="webui_1.png" alt=""></p>
+
+<h2 id="toc_68">Disk Images Screen</h2>
+
 <p>The Disk Images screen allows you to manage which disk images are mounted in the pyDriveWireServer.</p>
-<p>Each line in the screen has a text box for each virtual disk on the server.  The text box shows
-the currently mounted disk image or None if no disk is mounted.</p>
-<p>To Mount a disk image, type the full path to the disk image <i>on the pyDriveWireServer</i> and click the <i>Insert</i> button.</p>
-<p>To Eject a disk image click the <i>Eject</i> button.</p>
-<p>To refresh the currently mounted disk images click the <i>Refresh</i> button.</p>
-<p><a href="#top">Back</a></p>
-</div>
-<div id="Command_Console">
-<h2>Command Console</h2>
-<p>The Command Console screen allows you to run commands on the pyDriveWire
-server and also shows all the commands that have been run on the server
-by the user interface.</p>
+
+<p><img src="webui_2.png" alt=""></p>
+
+<ol>
+<li>Instance Selector</li>
+<li>Remote File Input Box</li>
+<li>Insert</li>
+<li>Eject</li>
+<li>Local File Selector</li>
+<li>Refresh Button</li>
+</ol>
+
+<h2 id="toc_69">1. Instance Selector</h2>
+
+<p>The Instance Selector allows you to change the current instance.  The instance changes immediately upon selection and the Disk Images Box (2) is automatically updated.</p>
+
+<p><strong>Note: If there is only one instance this pull down will now show up.</strong></p>
+
+<h2 id="toc_70">2. Remote File Input Box</h2>
+
+<p>Each line in the Disk Images Section has a text box (2) for each virtual disk on the server. The text box shows the currently mounted disk image or <code>None</code> if no disk is mounted.</p>
+
+<p>The Remote File Box can accept the following types of input:</p>
+
+<ul>
+<li>A file path to a file <strong><em>on the pyDriveWire Server</em></strong></li>
+<li>A URL to a Disk Image</li>
+</ul>
+
+<p>Example: A file path:</p>
+
+<div><pre><code class="language-none">/tmp/DWTERM.dsk</code></pre></div>
+
+<p>Example: A URL:</p>
+
+<div><pre><code class="language-none">http://www.ocs.net/~n6il/DWTERM.dsk</code></pre></div>
+
+<p>**Note: This box shows the location of the disk image <strong><em>on the pyDriveWire Server</em></strong> which may be a different location than the Local File (5)**</p>
+
+<h2 id="toc_71">3. Insert Button</h2>
+
+<p>Clicking the <code>Insert</code> button will mount the file named in the adjacent Remote File Input Box (2).</p>
+
+<h2 id="toc_72">4. Eject Button</h2>
+
+<p>To Eject a disk image click the <code>Eject</code> button.  The Remote File Box (2) will change to <code>None</code>.</p>
+
+<h2 id="toc_73">5. Local File Selector</h2>
+
+<p>To Mount a disk image <strong><em>which resides on the local computer</em></strong>, click the <code>Choose File</code> button.  A file selection dialog box will pop up.  The selected file is automatically uploaded to the pyDriveWire server</p>
+
+<h2 id="toc_74">6. Refresh Button</h2>
+
+<p>To refresh the currently mounted disk images click the Refresh button.</p>
+
+<h2 id="toc_75">Command Console Screen</h2>
+
+<p>The Command Console screen allows you to run commands on the pyDriveWire server and also shows all the commands that have been run on the server by the user interface.</p>
+
+<p><img src="webui_3.png" alt=""></p>
+
 <p>The screen has 2 parts: A scollable window with all the commands and command output, and second text box to enter commands and a button submit those commands to the server</p>
-<p>The command window is designed to be <i>interactive</i> so that you can
-easily explore the available commands without looking up in the manual.
-Suppose the user doesn't know what command to type and just typed <tt>help</tt>:
-<blockquote><pre>
-pyDriveWire> help
+
+<p>The command window is designed to be interactive so that you can easily explore the available commands without looking up in the manual. Please see the <a href="#ch5">Command Console Interfaces</a> manual section for more detail.</p>
+
+<p><a href="#toc">Back to top</a></p>
+
+<h1 id="toc_76">5. <a name="ch5"></a>Command Console Interfaces</h1>
+
+<p>pyDriveWire can be controlled in multiple ways by using different Command Console Interfaces.  Those interfaces are:</p>
+
+<ol>
+<li>The pyDriveWire &quot;REPL&quot; Interface</li>
+<li>pyDwCli</li>
+<li>Web UI Command Console</li>
+<li>NitrOS-9 <code>dw</code> command</li>
+</ol>
+
+<h2 id="toc_77">The pyDriveWire &quot;REPL&quot; Interface</h2>
+
+<p>If you are a command line person this is for you.  If the pyDriveWire server is invoked without Daemon Mode it will start up what is called a &quot;REPL&quot; (<strong>R</strong>ead <strong>E</strong>xecute <strong>P</strong>rint <strong>L</strong>oop) command console interface.  This is a fancy way of saying that it prints a prompt and waits for your input.</p>
+
+<p>Suppose you started pyDriveWire as follows:</p>
+
+<div><pre><code class="language-none">./pyDriveWire --accept --port 65504 /demo/DWTERM.dsk</code></pre></div>
+
+<p>If you hit enter on this command pyDriveWire will print some initialization info and then Greet you with a command prompt where you can type any DriveWire Command:</p>
+
+<div><pre><code class="language-none">$ ./pyDriveWire -C /tmp/empty --accept --port 65504
+Accept connection on 65504
+&lt;dwsocket.DWSocketServer instance at 0x0000000106d22ea0&gt;: Starting _readHandler...
+accepting
+pyDriveWire&gt;  </code></pre></div>
+
+<p>Simply type your commands at this prompt.  See the tutorial below.</p>
+
+<h2 id="toc_78">pyDwCli</h2>
+
+<p>pyDwCli is a standalone command line tool which you can use to control the pyDriveWire server.  </p>
+
+<p>To use pyDwCli you must set up the WebUI.  See the <a href="#ch4">Web User Interface</a> manual section for a bit more detail on this, but in short you either put the option in your <a href="#ch6">Config File</a> </p>
+
+<div><pre><code class="language-none">option uiPort 6800</code></pre></div>
+
+<p>or from the comand line:</p>
+
+<div><pre><code class="language-none">./pyDriveWire --ui-port 6800 [...]</code></pre></div>
+
+<p>Once the Web UI is running you can use the pyDwCli.  </p>
+
+<p>pyDwCli has 2 modes: Interactive Mode and Single Command Mode</p>
+
+<h3 id="toc_79">pyDwCli Interactive/REPL Mode</h3>
+
+<p>To run in the pyDwCli Interactive/REPL mode, you would run it as follows.  Change <code>localhost</code> and <code>6800</code> to the correct hostname and port number:</p>
+
+<div><pre><code class="language-none">$ ./pyDwCli http://localhost:6800
+pyDriveWire&gt;  dw disk show
+
+Drive  File
+-----  --------------------------------------
+0      None
+1      None
+2      None
+3      None
+pyDriveWire&gt; </code></pre></div>
+
+<p>and you can type any DriveWire commands at the prompt.  Type <code>quit</code> to exit:</p>
+
+<div><pre><code class="language-none">pyDriveWire&gt; quit
+Bye!
+$</code></pre></div>
+
+<h3 id="toc_80">pyDwCli Single Command Mode</h3>
+
+<p>pyDwCli can also run a single optional command specified on the command line.  This is useful for scripting control of pyDriveWire:</p>
+
+<div><pre><code class="language-none">$ ./pyDwCli http://localhost:6800 dw instance show
+
+Inst.  Type
+-----  --------------------------------------
+0*     dwsocket.DWSocketServer localhost:65504
+1      dwsocket.DWSocketServer localhost:65505</code></pre></div>
+
+<h2 id="toc_81">Command Console Tutorial</h2>
+
+<p>Suppose the user doesn&#39;t know what command to type and just typed help:</p>
+
+<div><pre><code class="language-none">pyDriveWire&gt; help
 : Invalid command: help
-commands: dw tcp AT ui mc
-</pre></blockquote>
-The server responded that <tt>help</tt> is not a valid command but it listed
-out the valid possible command prefixes <tt>dw tcp AT ui mc</tt>.  The user
-continues their exploration:
-<blockquote><pre>
-pyDriveWire> dw
+commands: dw tcp AT ui mc</code></pre></div>
+
+<p>The server responded that help is not a valid command but it listed out the valid possible command prefixes dw tcp AT ui mc. The user continues their exploration:</p>
+
+<div><pre><code class="language-none">pyDriveWire&gt; dw
 dw: Invalid command: dw
-dw commands: disk server port
-</pre></blockquote>
-Here the user typed <tt>dw</tt> and the server responded with all of the available commands under <tt>dw</tt>.  If the user was interested in disk operations they could type  <tt>dw disk</tt> to see what sub commands are available:
-<blockquote><pre>
-pyDriveWire> dw disk 
+dw commands: disk server port</code></pre></div>
+
+<p>Here the user typed dw and the server responded with all of the available commands under dw. If the user was interested in disk operations they could type dw disk to see what sub commands are available:</p>
+
+<div><pre><code class="language-none">pyDriveWire&gt; dw disk 
 disk: Invalid command: disk
-disk commands: insert reset eject show
-</pre></blockquote>
-The user is interested to show what disk images are mounted so this time the issued the full command:
-<blockquote><pre>
-pyDriveWire> dw disk show
+disk commands: insert reset eject show</code></pre></div>
+
+<p>The user is interested to show what disk images are mounted so this time the issued the full command:</p>
+
+<div><pre><code class="language-none">pyDriveWire&gt; dw disk show
 
 
 Drive  File
@@ -58,86 +1195,906 @@ Drive  File
 0      /Users/mfurman/Downloads/plato.dsk
 1      None
 2      None
-3      None
-</pre></blockquote>
-If you already know the command you want you can of course type it directly without going through the exploratory steps above.</p>
-<p><a href="#top">Back</a></p>
-</div>
-<div id="Commands">
-<h2>DriveWire Commands</h2>
-<pre>
-AT commands
-===========
-AT
-ATD<host:port>
-ATDT<host:port>
-ATE
-ATI
-ATH
-ATO
-ATZ
+3      None</code></pre></div>
 
-dw disk commands
-===========
-dw disk insert <drive> <path>
-dw disk eject <drive>
-dw disk reset <drive>
-dw disk show
-dw disk offset <n>
+<p>If you already know the command you want you can of course type it directly without going through the exploratory steps above.</p>
 
-dw port commands
-================
-dw port show
-dw port close <port>
-dw port debug <0|false|1|true>
+<p><a href="#toc">Back to top</a></p>
 
-dw server commands
-==================
-dw server conn debug <0|false|1|true>
-dw server debug <0|false|1|true>
-dw server dir <path>
-dw server dump
-dw server instance
-dw server list <path>
-dw server timeout <seconds>
-dw server version
-dw server hdbdos <0|False|1|True>
+<h1 id="toc_82">6. <a name="ch6"></a>Using a Config File</h1>
 
-dw printer commands
-===================
-dw printer flush
-dw printer format
-dw printer file
-dw printer dir
-dw printer cmd
-dw printer status
+<p>pyDriveWire accepts options from either the command line or a config file.
+There are two ways to provide a config file to pyDriveWire:</p>
 
-mc commands
-===========
-mc alias show
-mc alias add <alias> <path>
-mc alias remove <alias>
-mc setdir <path>
-mc getdir
-mc show
-mc eject <drive>
+<ul>
+<li>The <code>-C &lt;cfgFile&gt;</code> or <code>--config &lt;cfgFile&gt;</code> command line options</li>
+<li>A default config file in <code>~/.pydrivewirerc</code></li>
+</ul>
 
-tcp commands
-============
-tcp connect <host:port>
-tcp listen <port>
-tcp join <connection>
-tcp kill <connection>
+<p>If the config file exists it is read in.  Options are applied to the config and commands are run through the command parser.</p>
 
-ui commands
-===========
-ui server file defaultdir
-ui server file dir
-ui server file info
-ui server file roots
-ui server file xdir
-</pre>
-<p><a href="#top">Back</a></p>
-</div>
+<p><strong>Note: If both command line options and a config file are
+    provided the command line options override the 
+    config file options</strong></p>
+
+<h2 id="toc_83">Config File Format</h2>
+
+<p>The config file has two different types of options</p>
+
+<ol>
+<li>Options</li>
+<li>Commands</li>
+<li>Instance Tags</li>
+<li>Comments</li>
+</ol>
+
+<p><em>Options</em> -- Option entries can be used to set any of the command line options to pyDriveWire.  Options always start with the word <code>option</code> and have the following format:</p>
+
+<div><pre><code class="language-none">option &lt;optionName&gt; &lt;optionValue&gt;</code></pre></div>
+
+<p><em>Commands</em> -- are any lines in the config file that are not options, instance tags, or comments.  These are standard pyDriveWire commands and they are run through the command parser immediately on start-up.</p>
+
+<div><pre><code class="language-none">dw disk insert 0 /demo/DWTERM.dsk</code></pre></div>
+
+<p><em>Instance Tags</em> -- Tags are used to tell pyDriveWire that you want multiple instances.  Please see the <a href="#ch7">Multiple Instances</a> manual section for more detail on how to configure this feature.</p>
+
+<div><pre><code class="language-none">[second instance]</code></pre></div>
+
+<p><em>Comments</em>  -- are any lines where the first non-whitespce character is a <code>#</code></p>
+
+<div><pre><code class="language-none"># This is a comment</code></pre></div>
+
+<h3 id="toc_84">Example Config File</h3>
+
+<div><pre><code class="language-none"># options
+option accept True
+option port 65504
+option uiPort 6800
+
+# commands
+dw disk insert 0 /demo/DWTERM.dsk</code></pre></div>
+
+<p>For a full description of all the config file options please see the <a href="#ch3">Command Line and Config File Options</a> guide.</p>
+
+<h3 id="toc_85">TCP/IP Accept Options</h3>
+
+<div><pre><code class="language-none">option accept True
+option port 65504</code></pre></div>
+
+<h3 id="toc_86">TCP/IP Connect Options</h3>
+
+<div><pre><code class="language-none">option connect True
+option host 127.0.0.1
+option port 23</code></pre></div>
+
+<h3 id="toc_87">Serial Options</h3>
+
+<div><pre><code class="language-none">option port /dev/tty.usbserial
+option speed 115200</code></pre></div>
+
+<h3 id="toc_88">Web Interface</h3>
+
+<div><pre><code class="language-none">option uiPort 6800</code></pre></div>
+
+<h3 id="toc_89">Daemon Mode</h3>
+
+<p>use with <code>--daemon</code> command line option</p>
+
+<div><pre><code class="language-none">option daemonPidFile /tmp/pyDriveWire.pid
+option daemonLogFile /tmp/pyDriveWire.log</code></pre></div>
+
+<h3 id="toc_90">Debug Options</h3>
+
+<div><pre><code class="language-none">option debug &lt;0|1|2&gt;</code></pre></div>
+
+<p><a href="#toc">Back to top</a></p>
+
+<h1 id="toc_91">7. <a name="ch7"></a>Multiple Instances</h1>
+
+<p>pyDriveWire allows you to configure and use multiple instances which all run in parallel.  Each instance talks to one DriveWire client and each can mount different disk images.  The instances are configured in a config file to specify the connection point and any options you wish to set for for each instance.</p>
+
+<p><strong>Note:  At the current time instances can only be specified in the config file and can only be started or stopped along with the main invocation of pyDriveWire.</strong></p>
+
+<h2 id="toc_92">Configuring Multiple Instances</h2>
+
+<p>Instances are configured in a pyDriveWire Config file.</p>
+
+<p>The options and commands for first instance <code>instance 0</code>  starts at the top of the config file and includes any lines which are not comments or blank lines.  The main instance commands and options stop at the first instance tag.</p>
+
+<p>Additional instances can be added by adding an instance tag:</p>
+
+<div><pre><code class="language-none">[serial]</code></pre></div>
+
+<p>The name of the instance is for you to know what it&#39;s for, the server doesn&#39;t use it.</p>
+
+<p>Instances are numbered sequentially.  The first instance is always instance 0.  The instance following that one is instance 1, etc.</p>
+
+<p>Options and commands for the instance start after the instance tag and continue until the next instance tag.</p>
+
+<p>Multiple instances can be specified.</p>
+
+<h2 id="toc_93">Example Config</h2>
+
+<div><pre><code class="language-none"># Main Instance 
+option accept True
+option port 65504
+option uiPort 6800
+dw disk insert 0 /demo/plato.dsk
+
+[serial]
+option port /dev/ttyS0
+option speed 115200
+dw disk insert 0 /demo/DWTERM.dsk
+
+[connect]
+option connect True
+option host mfurman-a01.local
+option port 54321</code></pre></div>
+
+<p>Instance 0 listens on port 65504 for incoming connections and is mounting a disk image.</p>
+
+<p>Instance 1 uses a serial port at 115200 baud and also mounts a disk image</p>
+
+<p>Instance 2 makes an outgoing TCP/IP connection to the specified host and port.</p>
+
+<h2 id="toc_94">Instance Commands</h2>
+
+<p>pyDriveWire has a few commands to control instances.  These commands should only be used from the command line interface, the web interface, or pyDwCli.</p>
+
+<p><strong>Note: Using instance commands from a DriveWire Client is not recommended.</strong></p>
+
+<ul>
+<li><code>dw instance show</code></li>
+<li><code>dw instance select &lt;inst&gt;</code></li>
+</ul>
+
+<h2 id="toc_95"><code>dw instance show</code></h2>
+
+<p>Shows a list of the currently configured instances.  The current instance is marked with an asterisk <code>*</code>:</p>
+
+<div><pre><code class="language-none">pyDriveWire(0)&gt;  dw instance show
+
+
+Inst.  Type
+-----  --------------------------------------
+0*     dwsocket.DWSocketServer localhost:65504
+1      dwserial.DWSerial /dev/ttyS0 115200
+2      dwsocket.DWSocket mfurman-a01.local:54321</code></pre></div>
+
+<h2 id="toc_96"><code>dw instance select &lt;inst&gt;</code></h2>
+
+<p>Switches to a different instance.</p>
+
+<div><pre><code class="language-none">pyDriveWire(0)&gt;  dw instance select 1
+Selected Instance 1: dwserial.DWSerial /dev/ttyS0 115200
+pyDriveWire(1)&gt;</code></pre></div>
+
+<p>The server will respond with a line telling you which instance you just switched to.
+The command prompt will also change to show the current instance.  You can see in the example above that the original prompt was instance 0 and it switched to instance 1.</p>
+
+<p><a href="#toc">Back to top</a></p>
+
+<h1 id="toc_97">8. <a name="ch8"></a>Daemon Mode</h1>
+
+<p>When pyDriveWire is run on any Linux/Unix/macOs operating system it can be run in a daemon mode where the server in the background in a &quot;daemon&quot; mode.  When run in this mode there is no console repl and you must use either the Web UI or pyDwCli to control it.</p>
+
+<p><strong>Note: This mode is <em>not</em> supported on Windows</strong></p>
+
+<h1 id="toc_98">Configuring Daemon mode</h1>
+
+<p>Daemon mode can be enabled from either the config file or from the command line.  You do not need to specify both but you can.  Note that if you do specify both the config file parameters will override the command line ones.</p>
+
+<h2 id="toc_99">Daemon mode from a config file</h2>
+
+<p>The easiest way to use Daemon mode is to create a config file (See <a href="#ch6">Using a Config File</a>) and put the following options in it in instance 0:</p>
+
+<div><pre><code class="language-none">option uiPort 6800
+option daemonPidFile /tmp/pyDriveWire.pid
+option daemonLogFile /tmp/pyDriveWire.log
+[... additional options required ...]</code></pre></div>
+
+<p>With the config file in the default location of <code>~/.pydrivewirerc</code> you can then start the pyDriveWire server in daemon mode with a single option:</p>
+
+<div><pre><code class="language-none">./pyDriveWire --daemon</code></pre></div>
+
+<h2 id="toc_100">Checking server status</h2>
+
+<p>Example: Daemon mode is not running</p>
+
+<div><pre><code class="language-none">$ ./pyDriveWire --status
+pyDriveWire Server status:notRunning</code></pre></div>
+
+<p>Example: Deamon mode is running</p>
+
+<div><pre><code class="language-none">$ ./pyDriveWire --status
+pyDriveWire Server pid:1114 status:Running</code></pre></div>
+
+<h2 id="toc_101">Stopping the server</h2>
+
+<div><pre><code class="language-none">$ ./pyDriveWire --status
+pyDriveWire Server pid:1114 status:Running
+
+$ ./pyDriveWire --stop
+pyDriveWire Server pid:1114 msg:Stopped
+
+$ ./pyDriveWire --status
+pyDriveWire Server status:notRunning</code></pre></div>
+
+<h2 id="toc_102">Starting daemon mode from the command line</h2>
+
+<p>The server can be invoked as follows from the command line:</p>
+
+<div><pre><code class="language-none">./pyDriveWire \
+        --ui-port 6800 \
+        --daemon \
+        --pid-file /tmp/pyDriveWire.pid \
+        --log-file /tmp/pyDriveWire.log \
+        [... additional required options ...]</code></pre></div>
+
+<p>This will start the server in <code>daemon</code> mode with a web UI listening on port <code>6800</code>.</p>
+
+<p><a href="#toc">Back to top</a></p>
+
+<h1 id="toc_103">9. <a name="ch9"></a>EmCee Server</h1>
+
+<h2 id="toc_104">Experimental EmCee Protocol Support</h2>
+
+<p>pyDriveWire version v0.4 adds experimental support for the EmCee protocol used on the TRS-80 MC-10 running MCX Basic (MCX Basic is available on the MCX-128 expansion card).  The EmCee protocol support is always turned on allowing any application connected to a pyDriveWire server to use EmCee and DriveWire protocols simeltaneously.  With this setup one could use a DriveWire application on a MC-10 or a EmCee application on a CoCo without the need to switch servers.</p>
+
+<p>As of v0.4 the following MCX Basic Commands are supported:</p>
+
+<ul>
+<li><code>SETDIR</code></li>
+<li><code>DIR</code></li>
+<li><code>LOAD</code></li>
+<li><code>LOADM</code></li>
+</ul>
+
+<p>The following file formats are supported:</p>
+
+<ul>
+<li><code>.C10</code></li>
+<li><code>.CAS</code></li>
+</ul>
+
+<h2 id="toc_105">Notes</h2>
+
+<ol>
+<li>You must use 38400 baud to use the EmCee protocol on  a MC-10 running MCX Basic</li>
+<li>The <code>SETDIR</code> command works differently than the standard EmCee Server.</li>
+<li>At the current time pyDriveWire <em>only</em> supports <code>.C10</code> and <code>.CAS</code> formatted files.  WAV and BIN file support is planned for a future update.</li>
+<li>At the current time you cannot open a <code>.C10</code> or <code>.CAS</code> file from the command line.  Use the <code>LOAD</code> or <code>LOADM</code> command.</li>
+</ol>
+
+<h2 id="toc_106">Using pyDriveWire&#39;s EmCee Server</h2>
+
+<p>The EmCee server in pyDriveWire is on by default and there are no commands to turn it on or off.  The only special requirement is that <strong><em>You must use 38400 baud to use the EmCee protocol on  a MC-10 running MCX Basic</em></strong>.  Please see the rest of this documentation for how to invoke pyDriveWire.  Once pyDriveWire is started you can use the normal MCX Basic commands to access files on the server.</p>
+
+<h2 id="toc_107"><code>SETDIR &lt;path&gt;</code> - Set the directory on the server</h2>
+
+<h4 id="toc_108">Options</h4>
+
+<ul>
+<li><code>&lt;path&gt;</code> --  full path name a directory on the server</li>
+</ul>
+
+<h4 id="toc_109">Description</h4>
+
+<p>The pyDriveWire version of <code>SETDIR</code> is different than the normal EmCee server.  You must provide a full path name to the directory you want to switch to.</p>
+
+<h4 id="toc_110">Examples</h4>
+
+<ul>
+<li>Windows: <code>SETDIR C:\Users\Mikey\MC-10</code></li>
+<li>Mac/Linux: <code>SETDIR /home/Mikey/MC-10</code></li>
+</ul>
+
+<h2 id="toc_111"><code>DIR [&lt;path&gt;]</code> - List directory on the server</h2>
+
+<h4 id="toc_112">Options</h4>
+
+<ul>
+<li><code>&lt;path&gt;</code> --  optional full path name a directory on the server</li>
+</ul>
+
+<h4 id="toc_113">Description</h4>
+
+<p>List the directory on the server.  The default directory is the one where pyDrivewire was invoked. <code>&lt;path&gt;</code> is optional and must be a full path name to the directory you want to list.</p>
+
+<h4 id="toc_114">Examples</h4>
+
+<ul>
+<li><code>DIR</code></li>
+<li>Windows: <code>DIR C:\Users\Mikey\MC-10</code></li>
+<li>Mac/Linux: <code>DIR /home/Mikey/MC-10</code></li>
+</ul>
+
+<h2 id="toc_115"><code>LOAD &lt;file&gt;</code> - Load a program from the server</h2>
+
+<h4 id="toc_116">Options</h4>
+
+<ul>
+<li><code>&lt;file&gt;</code> -- <code>.C10/.CAS</code> file to load from</li>
+</ul>
+
+<h4 id="toc_117">Description</h4>
+
+<p>The pyDriveWire server searches the provided <code>.C10</code> or <code>.CAS</code> file and loads the first file in the tape image.</p>
+
+<h2 id="toc_118"><code>LOADM</code> - Load a binary program from the server</h2>
+
+<h4 id="toc_119">Options</h4>
+
+<ul>
+<li><code>&lt;file&gt;</code> -- <code>.C10/.CAS</code> file to load from</li>
+</ul>
+
+<h4 id="toc_120">Description</h4>
+
+<p>The pyDriveWire server searches the provided <code>.C10</code> or <code>.CAS</code> file and loads the first BIN file in the tape image.</p>
+
+<h2 id="toc_121">EmCee Server Aliases</h2>
+
+<p>The pyDriveWire server has a powerful &quot;aliasing&quot; system that is quite different than the official EmCee servers.  The pyDriveWire system has three different types of aliases.  File and Web Aliases can be  with LOAD/SAVE commands and Path Aliases can be used with DIR/SETDIR commands.  The official servers can only use aliases for the <code>SETDIR</code> command.</p>
+
+<h2 id="toc_122">Aliases are <em>NOT</em> case sensitive</h2>
+
+<p>In the pyDriveWire server all alias names are converted to upper case.  For example if you had an alias like this one:</p>
+
+<div><pre><code class="language-none">Server Aliases
+==============
+Alias: DWTERM.WAV Path: /demo/dwterm.wav</code></pre></div>
+
+<p>The case of the alias requested from the MC-10 is always converted to upper case so any of the following would load the same alias:</p>
+
+<ul>
+<li><code>LOADM &quot;DWTERM.WAV&quot;</code></li>
+<li><code>LOADM &quot;dwterm.wav&quot;</code></li>
+<li><code>LOADM &quot;DwTeRm.WaV&quot;</code></li>
+</ul>
+
+<h2 id="toc_123">Types of aliases</h2>
+
+<p>The PyDriveWire Server supports the following types of Aliases:</p>
+
+<ul>
+<li>Web Aliases</li>
+<li>Path Aliases</li>
+<li>File Aliases</li>
+</ul>
+
+<p>A <em>web alias</em> is an alias to a HTTP URL.  When the MC-10 requests the alias using a <code>LOAD</code> or <code>LOADM</code> command the URL which the alias points to will be downloaded to a temporary file and then opened normally.  Note that you won&#39;t see the actual file name, and when the file is closed the temp file will be automatically deleted.</p>
+
+<p>A <em>path alias</em> is an alias to a directory.  Path aliases can be used with <code>DIR</code> or <code>SETDIR</code> commands to change to the directory pointed to by the alias.</p>
+
+<p>A <em>file alias</em> points to a file.  Full or relative pathnames could be used.  When the MC-10 requests the the alias the path to which the alias points to will be used and opened normally.</p>
+
+<p>See the help for <code>mc alias show</code> for an example.</p>
+
+<h2 id="toc_124"><code>mc alias show</code></h2>
+
+<p>Show the currently installed aliases:</p>
+
+<div><pre><code class="language-none">Server Aliases
+==============
+Alias: POKER.C10 Path: http://www.colorcomputerarchive.com/coco/MC-10/Cassettes/Games/Jim%20Gerrie&#39;s%20Games/POKER.C10
+Alias: DEMO Path: /demo
+Alias: DWTERM.WAV Path: /demo/dwterm.wav</code></pre></div>
+
+<p>Explanation of example Aliases:</p>
+
+<ul>
+<li><code>POKER.C10</code> -- This is a <em>web alias</em> -- <code>LOAD &quot;POKER.C10&quot;</code></li>
+<li><code>DEMO</code> -- This alias is a <em>directory alias</em> -- <code>SETDIR &quot;DEMO&quot;</code></li>
+<li><code>DWTERM.WAV</code> -- This is a <em>file alias</em> -- <code>LOADM &quot;DWTERM.WAV&quot;</code></li>
+</ul>
+
+<h2 id="toc_125"><code>mc alias add &lt;alias&gt; &lt;path&gt;</code></h2>
+
+<p>Adds the requested alias with path as the destination. The alias is always converted to upper case before addition lookup. The path that an alias points to is case sensitive.  Spaces and punctuation are permitted.</p>
+
+<p>Add a Web Alias:</p>
+
+<div><pre><code class="language-none">pyDriveWire&gt;  mc alias add poker.c10 http://www.colorcomputerarchive.com/coco/MC-10/Cassettes/Games/Jim%20Gerrie&#39;s%20Games/POKER.C10
+Add Alias
+==============
+Alias: POKER.C10 Path: http://www.colorcomputerarchive.com/coco/MC-10/Cassettes/Games/Jim%20Gerrie&#39;s%20Games/POKER.C10</code></pre></div>
+
+<p>Add a file alias:</p>
+
+<div><pre><code class="language-none">pyDriveWire&gt;  mc alias add dwterm.wav /demo/dwterm.wav
+Add Alias
+==============
+Alias: DWTERM.WAV Path: /demo/dwterm.wav</code></pre></div>
+
+<h2 id="toc_126"><code>mc alias remove &lt;alias&gt;</code></h2>
+
+<p>Remove an alias.  The alias is always converted to upper case before addition removal.</p>
+
+<div><pre><code class="language-none">pyDriveWire&gt;  mc alias remove qbert.c10
+Remove Alias
+==============
+Alias: QBERT.C10 Path: http://www.colorcomputerarchive.com/coco/MC-10/Cassettes/Games/Jim%20Gerrie&#39;s%20Games/QBERT.C10</code></pre></div>
+
+<p><a href="#toc">Back to top</a></p>
+
+<h1 id="toc_127"><a name="ch10"></a>10. Experimental Printing Support</h1>
+
+<p>pyDriveWire has experimental printing support.  </p>
+
+<p>pyDriveWire v0.3 included experimental printing support.  The <code>-x printer</code> command line option enables it.  This support was enhanced in pyDriveWire v0.5:</p>
+
+<ol>
+<li>MCX-Basic doesn&#39;t have a way to say &quot;I&#39;m finished printing now&quot; so the <code>dw printer flush command</code> was added to spit out the current print buffer</li>
+<li>The original pyDriveWire printing feature only generated pdf file output, you can now toggle between pdf and text file output</li>
+<li>You can force pyDriveWire to always open and overwrite the same file you specify every time you  print</li>
+<li>You can configure a &quot;spool&quot; directory.  Every time the print buffer is flushed it will output a new file in the spool directory</li>
+<li>You can configure a command to run on the spool file every time the print buffer is flushed. for example ./pyDriveWire --print-cmd &quot;lpr -P cocofilter&quot; means that when the print buffer is flushed the resulting file will get piped to lpr</li>
+</ol>
+
+<h2 id="toc_128">Prerequisites</h2>
+
+<p>Printing support requires the reportlab module.  This module can be installed with pip:</p>
+
+<div><pre><code class="language-none">pypy -m pip install reportlab</code></pre></div>
+
+<h2 id="toc_129">Use From NitrOS-9</h2>
+
+<p>Most of the standard Nitros9 DriveWire builds have printing support built in.  Any program that uses the standard <code>/P</code> printing device will work just fine.  A simple example for testing:</p>
+
+<div><pre><code class="language-none">dir &gt;/P</code></pre></div>
+
+<p>The console log will explain where the output PDF went:</p>
+
+<div><pre><code class="language-none">DWServer: Enabling experimental printing support
+Printing: opening print buffer: /var/folders/1y/cjrxv35d76bc54myg7hy7k1c0000gn/T/tmp2zG0Pb.txt
+Printing to: /var/folders/1y/cjrxv35d76bc54myg7hy7k1c0000gn/T/tmpWdKRQY.pdf
+Printing: closing print buffer: /var/folders/1y/cjrxv35d76bc54myg7hy7k1c0000gn/T/tmp2zG0Pb.txt</code></pre></div>
+
+<p>Sample: <a href="printing_sample.pdf">printing_sample.pdf</a></p>
+
+<h2 id="toc_130">Use from Disk Extended Color Basic</h2>
+
+<p>Robert Gault has written some code to redirect printing in BASIC to the DriveWire Printer.</p>
+
+<p><a href="https://pairlist5.pair.net/pipermail/coco/2016-December/thread.html#156468">Full Thread: Printing from Disk Extended Color Basic (via Drivewire)</a></p>
+
+<p><a href="https://pairlist5.pair.net/pipermail/coco/2016-December/156489.html">Robert Gault&#39;s Reply</a></p>
+
+<p><a href="https://pairlist5.pair.net/pipermail/coco/2016-December/156562.html">Robert Gault: Code is here</a></p>
+
+<p>Donwload: <a href="http://www.colorcomputerarchive.com/coco/Disks/Utilities/Drivewire%20Printing%20with%20Disk%20Basic%20%28Robert%20Gault%29.zip">Drivewire Printing With Disk Basic(Robert Gault).zip</a></p>
+
+<h2 id="toc_131">Use from MCX-Basic on the MC-10</h2>
+
+<p>MCX-Basic has support for printing over a EmCee connection.  You can use both the <code>LLIST</code> and <code>PRINT #-2</code> commands to send output to the print buffer.  One thing that MCX-Basic does not have is any way to signal to the EmCee server that it has finished printing.  The <code>dw printer flush</code> command will close the current print buffer, render the output, and finally the print buffer will be reset to prepare for the next print job.</p>
+
+<h2 id="toc_132">Printing Configuration Options</h2>
+
+<h3 id="toc_133">Command Line Options</h3>
+
+<div><pre><code class="language-none">-x printer          Enable experimental printing support
+
+printer:
+  Printer Options
+
+  --print-format {pdf,txt}
+                    Printer output format, default: pdf
+  --print-dir PRINTDIR  Spool directory to send printer output, default: /tmp
+  --print-prefix PRINTPREFIX
+                    File name prefix for files in the spool directory,
+                    default: cocoprints
+  --print-file PRINTFILE
+                    File to send printer output, Note: Will be overwritten
+  --print-cmd PRINTCMD  Command to run on flushed printer output</code></pre></div>
+
+<h3 id="toc_134">Config File Options</h3>
+
+<div><pre><code class="language-none">option experimental printer
+option printFormat &lt;txt|pdf&gt;
+option printDir &lt;dir&gt;
+option printPrefix &lt;prefix&gt;
+option printFile &lt;file&gt;
+option printCmd &lt;cmd&gt;</code></pre></div>
+
+<h3 id="toc_135">Commands</h3>
+
+<div><pre><code class="language-none">dw printer format &lt;txt|pdf&gt;
+dw printer dir &lt;dir&gt;
+dw printer prefix &lt;prefix&gt;
+dw printer file &lt;file&gt;
+dw printer command &lt;cmd&gt;</code></pre></div>
+
+<h3 id="toc_136">Enabling Experimental Printing Mode</h3>
+
+<p>The printing feature is currently experimental.  The reason why is that it currently requires some additional modules to be installed in your Python installation.  It can be enabled by providing the <code>-x printer</code> command line or <code>experimental printer</code> option in the configuration file.</p>
+
+<h3 id="toc_137">Selecting the <code>pdf</code> or <code>txt</code> output format</h3>
+
+<p>The pyDriveWire printing engine has two output formats:</p>
+
+<ul>
+<li>The <code>pdf</code> engine currently renders the Coco&#39;s textual printed output in a PDF file.  The PDF file uses a font which is similar to Epson FX-80 printer.</li>
+<li>The <code>txt</code> engine copies the Coco&#39;s textual printed output directly to a file without any conversion.</li>
+</ul>
+
+<h3 id="toc_138">Controlling the printer output location</h3>
+
+<p>pyDriveWire has a simple built-in print spooler.  By default without any options the spool directory is a temporary directory such as <code>/tmp</code>.   The print spooler automatically creates spool files using the <code>printPrefix</code> option as the prefix of the filename followed by a number.  The default prefix is <code>cocoprints</code> so the files would be <code>cocoprints0001.pdf</code>, <code>cocoprints0002.pdf</code>, etc.  A log message with the output file name is printed to the pyDriveWire console for at the end of each print job.  You can run the command <code>dw printer status</code> to see the current configuration.  There are four options which can be used to change this behavior:</p>
+
+<ul>
+<li>The <code>printDir</code> option can be used to provide a directory where the print engine output will go.  This directory must already exist.  The default is a temporary directory such as <code>/tmp</code></li>
+<li>The <code>printPrefix</code> option sets the filename prefix for spool files.  The spool files are automatically created using the <code>printPrefix</code> option as the prefix of the filename followed by a number.  The default prefix is <code>cocoprints</code> so the files would be <code>cocoprints0001.pdf</code>, <code>cocoprints0002.pdf</code>, etc.</li>
+<li>The <code>printFile</code> option is the name of a file where <em>all</em> of the printer output will go.  This file is created the first time the Coco/MC-10 prints anything.  The file is closed when the print buffer is flushed.  Please note that if anything more is printed after this file is created, it will be truncated and overwritten and the previous output will be lost.</li>
+</ul>
+
+<h3 id="toc_139">Running a command when the print buffer is flushed</h3>
+
+<p>pyDriveWire has an option to run a command on the current print buffer each time it is flushed.  The obvious way to use this is to have the output file sent to a program that will actually print it out.  The traditional command used to accomplish this any Linux/macOS/Unix system is <code>lpr</code>.  The command works like this:</p>
+
+<ol>
+<li>The Coco starts printing and the spool file is created</li>
+<li>The coco finishes printing and sends a print flush command</li>
+<li>The spool file is closed</li>
+<li>The command is run with the spool file provided as an argument.</li>
+</ol>
+
+<p>For example, if the following option is provided:</p>
+
+<div><pre><code class="language-none">--print-cmd &#39;lpr -P cocofilter&#39;</code></pre></div>
+
+<p>Then whenever the print buffer is flushed the following command would be run:</p>
+
+<div><pre><code class="language-none">lpr -P cocofilter &lt;spool_file&gt;</code></pre></div>
+
+<p>For Windows you might try this:</p>
+
+<div><pre><code class="language-none">--print-cmd &quot;print&quot; </code></pre></div>
+
+<p><a href="#toc">Back to top</a></p>
+
+<h1 id="toc_140"><a name="ch11"></a>11. Debugging</h1>
+
+<p>pyDriveWire server has extremely powerful debugging capabilities.  These far surpass what is available in any other DriveWire server out there in both conciseness, readability, and utility.</p>
+
+<p>pyDriveWire has 3 levels of debugging: </p>
+
+<ul>
+<li>Default: No Debugging (Level 0)</li>
+<li>Command Debugging (Level 1)</li>
+<li>Connection Debugging (Level 2)</li>
+</ul>
+
+<p>The Debugging option on the command line or config file is <em>global</em> and is applied to All Instances.</p>
+
+<p><strong>Note: The config file option <em>must</em> be put in the first instance.</strong></p>
+
+<h3 id="toc_141">Default: Debug Level 0</h3>
+
+<p>No debugging commands are sent on the pyDriveWire Console.  This is the default if no debugging option or command is specified.</p>
+
+<p>You may also specify this in the config file:</p>
+
+<div><pre><code class="language-none">option debug 0</code></pre></div>
+
+<h3 id="toc_142">Debug Level 1: Command Logging</h3>
+
+<p>This debugging level displays one line for each command the DriveWire or EmCee client sends to the server.  See the pyDriveWire Debugging Guide for more detail.</p>
+
+<h4 id="toc_143">Command Line:</h4>
+
+<div><pre><code class="language-none">-d</code></pre></div>
+
+<h4 id="toc_144">Config file:</h4>
+
+<div><pre><code class="language-none">option debug 1</code></pre></div>
+
+<h4 id="toc_145">Sample Output</h4>
+
+<p>If you typed <code>DIR</code> at a HDBDOS prompt you might see something like this:</p>
+
+<div><pre><code class="language-none">cmd=d2 cmdReadEx disk=0 lsn=322 rc=0 f=
+cmd=d2 cmdReadEx disk=0 lsn=307 rc=0 f=
+cmd=d2 cmdReadEx disk=0 lsn=308 rc=0 f=</code></pre></div>
+
+<ul>
+<li><code>cmd=d2 cmdReadEx</code> -- This is the DriveWire Command that the client sent to the server.  In this case it&#39;s a <code>READEX</code> command<br></li>
+<li>The command reading from <code>disk=0</code></li>
+<li>Sector <code>lsn=322</code></li>
+<li>The result code is usually printed as <code>rc=N</code> and <code>0</code> means Success.</li>
+</ul>
+
+<h3 id="toc_146">Debug Level 2: Connection Debugging</h3>
+
+<p>This debugging level includes command debug level 1 and in addition to that displays a HexDump of every byte the pyDriveWire server sends and receives from the client.   This can be extremely verbose and slows down the pyDriveWire server slightly so it is not recommended for normal use.  See the pyDriveWire Debugging Guide for more detail.</p>
+
+<h4 id="toc_147">Command Line:</h4>
+
+<div><pre><code class="language-none">-dd</code></pre></div>
+
+<h4 id="toc_148">Config file:</h4>
+
+<div><pre><code class="language-none">option debug 2</code></pre></div>
+
+<h4 id="toc_149">Sample Output</h4>
+
+<p>Debug Level 2 includes level 1 debugging and is even more verbose:</p>
+
+<div><pre><code class="language-none">socket read: &lt;dwsocket.DWSocketServer instance at 0x0000000107cfef20&gt; len: 1
+0000: |d2                               | |.                |
+socket read: &lt;dwsocket.DWSocketServer instance at 0x0000000107cfef20&gt; len: 4
+0000: |00000142                         | |...B             |
+socket write: &lt;dwsocket.DWSocketServer instance at 0x0000000107cfef20&gt; len: 256
+0000: |ffffffffffffffff ffffffffffffffff| |........ ........|
+0010: |ffffffffffffffff ffffffffffffffff| |........ ........|
+0020: |ffffffffffffffff ffffffffffffffff| |........ ........|
+0030: |ffffffffffffffff ffffffffffffffff| |........ ........|
+0040: |ffffffffffffffff ffffffffffffffff| |........ ........|
+0050: |ffffffffffffffff ffffffffffffffff| |........ ........|
+0060: |ffffffffffffffff ffffffffffffffff| |........ ........|
+0070: |ffffffffffffffff ffffffffffffffff| |........ ........|
+0080: |ffffffffffffffff ffffffffffffffff| |........ ........|
+0090: |ffffffffffffffff ffffffffffffffff| |........ ........|
+00a0: |ffffffffffffffff ffffffffffffffff| |........ ........|
+00b0: |ffffffffffffffff ffffffffffffffff| |........ ........|
+00c0: |ffffffffffffffff ffffffffffffffff| |........ ........|
+00d0: |ffffffffffffffff ffffffffffffffff| |........ ........|
+00e0: |ffffffffffffffff ffffffffffffffff| |........ ........|
+00f0: |ffffffffffffffff ffffffffffffffff| |........ ........|
+socket read: &lt;dwsocket.DWSocketServer instance at 0x0000000107cfef20&gt; len: 1
+0000: |ff                               | |.                |
+socket read: &lt;dwsocket.DWSocketServer instance at 0x0000000107cfef20&gt; len: 1
+0000: |00                               | |.                |
+cmd=d2 cmdReadEx disk=0 lsn=322 rc=0 f=
+socket write: &lt;dwsocket.DWSocketServer instance at 0x0000000107cfef20&gt; len: 1
+0000: |00                               | |.                |</code></pre></div>
+
+<p>Decoding this:</p>
+
+<ol>
+<li>pyDriveWire read 1 byte <code>d2</code> from the CoCo</li>
+<li>pyDriveWire read 4 bytes <code>00000142</code> from the CoCo</li>
+<li>pyDriveWire sent a block of 256 bytes to the CoCo</li>
+<li>pyDriveWire read 1 byte <code>ff</code> from the CoCo</li>
+<li>pyDriveWire read 1 byte <code>00</code> from the CoCo</li>
+<li>pyDriveWire indicates that the cmdReadEx is finished.  This is the same single debug line described above in debug level 1</li>
+<li>pyDriveWire sent 1 byte <code>00</code> to the CoCo</li>
+</ol>
+
+<h3 id="toc_150">Learning more about the DriveWire Protocol</h3>
+
+<p>If you really want to learn the internal details of how the DriveWire Protocol works read the manual!</p>
+
+<p><a href="https://sourceforge.net/p/drivewireserver/wiki/DriveWire_Specification/">DriveWire 4 Specification</a></p>
+
+<p><a href="#toc">Back to top</a></p>
+
+<h1 id="toc_151">12. <a name="ch12"></a>HDB-DOS Mode</h1>
+
+<p>DriveWire4 added a &quot;HDB-DOS&quot; mode to better support HDB-DOS disk images.  pyDriveWire has enhanced support for this.</p>
+
+<p>This is not the easiest DriveWire feature to understand and use properly.  To use it successfully you will need to know a few peices of information about your disk image</p>
+
+<ol>
+<li>Is the image a <em>HDB-DOS Hard Drive Image</em>, a <em>NitrOS-9 Drive Image</em>, or a <em>Combined NitrOS-9/HDB-DOS Drive Image</em>?</li>
+<li>What is the starting sector offset of the HDB-DOS part of the drive image?</li>
+<li>How is your HDB-DOS ROM&#39;s starting sector offset Configured?</li>
+</ol>
+
+<p>pyDriveWire has 2 options:</p>
+
+<ul>
+<li><code>hdbdos</code> mode</li>
+<li>Sector <code>offset</code></li>
+</ul>
+
+<p>Please note that HDB-DOS mode is not exactly what you may think at first glance.</p>
+
+<h2 id="toc_152">HDB-DOS Hard Drive Images</h2>
+
+<p>For most HDB-DOS hard drives images the <code>offset</code> is 0 and <code>hdbdos</code> should be disabled.</p>
+
+<h2 id="toc_153">NitrOS-9 Hard Drive Images</h2>
+
+<p>For most HDB-DOS hard drives images the <code>offset</code> is 0 and <code>hdbdos</code> should be disabled.</p>
+
+<h2 id="toc_154">Combined NitrOS-9/HDB-DOS Drive Images</h2>
+
+<p>For Combined NitrOS-9/HDB-DOS Drive images you will need to know two peices of information to get pyDriveWire configured properly.</p>
+
+<ol>
+<li>What is the starting sector offset of the HDB-DOS part of the drive image?</li>
+<li>How is your HDB-DOS ROM&#39;s starting sector offset Configured?</li>
+</ol>
+
+<p>These types of hard drive images are normally 128MB in size and divided into two sections, the first for NitrOS-9, and the second for HDB-DOS.</p>
+
+<p>The NitrOS-9 section normally starts at the beginning of the drive at sector 0 through sector 0x59FFF.  This yeilds an approximately 94MB NitrOS-9 file systyem.</p>
+
+<p>The HDB-DOS section follows the NitrOS-9 section.  The starting sector of this section immediately follows the NitrOS-9 section which is normally sector <code>0x5A000</code>.</p>
+
+<p>Lastly, you need to know whether your HDB-DOS ROM has been patched or not.  </p>
+
+<p>If your HDB-DOS ROM has NOT been patched, you will need to set an offset in the server to access the HDB-DOS section of the Disk.  Note that you will need to disable this server offset in order to use NitrOS-9:</p>
+
+<div><pre><code class="language-none">dw disk insert 0 /demo/combined.vhd
+dw disk offset 0 0x5a000</code></pre></div>
+
+<p>If your HDB-DOS ROM has been patched, you DO NOT need to set an offset as it is built-into the ROM image itself:</p>
+
+<div><pre><code class="language-none">dw disk insert 0 /demo/combined.vhd
+dw disk offset 0 0</code></pre></div>
+
+<h2 id="toc_155">HDB-DOS Mode</h2>
+
+<p>Now we&#39;ll describe the HDB-DOS mode in DriveWire/pyDriveWire. </p>
+
+<p>There is a specific case where this is useful.  Suppose that you downloaded a 160k floppy disk image from the Color Computer Archive and you wanted to transfer this image to a physical disk and your machine is running HDB-DOS.  The way that you can accomplish this is by using the HDB-DOS mode in DriveWire/pyDriveWire.</p>
+
+<p>pyDriveWire has the <code>hdbdos</code> mode disabled by default.  In this default mode, HDB-DOS selects which image it wants by the <em>sector offset</em> rather than the drive number (See Below: Understanding Hard Drive Images).  The <code>drivewire</code> drive is selected by the <code>DRIVE#</code> command, and the default is 0.  With <code>hdbdos</code> mode disabled, if you accessed <code>DRIVE#0: DRIVE 4</code> you would be accessing DriveWire image mounted in slot 0 at sector 2520.</p>
+
+<p>When the <code>hdbdos</code> setting is set to true this behavior is changed.  HDB-DOS will still select drive 4 by sector offset but pyDriveWire determines the drive number by dividing this back out and in this case  pyDriveWire will then access virtual disk iamge 4.</p>
+
+<p>On your color computer if you issue the <code>DRIVE ON</code> command this enables the physical floppy disks on Drive 0-3.  DriveWire drives 0-3 are not accessible again until you issue <code>DRIVE OFF</code>.</p>
+
+<p>Then if you wanted to copy the downloaded disk image to a physical floppy you could insert the drive image in pyDriveWire drive 4 and then copy it:</p>
+
+<div><pre><code class="language-none">dw server hdbdos True
+dw disk insert 4 /path/to/disk/image.dsk
+dw disk offset 4 0
+
+DRIVE ON
+BACKUP 4 to 0</code></pre></div>
+
+<h2 id="toc_156">Understanding Hard Drive Images</h2>
+
+<p>Each standard RSDOS disk is composed of 35 Tracks each containing 18 sectors for a total of 630 sectors on each disk. </p>
+
+<p>HDB-DOS was designed to work with Hard Drives which are many multiples the capacity of a floppy disk.  HDB-DOS allowed for multiple drives to reside on one hard drive.  The way that it did this was by placing the drive images sequentially on the disk one after the other:</p>
+
+<div><pre><code class="language-none"> HDB-DOS Hard Drive Layout
+
++--- RS-Dos Drive Sector
+|          
+|   +============+===========+===}   {===+=============+=============+=============+
++-&gt; |0        629|0       629|           |0         629|0         629|0         629|
+    |            |           |           |             |             |             |
+    |  Drive 0   |  Drive 1  |  .......  |  Drive 243  |  Drive 254  |  Drive 255  |
+    |            |           |           |             |             |             |
++-&gt; |0        629|630    1259|           |159390 160019|160020 160649|160650 161279|
+|   +============+===========+===}   {===+=============+=============+=============+
+|
++--- Hard Drive LSN</code></pre></div>
+
+<p>Drive 0: Starts at sector 0 at the beginning of the drive through sector 629
+Drive 1: Sector  630 - 1259
+Drive 2: Sector 1260 - 1889,
+Etc.</p>
+
+<p>To swtich between the different drives, you simply issued the <code>DRIVE N</code> command.  Internally, HDB-DOS uses a very simple formula to calculate which sector it needs to go to:</p>
+
+<div><pre><code class="language-none">HardDiskLSN = &lt;OFFSET&gt; + &lt;DRIVE&gt;*630 + &lt;sector&gt;</code></pre></div>
+
+<p>For the moment, assume that <code>OFFSET=0</code></p>
+
+<p>The RS-DOS directory and FAT tables are on the first few sectors of Track 17 of each disk (Sectors 306, 307, and 308)</p>
+
+<p>To access the directory of Drive 0: <code>306 = 0*630 + 0 + 306</code>
+and for Drive 1: <code>306 = 1*630 + 0 + 306</code>
+etc.</p>
+
+<div><pre><code class="language-none"> Combined NitrOS-9 and HDB-DOS Hard Drive Layout
+
+                                           +--- RS-Dos Drive Sector
+                                           |          
+    +======================================+============+===}   {===+=============+
+    |                                      |0        629|           |0         629| 
+    |                                      |            |           |             |
+    |           NitrOS-9 Image             |  Drive 0   |  .......  |  Drive 255  |
+    |                                      |            |           |             |
++-&gt; |0                                59FFF|5A000       |           |8138A   815FF|
+|   +======================================+============+===}   {===+=============+
+|
++--- Hard Drive LSN</code></pre></div>
+
+<p><a href="#toc">Back to top</a></p>
+
+<h1 id="toc_157">13. <a name="ch13"></a>Appendix: Supported DriveWire Commands</h1>
+
+<ul>
+<li><code>dw disk</code> 
+
+<ul>
+<li><code>dw disk show</code></li>
+<li><code>dw disk insert &lt;drive&gt; &lt;file&gt;</code></li>
+<li><code>dw disk eject &lt;drive&gt;</code></li>
+<li><code>dw disk reset &lt;drive&gt;</code> -- (re-open)</li>
+<li><code>dw disk offset &lt;drive&gt; &lt;n&gt;</code></li>
+<li><code>dw disk create &lt;drive&gt; &lt;offset&gt;</code></li>
+</ul></li>
+<li><code>dw port</code>
+
+<ul>
+<li><code>dw port show</code></li>
+<li><code>dw port close &lt;n&gt;</code></li>
+</ul></li>
+<li> <code>dw server</code>
+
+<ul>
+<li><code>dw server instance</code></li>
+<li><code>dw server dir [&lt;path&gt;]</code></li>
+<li><code>dw server list &lt;file&gt;</code></li>
+<li><code>dw server dump</code></li>
+<li><code>dw server debug &lt;0|False|1|False&gt;</code></li>
+<li><code>dw server timeout</code></li>
+<li><code>dw server version</code></li>
+<li><code>dw server conn debug &lt;0|False|1|False&gt;</code></li>
+<li><code>dw server hdbdos &lt;0|False|1|True&gt;</code></li>
+</ul></li>
+<li><code>dw instance</code>
+
+<ul>
+<li><code>dw instance show</code></li>
+<li><code>dw instance add</code></li>
+<li><code>dw instance select</code></li>
+</ul></li>
+<li><code>dw printer</code>
+
+<ul>
+<li><code>dw printer flush</code></li>
+<li><code>dw printer format</code></li>
+<li><code>dw printer file</code></li>
+<li><code>dw printer dir</code></li>
+<li><code>dw printer cmd</code></li>
+<li><code>dw printer status</code></li>
+</ul></li>
+<li><code>tcp</code> commands
+
+<ul>
+<li><code>tcp connect &lt;host&gt; &lt;port&gt;</code></li>
+<li><code>tcp listen &lt;port&gt; ...</code> -- Remainder of options ignored</li>
+<li><code>tcp join &lt;channel&gt;</code></li>
+<li><code>tcp kill &lt;channel&gt;</code></li>
+</ul></li>
+<li>AT Commands
+
+<ul>
+<li><code>AT</code></li>
+<li><code>ATD&lt;host&gt;:&lt;port&gt;</code></li>
+<li><code>ATDT&lt;host&gt;:&lt;port&gt;</code></li>
+<li><code>ATE</code></li>
+<li><code>ATH</code></li>
+<li><code>ATI</code></li>
+<li><code>ATO</code></li>
+<li><code>ATZ</code></li>
+</ul></li>
+<li>EmCee Commands
+
+<ul>
+<li><code>mc alias show</code></li>
+<li><code>mc alias add</code></li>
+<li><code>mc alias remove</code></li>
+<li><code>mc setdir</code></li>
+<li><code>mc getdir</code></li>
+<li><code>mc show</code></li>
+<li><code>mc eject</code></li>
+</ul></li>
+<li>Debugging commands
+
+<ul>
+<li><code>dw port debug [True|1|False|0]</code></li>
+<li><code>dw server debug [True|1|False|0]</code></li>
+<li><code>dw server conn debug [True|1|False|0]</code></li>
+<li><code>dw server dump</code></li>
+<li><code>dw server timeout &lt;s&gt;</code></li>
+</ul></li>
+</ul>
+
+<p><a href="#toc">Back to top</a></p>
+
+
+
+
 </body>
+
 </html>
