@@ -322,15 +322,15 @@ Disk image options can be specified after each disk image path in the following 
 
 Mount `DWTERM.dsk` in Drive 0 and mark it read-only
 
-    ./pyDriveWire [server_options] /demo/DWTERM.dsk opt=ro
+    ./pyDriveWire [server_options] /demo/DWTERM.dsk --ro
     
 Stream a disk image off of a web server
 
-    ./pyDriveWire [server_options] http://www.ocs.net/~n6il/DWTERM.dsk opt=stream
+    ./pyDriveWire [server_options] http://www.ocs.net/~n6il/DWTERM.dsk --stream
     
 Mount `test.dsk` in Drive 0 Read-Only, and Stream `cocoserve.dsk` in Drive 1.
 
-    /pyDriveWire [server_options] /demo/test.dsk opt=ro http://www.ocs.net/~n6il/DWTERM.dsk opt=stream
+    /pyDriveWire [server_options] /demo/test.dsk opt=ro http://www.ocs.net/~n6il/DWTERM.dsk --stream
   
 
 The following disk image options options are supported:
