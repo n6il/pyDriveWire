@@ -167,37 +167,6 @@ class DWVModem(DWIO):
                 newState = DWV_S_DW
         self.state = newState
 
-    def writeX(self, data, ifs=('\r', '\n')):
-        if self.debug:
-            print "ch: write:", canonicalize(data)
-        wdata = ''
-        w = 0
-        pos = -1
-
-        if self.conn:
-            if self.wbuf:
-                w += self.conn.write(self.wbuf)
-                self.wbuf = ''
-            w += self.conn.write(data)
-        else:
-            if self.echo:
-                self.rq.put(data)
-                self.rb.add(len(data))
-                self.rq.put("\r")
-                self.rb.add(1)
-            if self.wbuf:
-                wbl = len(self.wbuf)
-                self.cq.put(self.wbuf)
-                self.cq.add(wbl)
-                w += wbl
-                self.wbuf = ''
-            wdata = data.lstrip().rstrip()
-            if wdata:
-                wdl = len(wdata)
-                self.cq.put(wdata)
-                self.cq.add(wdl)
-                w += wdl
-        return w
 
     def write(self, data, ifs=('\r', '\n')):
         if self.debug:

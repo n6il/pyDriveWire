@@ -1054,4 +1054,5 @@ if __name__ == '__main__':
     server.main()
 
 
+# XXX: cleanup required
 # vim: ts=4 sw=4 sts=4 expandtab
