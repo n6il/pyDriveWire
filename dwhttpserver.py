@@ -109,7 +109,7 @@ class DWHttpServer:
     def run(self, server_class=HTTPServer, handler_class=GP, port=8088):
         server_address = ('', port)
         httpd = server_class(server_address, handler_class)
-        print 'Server running at localhost:%s...' % port
+        print 'Web UI running at http://localhost:%s' % port
         httpd.serve_forever()
 
 
