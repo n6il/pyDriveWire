@@ -94,6 +94,7 @@ class DWParser:
         diskParser.add("show", ParseAction(self.doShow))
         diskParser.add("offset", ParseAction(self.doDiskOffset))
         diskParser.add("create", ParseAction(self.doDiskCreate))
+        diskParser.add("info", ParseAction(self.doDiskInfo))
 
         serverParser = ParseNode("server")
         serverParser.add("instance", ParseAction(self.doInstanceShow))
@@ -256,6 +257,23 @@ class DWParser:
         path = data[pathStart:pathEnd]
         self.server.open(int(drive), path, mode=mode, stream=stream, create=True)
         return "create(%d, %s)" % (int(drive), path)
+
+    def doDiskInfo(self, data):
+        opts = data.split(' ')
+        if len(opts) < 1:
+            raise Exception("dw disk info <drive>")
+        drive = int(opts[0])
+        fi = self.server.files[drive]
+        out = [
+            'Drive: %d' % drive,
+            'Path: %s' % fi.file.name,
+            'Size: %d' % fi.img_size,
+            'Sectors: %d' % fi.img_sectors,
+            'MaxLsn: %d' % fi.maxLsn,
+            'Format: %s' % fi.fmt,
+            'flags: mode=%s, remote=%s stream=%s'% (fi.mode, fi.remote, fi.stream)
+        ]
+        return '\r\n'.join(out)
 
     def doReset(self, data):
         drive = int(data.split(' ')[0])

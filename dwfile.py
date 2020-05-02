@@ -68,6 +68,9 @@ class DWFile:
         self.file = open(fileName, self.mode)
 
     def guessMaxLsn(self, data=None):
+        st = stat(self.file.name)
+        self.img_size = st.st_size
+        self.img_sectors = self.img_size / COCO_SECTOR_SIZE
         self.fmt = self._os9Fmt(data)
         if self.fmt:
             self.os9Image = True
@@ -75,14 +78,22 @@ class DWFile:
             # if sectors == 0 and st.st_size > 0:
             #    sectors = COCO_DEFAULT_DISK_SIZE
             self.os9Image = False
-            st = stat(self.file.name)
-            img_size = st.st_size
-            sectors = img_size / COCO_SECTOR_SIZE
-            self.fmt = self._fmtSearch(sectors)
+            self.fmt = self._fmtSearch(self.img_sectors)
 
         self.maxLsn = self.fmt['sides'] * \
             self.fmt['tracks'] * self.fmt['sectors']
         # print "%s: %d %s" % (self, self.maxLsn, self.fmt['descr'])
+        if self.maxLsn < self.img_size:
+            hdb_img_sec = COCO_DEFAULT_DISK_SIZE * 256
+            if self.os9Image:
+                # Let the disk image grow to the os9 partition size + hdb_img size
+                # XXX: Do logic here
+                #if self.maxLsn == self.img_size:
+                #else:
+                self.maxLsn = max(self.maxLsn+hdb_img_sec, self.img_sectors)
+            else:
+                # Let the disk image grow to the os9 partition size + hdb_img size
+                self.maxLsn = max([hdb_img_sec, self.img_sectors])
 
     def _fmtSearch(self, sectors):
         if sectors == 0:
