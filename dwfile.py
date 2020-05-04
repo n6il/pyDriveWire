@@ -11,6 +11,7 @@ from urllib2 import Request, urlopen
 
 COCO_SECTOR_SIZE = 256
 COCO_DEFAULT_DISK_SIZE = 630
+COCO_HDBDOS_NUMDISKS = 256
 
 formats = {
     630: {'sides': 1, 'tracks': 35, 'sectors': 18, 'bytes': COCO_SECTOR_SIZE, 'descr': 'CoCo Standard 160K: Single-Sided, 35 Track, 18-Sectors/Track, 256Byte/Sector Image'},
@@ -83,8 +84,8 @@ class DWFile:
         self.maxLsn = self.fmt['sides'] * \
             self.fmt['tracks'] * self.fmt['sectors']
         # print "%s: %d %s" % (self, self.maxLsn, self.fmt['descr'])
-        if self.maxLsn < self.img_size:
-            hdb_img_sec = COCO_DEFAULT_DISK_SIZE * 256
+        if self.maxLsn < self.img_sectors:
+            hdb_img_sec = COCO_DEFAULT_DISK_SIZE * COCO_HDBDOS_NUMDISKS
             if self.os9Image:
                 # Let the disk image grow to the os9 partition size + hdb_img size
                 # XXX: Do logic here
