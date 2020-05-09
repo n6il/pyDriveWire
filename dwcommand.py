@@ -230,17 +230,17 @@ class DWParser:
         if len(opts) < 2:
             raise Exception("dw disk insert <drive> <path> [<opts>]")
         drive = opts[0]
-        pathStart = len(drive)+1
+        pathStart = len(drive) + 1
         pathEnd = len(data)
         stream = False
         mode = 'rb+'
         for s in opts[2:]:
             if s.lower() == '--stream':
                 stream = True
-                pathEnd -= 9 # len(' --stream')
+                pathEnd -= 9  # len(' --stream')
             elif s.lower() == '--ro':
                 mode = 'r'
-                pathEnd -= 5 # len(' --ro')
+                pathEnd -= 5  # len(' --ro')
         path = data[pathStart:pathEnd]
         self.server.open(int(drive), path, mode=mode, stream=stream)
         return "open(%d, %s)" % (int(drive), path)
@@ -250,7 +250,7 @@ class DWParser:
         if len(opts) < 2:
             raise Exception("dw disk create <drive> <path> [<opts>]")
         drive = opts[0]
-        pathStart = len(drive)+1
+        pathStart = len(drive) + 1
         pathEnd = len(data)
         stream = False
         mode = 'ab+'
@@ -271,7 +271,7 @@ class DWParser:
             'Sectors: %d' % fi.img_sectors,
             'MaxLsn: %d' % fi.maxLsn,
             'Format: %s' % fi.fmt,
-            'flags: mode=%s, remote=%s stream=%s'% (fi.mode, fi.remote, fi.stream)
+            'flags: mode=%s, remote=%s stream=%s' % (fi.mode, fi.remote, fi.stream)
         ]
         return '\r\n'.join(out)
 
@@ -731,13 +731,13 @@ class DWParser:
 
     def genConfigForServer(self, server=None):
         out = []
-        if server == None:
+        if server is None:
             server = self.server
         args = server.args.__dict__
         instance = args.get('instance', 0)
         if instance > 0:
-            out += ['','[%s]' % args['instName'] ]
-        for k,v in args.items():
+            out += ['', '[%s]' % args['instName']]
+        for k, v in args.items():
             if k in ['files', 'cmds', 'instances', 'config', 'instance', 'instName', 'daemon']:
                 continue
             if instance > 0 and k in ['experimental', 'uiPort', 'daemonStatus', 'daemonStop', 'daemonPidFile', 'daemonLogFile']:
@@ -749,8 +749,8 @@ class DWParser:
             elif k == 'offset' and v == '0':
                 v = None
             if v not in [None, False]:
-                out += ["option %s %s" % (k,v)]
-        i=0
+                out += ["option %s %s" % (k, v)]
+        i = 0
         for d in server.files:
             if d:
                 out += ["dw disk insert %d %s" % (i, d.name)]
@@ -765,11 +765,11 @@ class DWParser:
         return out
 
     def doConfigShow(self, data):
-        out =  self.genConfig()
+        out = self.genConfig()
         return '\n\r'.join(out)
 
     def doConfigSave(self, data):
-        out =  self.genConfig()
+        out = self.genConfig()
         outFile = data
         if not outFile:
             outFile = self.server.args.config

@@ -167,7 +167,6 @@ class DWVModem(DWIO):
                 newState = DWV_S_DW
         self.state = newState
 
-
     def write(self, data, ifs=('\r', '\n')):
         if self.debug:
             print "ch: write:", canonicalize(data)

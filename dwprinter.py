@@ -38,7 +38,7 @@ class DWPrinter:
             try:
                 self.spoolNum = int(os.path.basename(g[-1]).split('.')[0][len(self.printPrefix):])
                 self.spoolNum += 1
-            except:
+            except BaseException:
                 pass
         return os.path.join(self.printDir, "%s%04d.%s" % (self.printPrefix, self.spoolNum, extension))
 
@@ -54,11 +54,11 @@ class DWPrinter:
                 else:
                     self.source_file_name = tempfile.mktemp(".txt")
                 self.source_file = open(self.source_file_name, "w")
-                #print(
+                # print(
                 #    "Printing: opening print buffer: %s" %
                 #    (self.source_file_name))
             except Exception as ex:
-                print ("Failed to open spool file: %s" % str(ex))
+                print("Failed to open spool file: %s" % str(ex))
                 return
         if data == '\r':
             self.source_file.write('\n')
@@ -69,7 +69,7 @@ class DWPrinter:
             self.lastCr = False
         # XXX: Need to deal with the high-ascii characters properly, this
         # will just dump them
-        elif ord(data) >126:
+        elif ord(data) > 126:
             self.source_file.write('.')
             self.lastCr = False
         else:
@@ -91,7 +91,7 @@ class DWPrinter:
                 printFileName = self._doPrintingPdf()
                 os.unlink(self.source_file_name)
             except Exception as ex:
-                print ("Failed to render pdf: %s" % str(ex))
+                print("Failed to render pdf: %s" % str(ex))
         else:
             #print("Closing Spool File: %s" % (self.source_file_name))
             printFileName = self.source_file_name

@@ -324,7 +324,7 @@ def ReadConfig(args):
                         continue
                     else:
                         v = eval('iargs.%s' % key)
-                        has = defaultConfigValues.has_key(key)
+                        has = key in defaultConfigValues
                         if v and has and v != defaultConfigValues[key]:
                             print(
                                 '%d: rejecting line from config file (D): %s' %
@@ -334,7 +334,7 @@ def ReadConfig(args):
                                 '%d: rejecting line from config file (O): %s' %
                                 (instance, line))
                         else:
-                            #print(
+                            # print(
                             #    '%d: accepting line from config file: %s' %
                             #    (instance, line))
                             exec('iargs.%s = val' % key)
@@ -368,8 +368,8 @@ def CreateServer(args, instance, instances, lock):
         conn.connect()
         conn.run()
     else:
-        print( "Serial Port: %s at %s, RTS/CTS=%s" % (
-            args.port, args.speed, args.rtscts) )
+        print("Serial Port: %s at %s, RTS/CTS=%s" % (
+            args.port, args.speed, args.rtscts))
         conn = DWSerial(args.port, args.speed, rtscts=args.rtscts, debug=args.debug)
         conn.connect()
 
@@ -429,11 +429,11 @@ def StartServer(args, dws):
             if not args.daemon:
                 time.sleep(1)
                 print("")
-                print("*"*40)
+                print("*" * 40)
                 print("* pyDriveWire Server %s" % VERSION)
                 print("*")
                 print("* Enter commands at the prompt")
-                print("*"*40)
+                print("*" * 40)
                 print("")
                 dwr = DWRepl(dws)
         dws.main()

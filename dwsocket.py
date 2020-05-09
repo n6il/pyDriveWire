@@ -126,7 +126,7 @@ class DWSocket(DWIO):
             # print str(e)
             # print "Connection closed"
         if any(ri + wi):
-            self._print("Closing: connection: %s" %  self)
+            self._print("Closing: connection: %s" % self)
             try:
                 # self.conn.shutdown(socket.SHUT_RDWR)
                 self.conn.close()
@@ -213,7 +213,7 @@ class DWSocketListener(DWSocket):
 
             while not self.abort:
                 ri = []
-                #print "select: %s" % fd
+                # print "select: %s" % fd
                 (ri, _, _) = select.select([fd], [], [], 1)
 
                 if any(ri):
@@ -223,7 +223,7 @@ class DWSocketListener(DWSocket):
                         conn = DWSocket(conn=sock, port=self.port, addr=addr)
                         self.connections.append(conn)
                         if self.acceptCb:
-                            self._print("%s: Calling Callback: %s" % (self,self.acceptCb))
+                            self._print("%s: Calling Callback: %s" % (self, self.acceptCb))
                             self.acceptCb(conn)
                     except Exception as ex:
                         print("Listener socket failure, port=%s" % (self.port, str(ex)))
@@ -233,7 +233,6 @@ class DWSocketListener(DWSocket):
         finally:
             self._close()
             self.sock.close()
-
 
     def _close(self):
         self.connected = False

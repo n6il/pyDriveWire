@@ -37,7 +37,7 @@ class DWFile:
         if not self.stream:
             try:
                 self.guessMaxLsn()
-            except:
+            except BaseException:
                 pass
         self.os9Image = False
         self.offset = 0
@@ -89,9 +89,9 @@ class DWFile:
             if self.os9Image:
                 # Let the disk image grow to the os9 partition size + hdb_img size
                 # XXX: Do logic here
-                #if self.maxLsn == self.img_size:
-                #else:
-                self.maxLsn = max(self.maxLsn+hdb_img_sec, self.img_sectors)
+                # if self.maxLsn == self.img_size:
+                # else:
+                self.maxLsn = max(self.maxLsn + hdb_img_sec, self.img_sectors)
             else:
                 # Let the disk image grow to the os9 partition size + hdb_img size
                 self.maxLsn = max([hdb_img_sec, self.img_sectors])
@@ -281,16 +281,16 @@ if __name__ == '__main__':
     f = sys.argv[1]
     dwf = DWFile(f)
     fmt = dwf.fmt
-    print ("Image File Info::")
-    print ("Img File: %s" % dwf.name)
-    print ("Img Total Sectors: %d" % dwf.maxLsn)
-    print (" ")
-    print ("Detected disk format::")
-    print ("%s" % fmt['descr'])
-    print ("Sectors: %d" % fmt['sectors'])
-    print ("Tracks: %d" % fmt['tracks'])
-    print ("Sides: %d" % fmt['sides'])
-    print ("Bytes/Sector: %d" % fmt['bytes'])
+    print("Image File Info::")
+    print("Img File: %s" % dwf.name)
+    print("Img Total Sectors: %d" % dwf.maxLsn)
+    print(" ")
+    print("Detected disk format::")
+    print("%s" % fmt['descr'])
+    print("Sectors: %d" % fmt['sectors'])
+    print("Tracks: %d" % fmt['tracks'])
+    print("Sides: %d" % fmt['sides'])
+    print("Bytes/Sector: %d" % fmt['bytes'])
 
 
 # vim: ts=4 sw=4 sts=4 expandtab
