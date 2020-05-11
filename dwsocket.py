@@ -48,7 +48,7 @@ class DWSocket(DWIO):
             (ri, _, _) = select.select([self.conn.fileno()], [], [], 1)
         except Exception as e:
             print(str(e))
-            raise Exception("Connection closed")
+            raise Exception("%s: _read (1): Connection closed" % self)
             self._close()
         if any(ri):
             # print "dwsocket: reading"
@@ -56,7 +56,7 @@ class DWSocket(DWIO):
         # else:
             # print "dwsocket: waiting"
         if data == '':
-            raise Exception("Connection closed")
+            raise Exception("%s: _read (2): Connection closed" % self)
             self._close()
         # if data:
         # 	print "r",data
@@ -73,7 +73,7 @@ class DWSocket(DWIO):
             (_, wi, _) = select.select([], [self.conn.fileno()], [], 1)
         except Exception as e:
             print(str(e))
-            raise ("Connection closed")
+            raise Exception("%s: _write: Connection closed" % self)
             self._close()
             n = -1
         if any(wi):
@@ -155,10 +155,11 @@ class DWSocket(DWIO):
 
 
 class DWSocketServer(DWSocket):
-    def __init__(self, host='localhost', port=6809, debug=False):
+    def __init__(self, host='localhost', port=6809, debug=False, closedCb=None):
         DWSocket.__init__(self, host=host, port=port, debug=debug)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.bind(('0.0.0.0', self.port))
+        self.closedCb = closedCb
 
     def accept(self):
         while not self.abort:
@@ -186,6 +187,9 @@ class DWSocketServer(DWSocket):
             print(str(e))
             self.conn.close()
             self.conn = None
+            if self.closedCb:
+                print("%s: Calling callback: %s" % (self, self.closedCb))
+                self.closedCb(self)
         return data
 
 
@@ -249,7 +253,8 @@ class DWSimpleSocket:
             port=6809,
             conn=None,
             reconnect=False,
-            debug=False):
+            debug=False,
+            closedCb=None):
         self.host = host
         self.port = int(port)
         self.conn = conn
@@ -262,6 +267,7 @@ class DWSimpleSocket:
             self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         self.reconnect = reconnect
         self.debug = debug
+        self.closedCb = closedCb
 
     def name(self):
         return "%s %s:%s" % (self.__class__, self.host, self.port)
@@ -295,6 +301,9 @@ class DWSimpleSocket:
             while not self.abort and d == '' and self.reconnect:
                 print("socket: %s: Disconnected" % (self))
                 self.close()
+                if self.closedCb:
+                    print("%s: Calling callback: %s" % (self, self.closedCb))
+                    self.closedCb(self)
                 print(
                     "socket: %s: Reconnecting to %s:%s" %
                     (self, self.host, self.port))

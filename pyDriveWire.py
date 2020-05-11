@@ -20,6 +20,8 @@ from daemon import Daemon
 import platform
 import tempfile
 
+from dwconstants import *
+
 VERSION = 'v0.5c'
 
 defaultConfigValues = {
@@ -388,6 +390,8 @@ def CreateServer(args, instance, instances, lock):
     for cmd in cmds:
         print parser.parse(cmd)
 
+    if isinstance(conn, DWSocket) or isinstance(conn, DWSimpleSocket):
+        conn.closedCb = lambda x: dws.cmdInit(OP_INIT)
     return dws
 
 
