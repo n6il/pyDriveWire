@@ -201,11 +201,9 @@ class DWFile:
         fmt = None
         self.file.seek(0)
         hdr = self.file.read(2)
-        print(hdr)
         if hdr != 'dk':
             self.file.seek(0)
             return None
-        print('vdk')
         # Byte Offset 	Description
         # 0, 1 	'd', 'k'
         # 2, 3 	Header size (little-endian)
@@ -241,7 +239,6 @@ class DWFile:
             'descr': fmt_str,
             'offset': self.offset,
                }
-        print(fmt)
         self.file.seek(self.offset)
         return fmt
 
