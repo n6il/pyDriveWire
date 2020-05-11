@@ -271,6 +271,7 @@ class DWParser:
             'Sectors: %d' % fi.img_sectors,
             'MaxLsn: %d' % fi.maxLsn,
             'Format: %s' % fi.fmt,
+            'Offset: %s' % fi.offset,
             'flags: mode=%s, remote=%s stream=%s' % (fi.mode, fi.remote, fi.stream)
         ]
         return '\r\n'.join(out)

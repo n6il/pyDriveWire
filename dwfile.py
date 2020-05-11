@@ -12,6 +12,7 @@ from urllib2 import Request, urlopen
 COCO_SECTOR_SIZE = 256
 COCO_DEFAULT_DISK_SIZE = 630
 COCO_HDBDOS_NUMDISKS = 256
+COCO_SECTORS_PER_TRACK = 18
 
 formats = {
     630: {'sides': 1, 'tracks': 35, 'sectors': 18, 'bytes': COCO_SECTOR_SIZE, 'descr': 'CoCo Standard 160K: Single-Sided, 35 Track, 18-Sectors/Track, 256Byte/Sector Image'},
@@ -25,7 +26,7 @@ formats = {
 
 
 class DWFile:
-    def __init__(self, name, mode='r', typ=None, stream=False):
+    def __init__(self, name, mode='r', typ=None, stream=False, offset=0):
         self.name = name
         self.mode = mode
         self.remote = False
@@ -34,13 +35,13 @@ class DWFile:
             self.fmt['tracks'] * self.fmt['sectors']
         self.stream = stream
         self._doOpen()
+        self.os9Image = False
+        self.offset = offset
         if not self.stream:
             try:
                 self.guessMaxLsn()
             except BaseException:
                 pass
-        self.os9Image = False
-        self.offset = 0
 
     def _delete(self):
         print("Deleting temporary file: %s" % self.file.name)
@@ -72,10 +73,16 @@ class DWFile:
         st = stat(self.file.name)
         self.img_size = st.st_size
         self.img_sectors = self.img_size / COCO_SECTOR_SIZE
-        self.fmt = self._os9Fmt(data)
+        self.fmt = self._vdkFmt()
         if self.fmt:
-            self.os9Image = True
-        else:
+            self.img_sectors -= 1
+            self.offset = 1
+            self.os9Image = False
+        if not self.fmt:
+            self.fmt = self._os9Fmt(data)
+            if self.fmt:
+                self.os9Image = True
+        if not self.fmt:
             # if sectors == 0 and st.st_size > 0:
             #    sectors = COCO_DEFAULT_DISK_SIZE
             self.os9Image = False
@@ -188,6 +195,54 @@ class DWFile:
             'bytes': COCO_SECTOR_SIZE,
             'descr': fmt_str}
         # assert(dd_tot == sectors)
+        return fmt
+
+    def _vdkFmt(self):
+        fmt = None
+        self.file.seek(0)
+        hdr = self.file.read(2)
+        print(hdr)
+        if hdr != 'dk':
+            self.file.seek(0)
+            return None
+        print('vdk')
+        # Byte Offset 	Description
+        # 0, 1 	'd', 'k'
+        # 2, 3 	Header size (little-endian)
+        # 4 	Version of VDK format
+        # 5 	Backwards compatibility version
+        # 6 	Identity of file source
+        # 7 	Version of file source
+        # 8 	Number of tracks
+        # 9 	Number of sides
+        # 10 	Flags
+        # 11 	Compression flags and name length
+        (
+            hsize,
+            vdkVer,
+            compatibility,
+            ident,
+            ver,
+            tracks,
+            sides,
+            flags1,
+            flags2
+            ) = unpack('HBBBBBBBB', self.file.read(10))
+        self.offset = hsize / COCO_SECTOR_SIZE
+        size = (sides * tracks * COCO_SECTORS_PER_TRACK * COCO_SECTOR_SIZE)
+        sizeK = size / 1024
+        fmt_str = "%sK, %d Sides, %d tracks, %d-Sectors/Track, 256Byte/Sector VDK Image" % (
+               sizeK, sides, tracks,  COCO_SECTORS_PER_TRACK )
+        fmt = {
+            'sides': sides,
+            'tracks': tracks,
+            'sectors': COCO_SECTORS_PER_TRACK,
+            'bytes': COCO_SECTOR_SIZE,
+            'descr': fmt_str,
+            'offset': self.offset,
+               }
+        print(fmt)
+        self.file.seek(self.offset)
         return fmt
 
 
