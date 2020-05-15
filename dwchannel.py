@@ -63,7 +63,7 @@ class DWVModem(DWIO):
         self.closingTime = None
 
     def _acceptCb(self, conn):
-        print "%s: accpet callback called" % self
+        print "%s: accept callback called" % self
         n = self.server.registerConn(conn)
         r = "%s %s %s" % (n, conn.port, conn.addr[0])
         reply = r + "\r"  # + r + "\r\n"
