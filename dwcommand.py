@@ -482,11 +482,11 @@ class DWParser:
         elif pr.scheme == 'ssh':
             ssh = True
             if not all([pr.username, pr.password, pr.hostname]):
-                raise Exception('Invalid URI: ssh://<username>:<password>@<hostname[:<port>]')
+                raise Exception('Invalid URI: ssh://<username>:<password>@<hostname>[:<port>]')
             try:
                 int(pr.port)
             except BaseException:
-                raise Exception('Invalid URI: ssh://<username>:<password>@<hostname[:<port>]')
+                raise Exception('Invalid URI: ssh://<username>:<password>@<hostname>[:<port>]')
             if pr.port:
                 hp = "%s:%s" % (pr.hostname, pr.port)
             else:
@@ -498,7 +498,7 @@ class DWParser:
         if ssh:
             p = d2.split(' ')
             if len(p) != 3:
-                raise Exception("Usage: ssh <host>[:<port>] <username> <password>")
+                raise Exception("Usage: ssh <hostname>[:<port>] <username> <password>")
             (hp, username, password) = p
             hpp = hp.split(':')
             host = hpp[0]
@@ -528,11 +528,11 @@ class DWParser:
                 if pr.scheme == 'telnet':
                     raise Exception("Usage: telnet://<hostname>[:<port>]")
                 elif telnet:
-                    raise Exception("Usage: telnet <host> [<port>]")
+                    raise Exception("Usage: telnet <hostname> [<port>]")
                 elif interactive:
-                    raise Exception("Usage: ATD<host>[:<port>]")
+                    raise Exception("Usage: ATD<hostname>[:<port>]")
                 else:
-                    raise Exception("Usage: tcp connect <host> [<port>]")
+                    raise Exception("Usage: tcp connect <hostname> [<port>]")
         try:
             if telnet:
                 sock = DWTelnet(host=host, port=port, debug=self.server.debug)
