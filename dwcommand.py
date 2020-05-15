@@ -218,6 +218,7 @@ class DWParser:
         self.parseTree.add("ui", uiParser)
         self.parseTree.add("mc", mcParser)
         self.parseTree.add("telnet", ParseAction(self.doTelnet))
+        self.parseTree.add("ssh", ParseAction(self.doSsh))
         self.parseTree.add("help", ParseAction(self.ptWalker))
         self.parseTree.add("?", ParseAction(self.ptWalker))
 
@@ -456,33 +457,88 @@ class DWParser:
         # out.append('')
         return '\n\r'.join(out)
 
+    def doSsh(self, data):
+        return self.doConnect(data, ssh=True, interactive=True)
+
     def doTelnet(self, data):
         return self.doConnect(data, telnet=True, interactive=True)
 
     def doDial(self, data):
-        return self.doConnect(data, telnet=False, interactive=True)
+        return self.doConnect(data, telnet=False, ssh=False, interactive=True)
 
-    def doConnect(self, data, telnet=False, interactive=False):
+    def doConnect(self, data, telnet=False, ssh=False, interactive=False):
         pr = urlparse.urlparse(data)
+        args = self.server.args
+        if pr.scheme == 'ssh':
+            ssh = True
+        if ssh:
+            if (not args.experimental) or (args.experimental and 'ssh' not in args.experimental):
+                raise Exception("Ssh is not enabled, use: -x ssh")
+
         if pr.scheme == 'telnet':
             d2 = pr.netloc
             telnet = True
         # elif pr.scheme == '':
+        elif pr.scheme == 'ssh':
+            ssh = True
+            if not all([pr.username, pr.password, pr.hostname]):
+                raise Exception('Invalid URI: ssh://<username>:<password>@<hostname[:<port>]')
+            try:
+                int(pr.port)
+            except BaseException:
+                raise Exception('Invalid URI: ssh://<username>:<password>@<hostname[:<port>]')
+            if pr.port:
+                hp = "%s:%s" % (pr.hostname, pr.port)
+            else:
+                hp = pr.hostname
+            d2 = "%s %s %s" % (hp, pr.username, pr.password)
         else:
             d2 = data
-        r = d2.split(':')
-        if len(r) == 1:
-            r = d2.split(' ')
-        if len(r) == 1:
-            r.append('23')
-        (host, port) = r
-        print "host (%s)" % host
-        print "port (%s)" % port
-        if not host and not port:
-            raise Exception("telnet: Bad Host/Port: %s" % data)
+        host = port = username = password = None
+        if ssh:
+            p = d2.split(' ')
+            if len(p) != 3:
+                raise Exception("Usage: ssh <host>[:<port>] <username> <password>")
+            (hp, username, password) = p
+            hpp = hp.split(':')
+            host = hpp[0]
+            if len(hpp) == 1:
+                port = '22'
+            else:
+                port = hpp[1]
+            print("host (%s)" % host)
+            print("port (%s)" % port)
+            print("username (%s)" % username)
+            l = len(password)
+            print("password (%s)[%d]" % ('*' * l, l))
+        else:
+            r = d2.split(':')
+            if len(r) == 1:
+                r = d2.split(' ')
+            if len(r) == 1:
+                r.append('23')
+            (host, port) = r
+            print "host (%s)" % host
+            print "port (%s)" % port
+            try:
+                int(port)
+            except BaseException:
+                port = None
+            if not host or not port:
+                if pr.scheme == 'telnet':
+                    raise Exception("Usage: telnet://<hostname>[:<port>]")
+                elif telnet:
+                    raise Exception("Usage: telnet <host> [<port>]")
+                elif interactive:
+                    raise Exception("Usage: ATD<host>[:<port>]")
+                else:
+                    raise Exception("Usage: tcp connect <host> [<port>]")
         try:
             if telnet:
                 sock = DWTelnet(host=host, port=port, debug=self.server.debug)
+            elif ssh:
+                from dwssh import DWSsh
+                sock = DWSsh(host, username, password, port=port, debug=self.server.debug)
             else:
                 sock = DWSocket(host=host, port=port, debug=self.server.debug)
             if telnet or interactive:

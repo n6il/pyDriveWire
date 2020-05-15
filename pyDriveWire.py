@@ -195,7 +195,7 @@ def ParseArgs():
 
     # Frozen overrides
     if getattr(sys, 'frozen', False):
-        args.experimental = ['printer']
+        args.experimental = ['printer', 'ssh']
     # print args
     return args
 
