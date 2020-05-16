@@ -6,7 +6,7 @@ from dwlib import canonicalize
 
 
 class DWSsh(DWIO):
-    def __init__(self, host, username, password, port=22, debug=False):
+    def __init__(self, host, username, password, port=22, debug=False, args=None):
         DWIO.__init__(self, threaded=True, debug=debug)
         self.host = host
         self.port = int(port)
@@ -14,6 +14,14 @@ class DWSsh(DWIO):
         self.binding = None
         self.username = username
         self.password = password
+        if args:
+            self.term = args.portTerm
+            self.rows = args.portRows
+            self.cols = args.portCols
+        else:
+            self.term = 'ansi'
+            self.rows = 16
+            self.cols = 32
 
     def isConnected(self):
         return self.conn is not None
@@ -22,7 +30,7 @@ class DWSsh(DWIO):
         client = paramiko.SSHClient()
         client.load_system_host_keys()
         client.connect(self.host, port=self.port, username=self.username, password=self.password)
-        self.conn = client.invoke_shell()
+        self.conn = client.invoke_shell(term=self.term, height=self.rows, width=self.cols)
         self.client = client
         #self.conn = telnetlib.Telnet(self.host, self.port)
         # self.conn.set_option_negotiation_callback(self._negotiate_echo_on)

@@ -113,6 +113,10 @@ class DWParser:
         portParser.add("show", ParseAction(self.doPortShow))
         portParser.add("close", ParseAction(self.doPortClose))
         portParser.add("debug", ParseAction(self.doPortDebug))
+        portParser.add("term", ParseAction(self.doPortTerm))
+        portParser.add("rows", ParseAction(self.doPortRows))
+        portParser.add("cols", ParseAction(self.doPortCols))
+        # portParser.add("size", ParseAction(self.doPortSize)) XXX: Not working
 
         instanceParser = ParseNode("instance")
         instanceParser.add("show", ParseAction(self.doInstanceShow))
@@ -360,6 +364,11 @@ class DWParser:
             out.append("N%d      %s" % (int(ord(i)), connstr))
 
         out.append('')
+        args = self.server.args
+        out.append('Term: %s Rows: %s Cols: %s' % (
+            args.portTerm,
+            args.portRows,
+            args.portCols))
         return '\n\r'.join(out)
 
     def doPortDebug(self, data):
@@ -377,6 +386,96 @@ class DWParser:
         if state.startswith(('0', 'off', 'f', 'F', 'n', 'N')):
             ch.debug = False
         return "Port=N%s debug=%s" % (cn, ch.debug)
+
+    def doPortTerm(self, data):
+        data = data.lstrip().rstrip()
+        args = self.server.args
+        if data:
+            args.portTerm = data
+        return "Terminal Type: %s" % args.portTerm
+
+    def doPortRows(self, data):
+        data = data.lstrip().rstrip()
+        if data:
+            try:
+                int(data)
+            except:
+                raise Exception('Usage: dw port rows <rows>')
+        args = self.server.args
+        if data:
+            args.portRows = int(data)
+        return "Terminal Rows: %s" % args.portRows
+
+    def doPortCols(self, data):
+        data = data.lstrip().rstrip()
+        if data:
+            try:
+                int(data)
+            except:
+                raise Exception('Usage: dw port cols <rows>')
+        args = self.server.args
+        if data:
+            args.portCols = int(data)
+        return "Terminal Cols: %s" % args.portCols
+
+    # XXX: Not working
+    def _doAnsiCPR(self):
+        if not self.conn:
+            return (1,1)
+        print('doAnsiCpr')
+        okChars = '\e0123456789;R['
+        print('send CPR')
+        self.conn.write('\e[6n')
+        s = ''
+        ok = True
+        while ok:
+            c = self.conn.read(1)
+            print('read %s' % c)
+            if c not in okChars:
+                ok = False
+            else:
+                s += c
+                if c =='R':
+                    break
+                ok = True
+        print('ok=%s' % ok)
+        if not ok:
+            return (16,32)
+        (row,col) = s.split(';')
+        row = row[2:]
+        col = col[:-1]
+        return(row, col)
+
+    # XXX: Not working
+    def _doPortDiscoverSize(self):
+        if not self.conn:
+            return(16,32)
+        (oldRow, oldCol) = self._doAnsiCPR()
+        self.conn.write('\e[133;133H')
+        (maxRow, maxCol) = self._doAnsiCPR()
+        self.conn.write('\e%d;%dH' % (oldRow, oldCol))
+        return (maxRow, maxCol)
+
+    # XXX: Not working
+    def doPortSize(self, data):
+        data = data.lstrip().rstrip()
+        args = self.server.args
+        if data:
+            p = data.split(' ')
+            if p[0] == 'auto':
+                args.portSize = p[0]
+            elif len(p) == 2:
+                args.portSize = None
+                args.portRows = int(p[0])
+                args.portCols = int(p[1])
+            elif len(p) > 2:
+                raise Exception('Usage: dw port size auto | <rows> <cols>')
+        if args.portSize == 'auto':
+            (args.portRows, args.portCols) = self._doPortDiscoverSize()
+            msg = 'auto: rows=%d cols=%d' % (args.portRows, args.portCols)
+        elif args.portRows and args.portCols:
+            msg = 'rows=%d cols=%d' % (args.portRows, args.portCols)
+        return "Terminal Size: %s" % msg
 
     def doShow(self, data):
         out = ['', '']
@@ -538,7 +637,14 @@ class DWParser:
                 sock = DWTelnet(host=host, port=port, debug=self.server.debug)
             elif ssh:
                 from dwssh import DWSsh
-                sock = DWSsh(host, username, password, port=port, debug=self.server.debug)
+                args = self.server.args
+                sock = DWSsh(
+                        host,
+                        username,
+                        password,
+                        port=port,
+                        args=self.server.args,
+                        debug=self.server.debug)
             else:
                 sock = DWSocket(host=host, port=port, debug=self.server.debug)
             if telnet or interactive:

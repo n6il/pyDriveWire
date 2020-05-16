@@ -152,6 +152,27 @@ def ParseArgs():
         '--print-cmd',
         dest='printCmd',
         help='Command to run on flushed printer output')
+    port = parser.add_argument_group('port', 'Virtual Serial Port Options')
+    port.add_argument(
+        '--port-term',
+        dest='portTerm',
+        default='ansi',
+        help='Port default TERM, default: %(default)s')
+    port.add_argument(
+        '--port-rows',
+        dest='portRows',
+        default='16',
+        help='Port default rows, default: %(default)s')
+    port.add_argument(
+        '--port-cols',
+        dest='portCols',
+        default='32',
+        help='Port default cols, default: %(default)s')
+    #port.add_argument(
+    #    '--port-size',
+    #    dest='portSize',
+    #    default='auto',
+    #    help='Screen Size: auto or <rows> <cols>, default: %(default)s')
 
     parser.add_argument('files', metavar='FILE', nargs='*',
                         help='list of files')
@@ -303,6 +324,10 @@ def ReadConfig(args):
                 iargs.printPrefix = args.printPrefix
                 iargs.printFile = args.printFile
                 iargs.printCmd = args.printCmd
+                iargs.portTerm = args.portTerm
+                iargs.portSize = portRows
+                iargs.portSize = portCols
+                #iargs.portSize = portSize
                 instances.append(iargs)
                 continue
             lp = line.split(' ')
