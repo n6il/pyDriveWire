@@ -325,8 +325,8 @@ def ReadConfig(args):
                 iargs.printFile = args.printFile
                 iargs.printCmd = args.printCmd
                 iargs.portTerm = args.portTerm
-                iargs.portSize = portRows
-                iargs.portSize = portCols
+                iargs.portSize = args.portRows
+                iargs.portSize = args.portCols
                 #iargs.portSize = portSize
                 instances.append(iargs)
                 continue

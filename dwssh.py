@@ -16,8 +16,8 @@ class DWSsh(DWIO):
         self.password = password
         if args:
             self.term = args.portTerm
-            self.rows = args.portRows
-            self.cols = args.portCols
+            self.rows = int(args.portRows)
+            self.cols = int(args.portCols)
         else:
             self.term = 'ansi'
             self.rows = 16
@@ -29,6 +29,7 @@ class DWSsh(DWIO):
     def connect(self):
         client = paramiko.SSHClient()
         client.load_system_host_keys()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         client.connect(self.host, port=self.port, username=self.username, password=self.password)
         self.conn = client.invoke_shell(term=self.term, height=self.rows, width=self.cols)
         self.client = client
