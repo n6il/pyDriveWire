@@ -57,7 +57,7 @@ class DWServer:
         print(
             '%s: disk=%d file=%s stream=%s mode=%s' %
             ('Created' if create else 'Opened', disk, fileName, stream, mode))
-        self.files[disk].file.seek(0)
+        self.files[disk].seek(0)
         self.files[disk].hdbdos = self.hdbdos
 
     def close(self, disk):
@@ -116,7 +116,7 @@ class DWServer:
                     lsn = lsn - (disk * 630)
                 else:
                     lsn += self.files[disk].offset
-                self.files[disk].file.seek(lsn * SECSIZ)
+                self.files[disk].seek(lsn * SECSIZ)
                 assert(self.files[disk].file.tell() == (lsn * SECSIZ))
             except BaseException:
                 raise
@@ -170,7 +170,7 @@ class DWServer:
                     flags += "H"
                 else:
                     lsn += self.files[disk].offset
-                self.files[disk].file.seek(lsn * SECSIZ)
+                self.files[disk].seek(lsn * SECSIZ)
                 assert(self.files[disk].file.tell() == (lsn * SECSIZ))
             except BaseException:
                 rc = E_SEEK
@@ -265,7 +265,7 @@ class DWServer:
                     flags += "H"
                 else:
                     lsn += self.files[disk].offset
-                self.files[disk].file.seek(lsn * SECSIZ)
+                self.files[disk].seek(lsn * SECSIZ)
             except BaseException:
                 traceback.print_exc()
                 rc = E_SEEK

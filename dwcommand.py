@@ -277,6 +277,7 @@ class DWParser:
             'MaxLsn: %d' % fi.maxLsn,
             'Format: %s' % fi.fmt,
             'Offset: %s' % fi.offset,
+            'Byte Offset: %s' % fi.byte_offset,
             'flags: mode=%s, remote=%s stream=%s' % (fi.mode, fi.remote, fi.stream)
         ]
         return '\r\n'.join(out)

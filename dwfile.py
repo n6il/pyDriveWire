@@ -37,6 +37,7 @@ class DWFile:
         self._doOpen()
         self.os9Image = False
         self.offset = offset
+        self.byte_offset = 0
         if not self.stream:
             try:
                 self.guessMaxLsn()
@@ -76,17 +77,28 @@ class DWFile:
         self.fmt = self._vdkFmt()
         if self.fmt:
             self.img_sectors -= 1
-            self.offset = 1
             self.os9Image = False
         if not self.fmt:
-            self.fmt = self._os9Fmt(data)
+            self.fmt = self._jvcFmt()
             if self.fmt:
-                self.os9Image = True
-        if not self.fmt:
+                self.img_size = (self.fmt['sides'] * self.fmt['tracks'] * self.fmt['sectors'] * self.fmt['bytes'])
+                self.os9Image = False
+
+        fmt = None
+        fmt = self._os9Fmt(data)
+        if fmt:
+            if self.fmt:
+                fmt.byte_offset = self.fmt['byte_offset']
+            self.fmt = fmt
+            self.os9Image = True
+        if not fmt:
             # if sectors == 0 and st.st_size > 0:
             #    sectors = COCO_DEFAULT_DISK_SIZE
+            fmt = self._fmtSearch(self.img_sectors)
+            if self.fmt:
+                fmt.byte_offset = self.fmt['byte_offset']
+            self.fmt = fmt
             self.os9Image = False
-            self.fmt = self._fmtSearch(self.img_sectors)
 
         self.maxLsn = self.fmt['sides'] * \
             self.fmt['tracks'] * self.fmt['sectors']
@@ -226,7 +238,7 @@ class DWFile:
             flags1,
             flags2
             ) = unpack('HBBBBBBBB', self.file.read(10))
-        self.offset = hsize / COCO_SECTOR_SIZE
+        self.byte_offset = hsize
         size = (sides * tracks * COCO_SECTORS_PER_TRACK * COCO_SECTOR_SIZE)
         sizeK = size / 1024
         fmt_str = "%sK, %d Sides, %d tracks, %d-Sectors/Track, 256Byte/Sector VDK Image" % (
@@ -237,11 +249,85 @@ class DWFile:
             'sectors': COCO_SECTORS_PER_TRACK,
             'bytes': COCO_SECTOR_SIZE,
             'descr': fmt_str,
-            'offset': self.offset,
                }
-        self.file.seek(self.offset)
+        self.file.seek(self.byte_offset)
         return fmt
 
+    def _jvcFmt(self):
+        fmt = None
+        xtrabytes = self.img_size - (self.img_sectors * COCO_SECTOR_SIZE)
+        if xtrabytes <= 0:
+            return fmt
+        self.byte_offset = xtrabytes
+        img_realsize = self.img_size - xtrabytes
+
+        spt = 18
+        sides = 1
+        ssizc = 1
+        fsec = 1
+        flags = 0
+        self.file.seek(0)
+        print(xtrabytes)
+        if xtrabytes:
+            spt = int(unpack(">B", self.file.read(1))[0])
+            xtrabytes -= 1
+        print(xtrabytes)
+        if xtrabytes:
+            sides = int(unpack(">B", self.file.read(1))[0])
+            xtrabytes -= 1
+        print(xtrabytes)
+        if xtrabytes:
+            ssizc = int(unpack(">B", self.file.read(1))[0])
+            xtrabytes -= 1
+        print(xtrabytes)
+        if xtrabytes:
+            fsec = int(unpack(">B", self.file.read(1))[0])
+            xtrabytes -= 1
+        print(xtrabytes)
+        if xtrabytes:
+            flags = int(unpack(">B", self.file.read(1))[0])
+            xtrabytes -= 1
+
+        ssize = 128 * (2**ssizc)
+        tracks = img_realsize / ssize / sides / spt
+        size = (sides * tracks * spt * ssize)
+        sizeK = size / 1024
+        fmt_str = "%sK, %d Sides, %d tracks, %d-Sectors/Track, %sByte/Sector JVC Image" % (
+               sizeK, sides, tracks,  spt , ssize)
+        fmt = {
+            'sides': sides,
+            'tracks': tracks,
+            'sectors': spt,
+            'bytes': ssize,
+            'descr': fmt_str,
+               }
+        self.file.seek(self.byte_offset)
+        return fmt
+
+
+    def seek(self, pos):
+        if self.fmt:
+            sbytes = pos * self.fmt['bytes']
+        else:
+            sbytes = pos * COCO_SECTOR_SIZE
+        if self.byte_offset:
+            self.file.seek(self.byte_offset + pos)
+        elif self.offset:
+            self.file.seek((self.offset * sbytes) + pos)
+        else:
+            self.file.seek(pos)
+
+    def tell(self):
+        pos = self.file.tell()
+        if self.fmt:
+            sbytes = self.fmt['bytes']
+        else:
+            sbytes = COCO_SECTOR_SIZE
+        if self.byte_offset:
+            pos += self.byte_offset
+        elif self.offset:
+            pos += self.offset * sbytes
+        return pos
 
 class MlFileReader:
 
