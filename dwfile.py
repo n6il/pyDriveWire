@@ -74,29 +74,32 @@ class DWFile:
         st = stat(self.file.name)
         self.img_size = st.st_size
         self.img_sectors = self.img_size / COCO_SECTOR_SIZE
-        self.fmt = self._vdkFmt()
-        if self.fmt:
+        self.fmt = None
+        fmt = self._vdkFmt()
+        if fmt:
+            self.fmt = fmt
             self.img_sectors -= 1
             self.os9Image = False
         if not self.fmt:
-            self.fmt = self._jvcFmt()
-            if self.fmt:
+            fmt = self._jvcFmt()
+            if fmt:
+                self.fmt = fmt
                 self.img_size = (self.fmt['sides'] * self.fmt['tracks'] * self.fmt['sectors'] * self.fmt['bytes'])
                 self.os9Image = False
 
-        fmt = None
-        fmt = self._os9Fmt(data)
-        if fmt:
-            if self.fmt:
-                fmt.byte_offset = self.fmt['byte_offset']
-            self.fmt = fmt
-            self.os9Image = True
-        if not fmt:
+        if not self.fmt:
+            fmt = self._os9Fmt(data)
+            if fmt:
+                #if self.fmt:
+                #    fmt.byte_offset = self.fmt['byte_offset']
+                self.fmt = fmt
+                self.os9Image = True
+        if not self.fmt:
             # if sectors == 0 and st.st_size > 0:
             #    sectors = COCO_DEFAULT_DISK_SIZE
             fmt = self._fmtSearch(self.img_sectors)
-            if self.fmt:
-                fmt.byte_offset = self.fmt['byte_offset']
+            #if self.fmt:
+                #fmt.byte_offset = self.fmt['byte_offset']
             self.fmt = fmt
             self.os9Image = False
 
@@ -267,23 +270,18 @@ class DWFile:
         fsec = 1
         flags = 0
         self.file.seek(0)
-        print(xtrabytes)
         if xtrabytes:
             spt = int(unpack(">B", self.file.read(1))[0])
             xtrabytes -= 1
-        print(xtrabytes)
         if xtrabytes:
             sides = int(unpack(">B", self.file.read(1))[0])
             xtrabytes -= 1
-        print(xtrabytes)
         if xtrabytes:
             ssizc = int(unpack(">B", self.file.read(1))[0])
             xtrabytes -= 1
-        print(xtrabytes)
         if xtrabytes:
             fsec = int(unpack(">B", self.file.read(1))[0])
             xtrabytes -= 1
-        print(xtrabytes)
         if xtrabytes:
             flags = int(unpack(">B", self.file.read(1))[0])
             xtrabytes -= 1
@@ -302,6 +300,7 @@ class DWFile:
             'descr': fmt_str,
                }
         self.file.seek(self.byte_offset)
+        print fmt
         return fmt
 
 
@@ -324,9 +323,9 @@ class DWFile:
         else:
             sbytes = COCO_SECTOR_SIZE
         if self.byte_offset:
-            pos += self.byte_offset
-        elif self.offset:
-            pos += self.offset * sbytes
+            pos -= self.byte_offset
+        if self.offset:
+            pos -= self.offset * sbytes
         return pos
 
 class MlFileReader:

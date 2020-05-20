@@ -117,7 +117,7 @@ class DWServer:
                 else:
                     lsn += self.files[disk].offset
                 self.files[disk].seek(lsn * SECSIZ)
-                assert(self.files[disk].file.tell() == (lsn * SECSIZ))
+                assert(self.files[disk].tell() == (lsn * SECSIZ))
             except BaseException:
                 raise
                 rc = E_SEEK
@@ -171,7 +171,7 @@ class DWServer:
                 else:
                     lsn += self.files[disk].offset
                 self.files[disk].seek(lsn * SECSIZ)
-                assert(self.files[disk].file.tell() == (lsn * SECSIZ))
+                assert(self.files[disk].tell() == (lsn * SECSIZ))
             except BaseException:
                 rc = E_SEEK
                 # print "   rc=%d" % rc
