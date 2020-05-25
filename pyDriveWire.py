@@ -547,7 +547,7 @@ if __name__ == '__main__':
         daemon.start()
         pid = daemon.getPid()
         status = daemon.getStatus()
-        print "pyDriveWire Server %s status:%s" % (pidMsg, status)
+        print "pyDriveWire Server pid:%s status:%s" % (pid, status)
         sys.path.stdout.flush()
         sys.exit(0)
     else:
