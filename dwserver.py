@@ -32,6 +32,8 @@ class DWServer:
                 print("DWServer: Enabling experimental printing support")
                 from dwprinter import DWPrinter
                 self.vprinter = DWPrinter(args)
+            if 'ssh' in args.experimental:
+                print("DWServer: Enabling experimental ssh support")
         self.emCeeAliases = {}
         self.instances = instances
         self.instance = instance

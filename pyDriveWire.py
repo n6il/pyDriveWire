@@ -334,7 +334,7 @@ def ReadConfig(args):
             if lp[0].lower() == 'option':
                 # args[lp[1]] = lp[2]
                 key = lp[1]
-                val = lp[2]
+                val = ' '.join(lp[2:])
                 if val in ['True', 'False']:
                     val = eval(val)
                 if key == 'debug':
@@ -349,6 +349,13 @@ def ReadConfig(args):
                             '%d: rejecting line from config file (R): %s' %
                             (instance, line))
                         continue
+                    elif key == 'experimental':
+                        if iargs.experimental is None:
+                            iargs.experimental = []
+                        ts = set(iargs.experimental)
+                        ts.add(val)
+                        iargs.experimental = list(ts)
+                        print('Adding %s to experimental args' % val)
                     else:
                         v = eval('iargs.%s' % key)
                         has = key in defaultConfigValues
