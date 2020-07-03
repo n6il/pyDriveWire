@@ -94,5 +94,25 @@ E_MC_AO = 52
 E_MC_NO = 54
 E_MC_DS = 56
 
-
+# DLOAD Constants
+# 1.  P.ACK - Acknowledge - C8 hex.
+DLOAD_P_ACK = chr(0xC8)
+# 2.  P.ABRT - Abort - BC hex.
+DLOAD_P_ABRT = chr(0xBC)
+# 3.  P.BLKR - Block request - 97 hex.
+DLOAD_P_BLKR = chr(0x97)
+# 4.  P.FILR - File request - 8A hex.
+DLOAD_P_FILR = chr(0x8A)
+# 5.  P.NAK - Negative Acknowledge - DE hex.
+DLOAD_P_NAK = chr(0xDE)
+#
+# DLOAD File Types
+DLOAD_FT_BASIC = chr(0x00)
+DLOAD_FT_ML = chr(0x02)
+DLOAD_FT_FNF = chr(0xFF)
+# DLOAD Ascii Flag
+DLOAD_AF_ASCII = chr(0xFF)
+DLOAD_AF_BIN = chr(0x0)
+# 
+DLOAD_BLOCK_SIZE = 128
 # vim: ts=4 sw=4 sts=4 expandtab

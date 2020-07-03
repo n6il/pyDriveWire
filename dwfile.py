@@ -26,7 +26,7 @@ formats = {
 
 
 class DWFile:
-    def __init__(self, name, mode='r', typ=None, stream=False, offset=0):
+    def __init__(self, name, mode='r', typ=None, stream=False, offset=0, raw=False):
         self.name = name
         self.mode = mode
         self.remote = False
@@ -38,6 +38,7 @@ class DWFile:
         self.os9Image = False
         self.offset = offset
         self.byte_offset = 0
+        self.raw = raw
         if not self.stream:
             try:
                 self.guessMaxLsn()
@@ -73,6 +74,8 @@ class DWFile:
     def guessMaxLsn(self, data=None):
         st = stat(self.file.name)
         self.img_size = st.st_size
+        if self.raw:
+            return
         self.img_sectors = self.img_size / COCO_SECTOR_SIZE
         self.fmt = None
         fmt = self._vdkFmt()

@@ -215,12 +215,18 @@ class DWParser:
         mcParser.add("show", ParseAction(self.doShow))
         mcParser.add("eject", ParseAction(self.doEject))
 
+        dloadParser = ParseNode("dload")
+        dloadParser.add("status", ParseAction(self.doDloadStatus))
+        dloadParser.add("enable", ParseAction(self.doDloadEnable))
+        dloadParser.add("disable", ParseAction(self.doDloadDisable))
+
         self.parseTree = ParseNode("")
         self.parseTree.add("dw", dwParser)
         self.parseTree.add("tcp", tcpParser)
         self.parseTree.add("AT", atParser)
         self.parseTree.add("ui", uiParser)
         self.parseTree.add("mc", mcParser)
+        self.parseTree.add("dload", dloadParser)
         self.parseTree.add("telnet", ParseAction(self.doTelnet))
         self.parseTree.add("ssh", ParseAction(self.doSsh))
         self.parseTree.add("help", ParseAction(self.ptWalker))
@@ -957,6 +963,21 @@ class DWParser:
                 # print nl
             return nl
         return '\r\n'.join(walkPt(self.parseTree))
+
+    def doDloadStatus(self, data):
+        if self.server.dload:
+            msg = 'DLOAD Enabled'
+        else:
+            msg = 'DLOAD Disabled'
+        return(msg)
+
+    def doDloadEnable(self, data):
+        self.server.dload = True
+        return('DLOAD Enabled')
+
+    def doDloadDisable(self, data):
+        self.server.dload = True
+        return('DLOAD Disabled')
 
     def parse(self, data, interact=False):
         data = data.lstrip().strip()

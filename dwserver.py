@@ -8,6 +8,7 @@ from dwconstants import *
 from dwchannel import *
 from dwfile import DWFile
 from dwutil import *
+from dwlib import canonicalize
 
 from cococas import *
 
@@ -40,6 +41,7 @@ class DWServer:
         self.hdbdos = args.hdbdos
         self.offset = eval(args.offset)
         self.args = args
+        self.dload = False
 
     def registerConn(self, conn):
         n = None
@@ -54,13 +56,17 @@ class DWServer:
         self.connections[si] = conn
         return si
 
-    def open(self, disk, fileName, stream=False, mode="rb+", create=False):
-        self.files[disk] = DWFile(fileName, mode, stream=stream, offset=self.offset)
+    def open(self, disk, fileName, stream=False, mode="rb+", create=False, offset=None, hdbdos=None, raw=False):
+        if offset is None:
+            offset = self.offset
+        if hdbdos is None:
+            offset = self.hdbdos
+        self.files[disk] = DWFile(fileName, mode, stream=stream, offset=offset, raw=raw)
         print(
             '%s: disk=%d file=%s stream=%s mode=%s' %
             ('Created' if create else 'Opened', disk, fileName, stream, mode))
         self.files[disk].seek(0)
-        self.files[disk].hdbdos = self.hdbdos
+        self.files[disk].hdbdos = hdbdos
 
     def close(self, disk):
         d = self.files[disk]
@@ -978,6 +984,163 @@ class DWServer:
                 f = lambda s, x: DWServer.cmdEmCeeErr(s, x)
             f(self, mccmd)
 
+    # DLOAD Commands
+    def _dloadFindFile(self, fn):
+        ftype = DLOAD_FT_FNF
+        aflag = DLOAD_AF_ASCII 
+        if os.path.exists(fn):
+            # XXX: alias lookup table
+            with open(fn) as f:
+                fb = f.read(1)
+                if fb == '\x00':
+                    ftype = DLOAD_FT_ML
+                    aflag = DLOAD_AF_BIN
+                else:
+                    ftype = DLOAD_FT_BASIC
+                    aflag = DLOAD_AF_ASCII
+
+        return(ftype, aflag)
+
+    # DLOAD Open File
+    def dloadFileReq(self, cmd):
+        # 2.  Host to BASIC - P.FILR
+        self.conn.write(DLOAD_P_FILR)
+
+        # 3.  BASIC to host - 
+        #    1.  8 byte filename, left justified, blank filled
+        #    2.  XOR of the bytes in the filename
+        data = self.conn.read(9)
+        fn = data[:8]
+        xb = data[8]
+
+        # Check XOR byte
+        #     4.  Host to BASIC -
+        #         a) If no errors detected -
+        #         1.  P.ACK
+        #         b) If errors detected, P.NAK.
+        if xb == dloadXor(fn):
+            rc = DLOAD_P_ACK
+        else:
+            rc = DLOAD_P_NAK
+        self.conn.write(rc)
+
+
+        #     4.  Host to BASIC -
+        #         a) If no errors detected -
+        if rc == DLOAD_P_ACK:
+            #         2.  file type (0=BASIC program, 2=machine language,
+            #             FF=file not found)
+            #         3.  ASCII flag (0=binary file, FF=ASCII)
+            fn = fn.strip()
+            (ftype, aflag) = self._dloadFindFile(fn)
+            data = pack('>ss', ftype, aflag)
+
+            # 4.  XOR of file type and ASCII flag.
+            xb = dloadXor(data)
+
+            data = pack('>2ss', data, xb)
+            self.conn.write(data)
+
+            if ftype != DLOAD_FT_FNF:
+                self.open(0, fn, mode='r', offset=0, hdbdos=False, raw=True)
+        
+
+        if self.debug:
+            msg = "dloadFileReq: rc=%x" % (ord(rc))
+            if rc == DLOAD_P_ACK:
+                msg = "%s fn=%s ftype=%x ascii=%x" % (msg, fn, ord(ftype), ord(aflag))
+            print(msg)
+
+    def dloadBlockReq(self, cmd):
+        # 2.  Host to BASIC - P.BLKR
+        self.conn.write(DLOAD_P_BLKR)
+
+        # 3.  BASIC to host -
+        #    1.  Block number (most significant 7 bits)
+        #    2.  Block number (least significant 7 bits)
+        #    3.  XOR of block number bytes
+        data = self.conn.read(3)
+        (blkmsb, blklsb, xb) = unpack('>BBc', data)
+
+        # 4.  Host to BASIC -
+        #    a) If no errors detected -
+        #        1.  P.ACK
+        #    b) If errors detected, P.NAK.
+        # Check XOR BYTE
+        rc = DLOAD_P_ACK
+        xb2 = dloadXor(data[:2])
+        if dloadXor(data[:2]) != xb:
+            print(1, ord(xb), ord(xb2))
+            rc = DLOAD_P_NAK
+
+        # Check legal block requested
+        eof = False
+        if rc == DLOAD_P_ACK:
+            # combine MSB and LSB into single 14-bit block number
+            blk = (blkmsb << DLOAD_MSB_SHIFT) | blklsb
+            # File offset
+            offset = blk * DLOAD_BLOCK_SIZE
+            img_size = self.files[0].img_size
+            if offset > img_size:
+                eof = True
+                #print(2)
+                #rc = DLOAD_P_NAK
+
+        # write status
+        self.conn.write(rc)
+
+        # Continue
+        # 4.  Host to BASIC -
+        #    a) If no errors detected -
+        #        2.  Block  length  in  bytes  (0  through  128,   0
+        #            indicating end of file)
+        #        3.  128 bytes of data
+        #        4.  XOR of block length and data bytes
+
+        # NOTE: 128  bytes  of  data  must   be   sent,
+        # regardless of the block length.  If the
+        # block length is less than 128 the extra
+        # bytes  are  read by BASIC but not used,
+        # so their values are of no concern.
+        if rc == DLOAD_P_ACK:
+            if eof:
+                # eof - empty data
+                fdata = ''
+            else:
+                self.files[0].file.seek(offset)
+                fdata = self.files[0].file.read(DLOAD_BLOCK_SIZE)
+            # data length
+            dl = len(fdata)
+            # pad data to 128 bytes
+            if dl < DLOAD_BLOCK_SIZE:
+                fdata = fdata.ljust(DLOAD_BLOCK_SIZE, '\x00')
+            data = '%s%s'% (chr(dl), fdata)
+            # Calculate XOR check byte
+            xb = dloadXor(data)
+            data = '%s%s'% (data, xb)
+            self.conn.write(data)
+
+        if self.debug:
+            msg = "dloadBlockReq: rc=%x" % (ord(rc))
+            if rc == DLOAD_P_ACK:
+                msg = "%s blk=%d len=%d" % (msg, blk, dl)
+                if eof:
+                    msg = '%s EOF' % (msg)
+            print(msg)
+
+    def dloadErr(self, cmd):
+        rc = DLOAD_P_NAK
+        self.conn.write(rc)
+        if self.debug:
+            print("dloadErr: rc=%x" % (ord(rc)))
+
+    # DLOAD Command jump table
+    dloadcommand = {
+            DLOAD_P_FILR: dloadFileReq,
+            DLOAD_P_BLKR: dloadBlockReq,
+    }
+
+
     # DriveWire Command jump table
     dwcommand = {
         OP_NOP: cmdNop,
@@ -1026,10 +1189,16 @@ class DWServer:
         while True:
             cmd = self.conn.read(1)
             if cmd:
-                try:
-                    f = DWServer.dwcommand[cmd]
-                except KeyError:
-                    f = lambda s, x: DWServer.cmdErr(s, x)
+                if self.dload:
+                    try:
+                        f = DWServer.dloadcommand[cmd]
+                    except KeyError:
+                        f = lambda s, x: DWServer.dloadErr(s, x)
+                else:
+                    try:
+                        f = DWServer.dwcommand[cmd]
+                    except KeyError:
+                        f = lambda s, x: DWServer.cmdErr(s, x)
                 f(self, cmd)
 
 
