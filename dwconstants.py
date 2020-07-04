@@ -115,4 +115,6 @@ DLOAD_AF_ASCII = chr(0xFF)
 DLOAD_AF_BIN = chr(0x0)
 # 
 DLOAD_BLOCK_SIZE = 128
+# 
+DLOAD_MSB_SHIFT = 7
 # vim: ts=4 sw=4 sts=4 expandtab
