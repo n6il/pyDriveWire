@@ -8,6 +8,7 @@ import sys
 import re
 import urlparse
 import tempfile
+from dwserial import DWSerial
 
 
 class ParseNode:
@@ -216,9 +217,12 @@ class DWParser:
         mcParser.add("eject", ParseAction(self.doEject))
 
         dloadParser = ParseNode("dload")
+        dloadParser.add("alias", aliasParser)
         dloadParser.add("status", ParseAction(self.doDloadStatus))
         dloadParser.add("enable", ParseAction(self.doDloadEnable))
         dloadParser.add("disable", ParseAction(self.doDloadDisable))
+        dloadParser.add("setdir", ParseAction(self.doMcSetDir))
+        dloadParser.add("getdir", ParseAction(self.doMcGetDir))
 
         self.parseTree = ParseNode("")
         self.parseTree.add("dw", dwParser)
@@ -965,19 +969,44 @@ class DWParser:
         return '\r\n'.join(walkPt(self.parseTree))
 
     def doDloadStatus(self, data):
-        if self.server.dload:
-            msg = 'DLOAD Enabled'
+        msg = []
+        server = self.server
+        if server.dload:
+            msg.append('DLOAD Enabled')
+            if isinstance(server.conn, DWSerial):
+                msg.append('DLOAD Speed: %s' % (server.args.dloadSpeed))
         else:
-            msg = 'DLOAD Disabled'
-        return(msg)
+            msg.append('DLOAD Disabled')
+        return('\r\n'.join(msg))
 
     def doDloadEnable(self, data):
-        self.server.dload = True
-        return('DLOAD Enabled')
+        msg = []
+        server = self.server
+        server.dload = True
+        if data:
+            server.args.dloadSpeed = data
+        baud = server.args.dloadSpeed
+        if isinstance(server.conn, DWSerial):
+            msg.append('Setting DLOAD baud rate to %s' % (baud))
+            server.conn.ser.apply_settings(
+                    { 'baudrate': int(baud) })
+
+        msg.append('DLOAD Enabled')
+        return('\r\n'.join(msg))
 
     def doDloadDisable(self, data):
-        self.server.dload = True
-        return('DLOAD Disabled')
+        msg = []
+        server = self.server
+        server.dload = False
+        if isinstance(server.conn, DWSerial):
+            baud = server.args.speed
+            msg.append('Setting DriveWire baud rate to %s' % (baud))
+            server.conn.ser.apply_settings(
+                    { 'baudrate': int(baud) })
+
+        msg.append('DLOAD Disabled')
+        return('\r\n'.join(msg))
+
 
     def parse(self, data, interact=False):
         data = data.lstrip().strip()

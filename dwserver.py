@@ -989,7 +989,6 @@ class DWServer:
         ftype = DLOAD_FT_FNF
         aflag = DLOAD_AF_ASCII 
         if os.path.exists(fn):
-            # XXX: alias lookup table
             with open(fn) as f:
                 fb = f.read(1)
                 if fb == '\x00':
@@ -1032,6 +1031,10 @@ class DWServer:
             #             FF=file not found)
             #         3.  ASCII flag (0=binary file, FF=ASCII)
             fn = fn.strip()
+            fn2 = self.emCeeAliases.get(fn.upper(), fn)
+            if fn2 != fn:
+                print('Alias: %s -> %s' % (fn, fn2))
+                fn = fn2
             (ftype, aflag) = self._dloadFindFile(fn)
             data = pack('>ss', ftype, aflag)
 

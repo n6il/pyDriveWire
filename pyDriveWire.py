@@ -30,6 +30,7 @@ defaultConfigValues = {
     'printFormat': 'pdf',
     'printDir': '/tmp' if platform.system() == 'Darwin' else tempfile.gettempdir(),
     'printPrefix': 'cocoprints',
+    'dloadSpeed': '300',
 }
 
 
@@ -173,6 +174,17 @@ def ParseArgs():
     #    dest='portSize',
     #    default='auto',
     #    help='Screen Size: auto or <rows> <cols>, default: %(default)s')
+    dload = parser.add_argument_group('dload', 'DLOAD Options')
+    port.add_argument(
+        '--dload-speed',
+        dest='dloadSpeed',
+        default=defaultConfigValues['dloadSpeed'],
+        help='DLOAD Serial port speed, default: %(default)s')
+    port.add_argument(
+        '--dload-enable',
+        action='store_true',
+        dest='dloadEnable',
+        help='Enable DLOAD protocol')
 
     parser.add_argument('files', metavar='FILE', nargs='*',
                         help='list of files')
@@ -328,6 +340,9 @@ def ReadConfig(args):
                 iargs.portSize = args.portRows
                 iargs.portSize = args.portCols
                 #iargs.portSize = portSize
+                iargs.dloadSpeed = args.dloadSpeed
+                # iargs.dloadEnable = args.dloadEnable
+                iargs.dloadEnable = False
                 instances.append(iargs)
                 continue
             lp = line.split(' ')
@@ -418,6 +433,8 @@ def CreateServer(args, instance, instances, lock):
         cmds += ['dw server debug 1']
     if args.debug == 2:
         cmds += ['dw server conn debug 1']
+    if args.dloadEnable:
+        cmds += ['dload enable']
     cmds += args.cmds
     for cmd in cmds:
         print parser.parse(cmd)
