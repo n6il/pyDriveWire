@@ -922,6 +922,8 @@ class DWParser:
                 v = server.debug
             elif k == 'offset' and v == '0':
                 v = None
+            if server.dload:
+                out += ['option dloadEnable True']
             if v not in [None, False]:
                 out += ["option %s %s" % (k, v)]
         i = 0
@@ -929,6 +931,8 @@ class DWParser:
             if d:
                 out += ["dw disk insert %d %s" % (i, d.name)]
             i += 1
+        for k in server.emCeeAliases:
+            out += ["mc alias add %s %s" % (k, server.emCeeAliases[k])]
         return out
 
     def genConfig(self):
