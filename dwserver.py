@@ -3,6 +3,7 @@ from struct import *
 from ctypes import *
 import traceback
 import os
+import re
 
 from dwconstants import *
 from dwchannel import *
@@ -56,12 +57,12 @@ class DWServer:
         self.connections[si] = conn
         return si
 
-    def open(self, disk, fileName, stream=False, mode="rb+", create=False, offset=None, hdbdos=None, raw=False):
+    def open(self, disk, fileName, stream=False, mode="rb+", create=False, offset=None, hdbdos=None, raw=False, eolxlate=False):
         if offset is None:
             offset = self.offset
         if hdbdos is None:
             offset = self.hdbdos
-        self.files[disk] = DWFile(fileName, mode, stream=stream, offset=offset, raw=raw)
+        self.files[disk] = DWFile(fileName, mode, stream=stream, offset=offset, raw=raw, eolxlate=eolxlate)
         print(
             '%s: disk=%d file=%s stream=%s mode=%s' %
             ('Created' if create else 'Opened', disk, fileName, stream, mode))
@@ -1045,7 +1046,13 @@ class DWServer:
             self.conn.write(data)
 
             if ftype != DLOAD_FT_FNF:
-                self.open(0, fn, mode='r', offset=0, hdbdos=False, raw=True)
+                if aflag == DLOAD_AF_ASCII:
+                    eolxlate = self.args.dloadTranslate
+                else:
+                    eolxlate = False
+                self.open(0, fn, mode='r', offset=0, hdbdos=False, raw=True, eolxlate=eolxlate)
+                self.files[0].ftype = ftype
+                self.files[0].ftype = aflag
         
 
         if self.debug:

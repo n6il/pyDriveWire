@@ -223,6 +223,7 @@ class DWParser:
         dloadParser.add("disable", ParseAction(self.doDloadDisable))
         dloadParser.add("setdir", ParseAction(self.doMcSetDir))
         dloadParser.add("getdir", ParseAction(self.doMcGetDir))
+        dloadParser.add("translate", ParseAction(self.doDloadTranslate))
 
         self.parseTree = ParseNode("")
         self.parseTree.add("dw", dwParser)
@@ -975,12 +976,17 @@ class DWParser:
     def doDloadStatus(self, data):
         msg = []
         server = self.server
+        args = server.args
         if server.dload:
             msg.append('DLOAD Enabled')
             if isinstance(server.conn, DWSerial):
                 msg.append('DLOAD Speed: %s' % (server.args.dloadSpeed))
         else:
             msg.append('DLOAD Disabled')
+        if args.dloadTranslate:
+                msg.append('EOL Translation Enabled')
+        else:
+                msg.append('EOL Translation Disabled')
         return('\r\n'.join(msg))
 
     def doDloadEnable(self, data):
@@ -1010,6 +1016,14 @@ class DWParser:
 
         msg.append('DLOAD Disabled')
         return('\r\n'.join(msg))
+
+    def doDloadTranslate(self, data):
+        args = self.server.args
+        if data.lower() in ['1', 'on', 'true', 'yes']:
+            args.dloadTranslate = True
+        elif data.lower() in ['0', 'off', 'false', 'no']:
+            args.dloadTranslate = False
+        return "dloadTranslate=%s" % (args.dloadTranslate)
 
 
     def parse(self, data, interact=False):
@@ -1046,6 +1060,7 @@ class DWParser:
                 try:
                     res = v.call(callData)
                 except Exception as ex:
+                    raise
                     if interact:
                         raise
                     res = "FAIL %s" % str(ex)

@@ -8,6 +8,7 @@ import tempfile
 import urllib
 from urlparse import urlparse
 from urllib2 import Request, urlopen
+import re
 
 COCO_SECTOR_SIZE = 256
 COCO_DEFAULT_DISK_SIZE = 630
@@ -26,7 +27,7 @@ formats = {
 
 
 class DWFile:
-    def __init__(self, name, mode='r', typ=None, stream=False, offset=0, raw=False):
+    def __init__(self, name, mode='r', typ=None, stream=False, offset=0, raw=False, eolxlate=False):
         self.name = name
         self.mode = mode
         self.remote = False
@@ -34,11 +35,12 @@ class DWFile:
         self.maxLsn = self.fmt['sides'] * \
             self.fmt['tracks'] * self.fmt['sectors']
         self.stream = stream
+        self.raw = raw
+        self.eolxlate = eolxlate
         self._doOpen()
         self.os9Image = False
         self.offset = offset
         self.byte_offset = 0
-        self.raw = raw
         if not self.stream:
             try:
                 self.guessMaxLsn()
@@ -50,7 +52,7 @@ class DWFile:
         os.unlink(self.file.name)
 
     def _doOpen(self):
-        fileName = self.name
+        fileName = os.path.expanduser(self.name)
         if self.stream:
             self.remote = True
             print("Enabling streaming mode for %s" % fileName)
@@ -69,7 +71,24 @@ class DWFile:
             pass
         except BaseException:
             raise
-        self.file = open(fileName, self.mode)
+        if self.eolxlate:
+            print("Opening %s with file translation" % (fileName))
+            fn = tempfile.mktemp(prefix=os.path.basename(fileName))
+            print("Temp file: %s" % (fn))
+            self.file = open(fn, 'w+')
+            with open(fileName) as f:
+                fdata = f.read()
+                (new, n) = re.subn('\x0d\x0a', '\x0d',  fdata)
+                if n:
+                    fdata = new
+                (new, n) = re.subn('\x0a', '\x0d',  fdata)
+                if n:
+                    fdata = new
+            self.file.write(fdata)
+            self.file.seek(0)
+        else:
+            self.file = open(fileName, self.mode)
+
 
     def guessMaxLsn(self, data=None):
         st = stat(self.file.name)

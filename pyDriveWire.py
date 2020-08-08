@@ -175,16 +175,22 @@ def ParseArgs():
     #    default='auto',
     #    help='Screen Size: auto or <rows> <cols>, default: %(default)s')
     dload = parser.add_argument_group('dload', 'DLOAD Options')
-    port.add_argument(
+    dload.add_argument(
         '--dload-speed',
         dest='dloadSpeed',
         default=defaultConfigValues['dloadSpeed'],
         help='DLOAD Serial port speed, default: %(default)s')
-    port.add_argument(
+    dload.add_argument(
         '--dload-enable',
         action='store_true',
         dest='dloadEnable',
         help='Enable DLOAD protocol')
+    dload.add_argument(
+        '--dload-translate',
+        action='store_true',
+        dest='dloadTranslate',
+        default=True,
+        help='Enable End-Of-Line Translation for DLOAD protocol')
 
     parser.add_argument('files', metavar='FILE', nargs='*',
                         help='list of files')
