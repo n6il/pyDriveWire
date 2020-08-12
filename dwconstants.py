@@ -1,3 +1,5 @@
+OP_NAMEOBJ_MOUNT = chr(0x01)
+OP_NAMEOBJ_CREATE = chr(0x02)
 OP_RESET3 = chr(0xF8)
 OP_RESET2 = chr(0xFE)
 OP_RESET1 = chr(0xFF)

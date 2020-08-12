@@ -13,6 +13,8 @@ from dwlib import canonicalize
 
 from cococas import *
 
+
+
 NULL_SECTOR = NULL * SECSIZ
 
 
@@ -43,6 +45,16 @@ class DWServer:
         self.offset = eval(args.offset)
         self.args = args
         self.dload = False
+        self.namedObjDrive = None
+
+    def _isNamedObjDrive(self, drive):
+        if self.namedObjDrive is None:
+            return False
+        if drive != self.namedObjDrive:
+            return False
+        if self.files[drive] is None:
+            return False
+        return True
 
     def registerConn(self, conn):
         n = None
@@ -74,6 +86,8 @@ class DWServer:
         if d and isinstance(d, DWFile):
             name = d.file.name
             print('Closing: disk=%d file=%s' % (disk, d.name))
+            d.file.flush()
+            os.fsync(d.file.fileno())
             d.file.close()
             if d.remote and not d.stream:
                 d._delete()
@@ -120,7 +134,7 @@ class DWServer:
             rc = E_EOF
         if rc == E_OK:
             try:
-                if self.hdbdos:
+                if not self._isNamedObjDrive(disk) and self.hdbdos:
                     disk = lsn / 630
                     lsn = lsn - (disk * 630)
                 else:
@@ -173,7 +187,7 @@ class DWServer:
             rc = E_EOF
         if rc == E_OK:
             try:
-                if self.hdbdos:
+                if not self._isNamedObjDrive(disk) and self.hdbdos:
                     disk = lsn / 630
                     lsn = lsn - (disk * 630)
                     flags += "H"
@@ -268,7 +282,7 @@ class DWServer:
                 rc = E_EOF
         if rc == E_OK:
             try:
-                if self.hdbdos:
+                if not self._isNamedObjDrive(disk) and self.hdbdos:
                     disk = lsn / 630
                     lsn = lsn - (disk * 630)
                     flags += "H"
@@ -591,6 +605,53 @@ class DWServer:
                 (ord(cmd)))
         if self.debug:
             print("cmd=%0x cmdPrintFlush" % (ord(cmd)))
+
+    def _NamedObjCore(self, mode):
+        drive = 255
+        fn = None
+        data = self.conn.read(1, self.timeout)
+        if not data:
+            drive = 0
+        if drive:
+            nameLen = ord(data)
+            fn = self.conn.read(nameLen, self.timeout)
+            if not fn:
+                drive = 0
+        if drive:
+            fn2 = self.emCeeAliases.get(fn, None)
+            if fn2 != None:
+                print('Alias: %s -> %s' % (fn, fn2))
+                fn = fn2
+            exists = os.path.exists(fn)
+            if mode.startswith('r'):
+                if not exists:
+                    drive = 0
+                else:
+                    if (self.files[drive] is None) or (self.files[drive] and self.files[drive].file.name != fn):
+                        self.open(drive, fn, mode='ab+', raw=True)
+
+            if mode.startswith('w'):
+                if exists:
+                    drive = 0
+                else:
+                    self.open(drive, fn, mode='ab+', raw=True)
+                    self.namedObjDrive = drive
+        self.conn.write(chr(drive))
+        return drive, fn
+
+    def cmdNamedObjMount(self, cmd):
+        drive, fn = self._NamedObjCore('r')
+        if drive == 0:
+            print("cmd=%0x cmdNamedObjMount: Error: %s" % (ord(cmd), fn))
+        if self.debug:
+            print("cmd=%0x cmdNamedObjMount drive=%d" % (ord(cmd), drive))
+
+    def cmdNamedObjCreate(self, cmd):
+        drive, fn = self._NamedObjCore('w')
+        if drive == 0:
+            print("cmd=%0x cmdNamedObjCreate: Error: %s" % (ord(cmd), fn))
+        if self.debug:
+            print("cmd=%0x cmdNamedObjCreate drive=%d" % (ord(cmd), drive))
 
     def cmdErr(self, cmd):
         print("cmd=%0x cmdErr" % ord(cmd))
@@ -1154,6 +1215,8 @@ class DWServer:
     # DriveWire Command jump table
     dwcommand = {
         OP_NOP: cmdNop,
+        OP_NAMEOBJ_MOUNT: cmdNamedObjMount,
+        OP_NAMEOBJ_CREATE: cmdNamedObjCreate,
         OP_TIME: cmdTime,
         OP_GETSTAT: cmdStat,
         OP_INIT: cmdInit,

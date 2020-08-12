@@ -75,7 +75,7 @@ class DWFile:
             print("Opening %s with file translation" % (fileName))
             fn = tempfile.mktemp(prefix=os.path.basename(fileName))
             print("Temp file: %s" % (fn))
-            self.file = open(fn, 'w+')
+            self.file = open(fn, 'w+', buffering=0)
             with open(fileName) as f:
                 fdata = f.read()
                 (new, n) = re.subn('\x0d\x0a', '\x0d',  fdata)
@@ -87,7 +87,7 @@ class DWFile:
             self.file.write(fdata)
             self.file.seek(0)
         else:
-            self.file = open(fileName, self.mode)
+            self.file = open(fileName, self.mode, buffering=0)
 
 
     def guessMaxLsn(self, data=None):
