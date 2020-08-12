@@ -61,7 +61,7 @@ class DWSocket(DWIO):
         # if data:
         # 	print "r",data
         if self.debug and data is not None:
-            self._print("%s: socket read: %s" % (self, canonicalize(data)))
+            self._print("\n< socket read: %s: %s" % (self, canonicalize(data)))
         return data
 
     def _write(self, data):
@@ -80,7 +80,7 @@ class DWSocket(DWIO):
             try:
                 n = self.conn.send(data)
                 if self.debug:
-                    print "socket write:", self, canonicalize(data)
+                    self._print("\n> socket write: %s: %s" % (self, canonicalize(data)))
             except Exception as e:
                 print(str(e))
                 self._close()
