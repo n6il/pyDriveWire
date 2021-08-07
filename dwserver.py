@@ -91,6 +91,8 @@ class DWServer:
             d.file.close()
             if d.remote and not d.stream:
                 d._delete()
+            if self._isNamedObjDrive(disk):
+                self.namedObjDrive = None
         if d:
             self.files[disk] = None
 
@@ -134,6 +136,8 @@ class DWServer:
             rc = E_EOF
         if rc == E_OK:
             try:
+                if self._isNamedObjDrive(disk):
+                    flags += 'O'
                 if not self._isNamedObjDrive(disk) and self.hdbdos:
                     disk = lsn / 630
                     lsn = lsn - (disk * 630)
@@ -187,6 +191,8 @@ class DWServer:
             rc = E_EOF
         if rc == E_OK:
             try:
+                if self._isNamedObjDrive(disk):
+                    flags += 'O'
                 if not self._isNamedObjDrive(disk) and self.hdbdos:
                     disk = lsn / 630
                     lsn = lsn - (disk * 630)
@@ -282,6 +288,8 @@ class DWServer:
                 rc = E_EOF
         if rc == E_OK:
             try:
+                if self._isNamedObjDrive(disk):
+                    flags += 'O'
                 if not self._isNamedObjDrive(disk) and self.hdbdos:
                     disk = lsn / 630
                     lsn = lsn - (disk * 630)
@@ -629,6 +637,7 @@ class DWServer:
                 else:
                     if (self.files[drive] is None) or (self.files[drive] and self.files[drive].file.name != fn):
                         self.open(drive, fn, mode='ab+', raw=True)
+                        self.NamedObjDrive = drive
 
             if mode.startswith('w'):
                 if exists:

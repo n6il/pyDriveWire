@@ -1060,7 +1060,7 @@ class DWParser:
                 try:
                     res = v.call(callData)
                 except Exception as ex:
-                    raise
+                    #raise
                     if interact:
                         raise
                     res = "FAIL %s" % str(ex)
