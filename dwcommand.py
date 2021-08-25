@@ -952,7 +952,7 @@ class DWParser:
         outFile = data
         if not outFile:
             outFile = self.server.args.config
-        with open(outFile, 'w') as f:
+        with open(os.path.expanduser(outFile), 'w') as f:
             f.write('\n'.join(out))
         return "Config Saved to: %s" % outFile
 
