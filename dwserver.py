@@ -73,7 +73,7 @@ class DWServer:
         if offset is None:
             offset = self.offset
         if hdbdos is None:
-            offset = self.hdbdos
+            hdbdos = self.hdbdos
         self.files[disk] = DWFile(fileName, mode, stream=stream, offset=offset, raw=raw, eolxlate=eolxlate)
         print(
             '%s: disk=%d file=%s stream=%s mode=%s' %
