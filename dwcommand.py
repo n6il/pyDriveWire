@@ -672,7 +672,6 @@ class DWParser:
                     'self.cmdClass': 'TCP'}
             sock.connect()
         except Exception as ex:
-            raise
             if telnet or interactive:
                 res = {'msg': '\r\nFAIL %s' % str(ex), 'self.cmdClass': 'AT'}
             else:
