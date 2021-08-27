@@ -25,7 +25,7 @@ class DWServer:
         self.channels = {}
         self.connections = {}
         self.debug = False
-        self.timeout = 5.0
+        self.timeout = 0.25
         self.version = version
         self.vprinter = None
 
@@ -225,8 +225,7 @@ class DWServer:
         # print "cmdReadEx sending %d" % len(data)
         dataCrc = dwCrc16(data)
         self.conn.write(data)
-
-        crc = self.conn.read(CRCSIZ, 1)
+        crc = self.conn.read(CRCSIZ, self.timeout)
         if not crc:
             print "cmd=%0x cmdReadEx timeout getting crc" % (ord(cmd))
             # return
@@ -242,7 +241,9 @@ class DWServer:
                     unpack(
                         ">H", dataCrc)[0])
                 rc = E_CRC
-        self.conn.write(chr(rc))
+            self.conn.write(chr(rc))
+        elif rc != E_CRC:
+            self.conn.write(chr(rc))
         if self.debug or rc != E_OK:
             print "cmd=%0x cmdReadEx disk=%d lsn=%d rc=%d f=%s" % (
                 ord(cmd), disk, lsn, rc, flags)
