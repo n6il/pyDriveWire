@@ -38,7 +38,8 @@ class DWServer:
                 self.vprinter = DWPrinter(args)
             if 'ssh' in args.experimental:
                 print("DWServer: Enabling experimental ssh support")
-        self.emCeeAliases = {}
+        self.aliases = {'mc':{}, 'dload':{}, 'namedobj': {}}
+        self.dirs = {'dw': os.getcwd(), 'mc': os.getcwd(), 'dload': os.getcwd(), 'namedobj': os.getcwd()}
         self.instances = instances
         self.instance = instance
         self.hdbdos = args.hdbdos
@@ -69,12 +70,14 @@ class DWServer:
         self.connections[si] = conn
         return si
 
-    def open(self, disk, fileName, stream=False, mode="rb+", create=False, offset=None, hdbdos=None, raw=False, eolxlate=False):
+    def open(self, disk, fileName, stream=False, mode="rb+", create=False, offset=None, hdbdos=None, raw=False, eolxlate=False, proto='dw'):
         if offset is None:
             offset = self.offset
         if hdbdos is None:
             hdbdos = self.hdbdos
-        self.files[disk] = DWFile(fileName, mode, stream=stream, offset=offset, raw=raw, eolxlate=eolxlate)
+        if proto in self.dirs:
+            os.chdir(self.dirs[proto])
+        self.files[disk] = DWFile(fileName, mode, stream=stream, offset=offset, raw=raw, eolxlate=eolxlate, proto=proto)
         print(
             '%s: disk=%d file=%s stream=%s mode=%s' %
             ('Created' if create else 'Opened', disk, fileName, stream, mode))
@@ -100,6 +103,21 @@ class DWServer:
         for disk in range(len(self.files)):
             if self.files[disk]:
                 self.close(disk)
+
+    def reset(self, disk):
+        df = self.files[disk]
+        fileName = df.name
+        stream = df.stream
+        mode = df.mode
+        offset = df.offset
+        hdbdos = df.hdbdos
+        raw = df.raw
+        eolxlate = df.eolxlate
+        proto = df.proto
+        print('Reset: disk=%d file=%s' % (int(disk), fileName))
+        self.close(disk)
+        self.open(disk, fileName, stream=stream, mode=mode, offset=offset,
+            hdbdos=hdbdos, raw=df.raw, eolxlate=eolxlate, proto=proto)
 
     def cmdStat(self, cmd):
         info = self.conn.read(STATSIZ, self.timeout)
@@ -374,12 +392,7 @@ class DWServer:
         for drive in range(len(self.files)):
             if not self.files[drive]:
                 continue
-            path = self.files[drive].file.name
-            stream = self.files[drive].stream
-            mode = self.files[drive].mode
-            self.close(drive)
-            self.open(drive, path, mode=mode, stream=stream)
-            print "cmdInit: reset(%d, %s)" % (int(drive), path)
+            self.reset(drive)
         for channel in self.channels:
             self.channels[channel].close()
             if self.debug:
@@ -627,7 +640,7 @@ class DWServer:
             if not fn:
                 drive = 0
         if drive:
-            fn2 = self.emCeeAliases.get(fn, None)
+            fn2 = self.aliases['namedobj'].get(fn, None)
             if fn2 != None:
                 print('Alias: %s -> %s' % (fn, fn2))
                 fn = fn2
@@ -637,14 +650,14 @@ class DWServer:
                     drive = 0
                 else:
                     if (self.files[drive] is None) or (self.files[drive] and self.files[drive].file.name != fn):
-                        self.open(drive, fn, mode='ab+', raw=True)
+                        self.open(drive, fn, mode='ab+', raw=True, proto='namedobj')
                         self.NamedObjDrive = drive
 
             if mode.startswith('w'):
                 if exists:
                     drive = 0
                 else:
-                    self.open(drive, fn, mode='ab+', raw=True)
+                    self.open(drive, fn, mode='ab+', raw=True, proto='namedobj')
                     self.namedObjDrive = drive
         self.conn.write(chr(drive))
         return drive, fn
@@ -674,7 +687,8 @@ class DWServer:
         checksum = 0
         if not error:
             try:
-                fname = self.emCeeAliases.get(fname.upper(), fname)
+                fname = self.aliases['mc'].get(fname.upper(), fname)
+                os.chdir(self.dirs['mc'])
                 self.files[filnum] = CocoCas(fname, fmode)
                 self.files[filnum].seek()
                 # self.files[filnum] = MlFileReader(fname, fmode, ftyp)
@@ -709,7 +723,7 @@ class DWServer:
 
     def _emCeeSaveFile(self, filnum, name, mode, exaddr, size, error):
         if not error:
-            name = self.emCeeAliases.get(name.upper(), name)
+            name = self.aliases['mc'].get(name.upper(), name)
             self.files[filnum] = CocoCas(name, 'wb')
             load = start = ascflg = 0
             ascflg = 0xff
@@ -723,6 +737,7 @@ class DWServer:
                 ascflg = 0  # basic
             else:
                 filetype = 1  # data
+            os.chdir(self.dirs['mc'])
             nf = CocoCasNameFile(
                 filename=name.split(os.path.sep)[-1].split('.')[0][:8].upper(),
                 filetype=filetype,
@@ -956,7 +971,8 @@ class DWServer:
         if not error:
             if flag == 0:
                 try:
-                    dirNam = self.emCeeAliases.get(dirNam.upper(), dirNam)
+                    dirNam = self.aliases['mc'].get(dirNam.upper(), dirNam)
+                    os.chdir(self.dirs['mc'])
                     self.emCeeDir = os.listdir(dirNam)
                     self.emCeeDirIdx = 0
                 except BaseException:
@@ -1012,8 +1028,8 @@ class DWServer:
                 error = E_MC_IO
         if not error:
             try:
-                dirNam = self.emCeeAliases.get(dirNam.upper(), dirNam)
-                os.chdir(dirNam)
+                dirNam = self.aliases['mc'].get(dirNam.upper(), dirNam)
+                self.dirs['mc'] = dirNam
             except BaseException:
                 error = E_MC_NE
         self.conn.write(chr(error))
@@ -1103,7 +1119,7 @@ class DWServer:
             #             FF=file not found)
             #         3.  ASCII flag (0=binary file, FF=ASCII)
             fn = fn.strip()
-            fn2 = self.emCeeAliases.get(fn.upper(), fn)
+            fn2 = self.aliases['dload'].get(fn.upper(), fn)
             if fn2 != fn:
                 print('Alias: %s -> %s' % (fn, fn2))
                 fn = fn2
@@ -1121,7 +1137,7 @@ class DWServer:
                     eolxlate = self.args.dloadTranslate
                 else:
                     eolxlate = False
-                self.open(0, fn, mode='r', offset=0, hdbdos=False, raw=True, eolxlate=eolxlate)
+                self.open(0, fn, mode='r', offset=0, hdbdos=False, raw=True, eolxlate=eolxlate, proto='dload')
                 self.files[0].ftype = ftype
                 self.files[0].ftype = aflag
         

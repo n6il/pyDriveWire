@@ -20,9 +20,14 @@ DriveWire 4 and EmCee Procotols can be used simultaneously on the server without
 8. [Daemon Mode](#ch8)
 9. [EmCee Server](#ch9)
 10. [Experimental Printing Support](#ch10)
+11. [Experimental SSH Support] (#ch_ssh)
 11. [Debugging](#ch11)
 12. [HDB-DOS Mode](#ch12)
 13. [Appendix: Supported DriveWire Commands](#ch13)
+14. [Appendix: Directories](#ch_directories)
+15. [Appendix: Aliases](#ch_aliases)
+16. [Appendix: DLOAD Protocol Support](#ch_dload)
+17. [Appendix: Named Object Support](#ch_namedobj)
 
 # 1. <a name="ch1"></a>Features
 
@@ -1575,6 +1580,7 @@ etc.
 	* `dw instance show`
 	* `dw instance add`
 	* `dw instance select`
+* A directory for DriveWire Named Object operations
 * `dw printer`
 	* `dw printer flush`
 	* `dw printer format`
@@ -1612,4 +1618,381 @@ etc.
 	* `dw server timeout <s>`
 	
 [Back to top](#toc)
+# 13. <a name="ch_directories"></a>Appendix: Directories
+pyDriveWire provides a flexible system for configuring which directories you want to use.  There is also a filename alias system available for use with the EmCee, DLOAD, and NamedObject support.
+
+## Directories
+
+pyDriveWire can be configured to operate out of diffferent directories depending on which features you are using.
+
+At initial startup, all of the directories are the same.  They are initially set to the path where the pyDriveWire server is running.  You can check what the directories currently are set to by issuing either the `pwd` or `dw server pwd` commands.  Example:
+
+    pyDriveWire>  dw server pwd
+    Current Dir: /home/n6il/Development/Python/pyDriveWire
+    dw Dir: /home/n6il/Development/Python/pyDriveWire
+    mc Dir: /home/n6il/Development/Python/pyDriveWire
+    dload Dir: /home/n6il/Development/Python/pyDriveWire
+    namedobj Dir: /home/n6il/Development/Python/pyDriveWire
+
+Note: issuing the `pwd` command will yield exactly the same output.
+
+The commands below set the _default_ directory for various types of pyDriveWire server operations.  If you ask pyDriveWire to open a file without specifying a full path name to the file.  Example:
+
+    pyDriveWire>  dw server setdir ~/demo
+    dw SetDir: /home/n6il/demo
+    pyDriveWire>  dw disk insert 0 DWTERM.dsk
+    Opened: disk=0 file=DWTERM.dsk stream=False mode=rb+
+    open(0, DWTERM.dsk)
+
+The above example takes advantage of the fact the `dw server setdir` command was run to set the default directory for DriveWire Disk Operations to `/home/n6il/demo`  After doing this when we ask the server to attach `DWTERM.dsk` to drive 0, it will look in this default directory for this file.
+
+Default directories can be set for the following pyDriveWire operations:
+
+* The default directory which is used for DriveWire disk operations
+* A directory for EmCee protocol operations
+* A directory for DLOAD protocol operations
+* A directory for DriveWire Named Object operations
+
+### General command summary
+* Show current directory configuration: `dw server pwd` or `pwd`
+
+### DriveWire Disk protocol command summary
+* Set Directory: `dw server setdir <path>`
+* Get Directory: `dw server getdir`
+* List Directory: `dw server dir`
+
+### EmCee  protocol command summary
+* Set Directory: `mc setdir <path>`
+* Get Directory: `mc getdir`
+* List Directory: `mc listdir`
+
+### DLOAD Disk protocol command summary
+* Set Directory: `dload setdir <path>`
+* Get Directory: `dload getdir`
+* List Directory: `dload listdir`
+
+### DriveWire Named Object  command summary
+* Set Directory: `namedobj setdir <path>`
+* Get Directory: `namedobj getdir`
+* List Directory: `namedobj listdir`
+
+### `dw server pwd`
+### `pwd`
+
+Both of the `dw server pwd` and `pwd` commands show a summary of the currently configured directories:
+
+    pyDriveWire>  pwd
+    Current Dir: /home/n6il/demo/dweebs
+    dw Dir: /home/n6il/demo
+    mc Dir: /home/n6il/demo/mc-10
+    dload Dir: /home/n6il/demo/dload
+    namedobj Dir: /home/n6il/demo/dweebs
+
+### `dw server setdir <path>`
+
+Use the `dw server setdir <path>` command to set the directory for DriveWire disk operations if a full path specification is not provided:
+
+    pyDriveWire>  dw server setdir ~/demo
+    dw SetDir: /home/n6il/demo
+
+### `dw server getdir`
+
+Use the `dw server getdir` command to get the directory for DriveWire disk operations:
+
+    pyDriveWire>  dw server getdir
+    dw GetDir: /home/n6il/demo
+
+### `dw server dir`
+
+Use the `dw server dir` command to set the directory for DriveWire disk operations:
+
+    pyDriveWire>  dw server dir
+    
+    dload
+    dweebs
+    DWTERM.dsk
+    mc-10
+
+### `mc setdir <path>`
+
+Use the `mc setdir <path>` command to set the directory for EmCee protocol operations if a full path specification is not provided:
+
+    pyDriveWire>  mc setdir ~/demo/mc10
+    mc SetDir: /home/n6il/demo/mc10
+
+### `mc getdir`
+Use the `mc getdir` command to get the default directory for EmCee protocol operations:
+
+    pyDriveWire>  mc getdir
+    mc GetDir: /home/n6il/demo/mc10
+
+### `mc listdir`
+Use the `mc listdir` command to list the files the current directory for EmCee protocol operations:
+
+   pyDriveWire>  mc listdir
+   ==== mc Dir Listing ===
+   Dir: /home/n6il/demo/mc-10
+   ---
+   BOMSQUAD.C10
+
+### `dload setdir <path>`
+
+Use the `dload setdir <path>` command to set the directory for DLOAD protocol operations if a full path specification is not provided:
+
+    pyDriveWire>  dload setdir ~/demo/dload
+    dload SetDir: /home/n6il/demo/dload
+
+### `dload getdir`
+
+Use the `dload getdir` command to get the directory for DLOAD protocol operations:
+
+    pyDriveWire>  dload getdir
+    dload GetDir: /home/n6il/demo/dload
+
+### `dload listdir`
+Use the `mc listdir` command to list the files the current directory for DLOAD protocol operations:
+
+   pyDriveWire>  dload listdir
+   ==== dload Dir Listing ===
+   Dir: /home/n6il/demo/dload
+   ---
+   HELLO.BAS
+   TEST.BIN
+
+### `namedobj setdir <path>`
+
+Use the `namedobj setdir <path>` command to set the directory for DriveWire Named Object operations if a full path specification is not provided:
+
+    pyDriveWire>  namedobj setdir ~/demo/dweebs
+    namedobj SetDir: /home/n6il/demo/dweebs
+
+### `namedobj getdir`
+
+Use the `namedobj getdir` command to set the directory for DriveWire Named Object operations:
+
+    pyDriveWire>  namedobj getdir
+    namedobj GetDir: /home/n6il/demo/dweebs
+
+### `namedobj listdir`
+Use the `namedobj listdir` command to list the files the current directory for DriveWire Named Object operations:
+
+   pyDriveWire>  namedobj listdir
+   ==== namedobj Dir Listing ===
+   Dir: /home/n6il/demo/dweebs
+   ---
+   AUTOLOAD.DWL
+   DW
+   SAVE
+   DOS
+
+### Directories after the examples:
+
+    pyDriveWire>  pwd
+    Current Dir: /home/n6il/demo/dweebs
+    dw Dir: /home/n6il/demo
+    mc Dir: /home/n6il/demo/mc-10
+    dload Dir: /home/n6il/demo/dload
+    namedobj Dir: /home/n6il/demo/dweebs
+
+
+[Back to top](#toc)
+# 14. <a name="ch_aliases"></a>Appendix: Aliases
+## EmCee Server Aliases
+The pyDriveWire server has a powerful "aliasing" system that is quite different than the official EmCee servers.  The pyDriveWire system has three different types of aliases.  File and Web Aliases can be  with LOAD/SAVE commands and Path Aliases can be used with DIR/SETDIR commands.  The official servers can only use aliases for the `SETDIR` command.
+
+## Aliases are _NOT_ case sensitive
+In the pyDriveWire server all alias names are converted to upper case.  For example if you had an alias like this one:
+
+    Server Aliases
+    ==============
+    Alias: DWTERM.WAV Path: /demo/dwterm.wav
+
+The case of the alias requested from the MC-10 is always converted to upper case so any of the following would load the same alias:
+
+* `LOADM "DWTERM.WAV"`
+* `LOADM "dwterm.wav"`
+* `LOADM "DwTeRm.WaV"`
+
+## Types of aliases
+
+The PyDriveWire Server supports the following types of Aliases:
+
+* Web Aliases
+* Path Aliases
+* File Aliases
+
+A _web alias_ is an alias to a HTTP URL.  When the MC-10 requests the alias using a `LOAD` or `LOADM` command the URL which the alias points to will be downloaded to a temporary file and then opened normally.  Note that you won't see the actual file name, and when the file is closed the temp file will be automatically deleted.
+
+A _path alias_ is an alias to a directory.  Path aliases can be used with `DIR` or `SETDIR` commands to change to the directory pointed to by the alias.
+
+A _file alias_ points to a file.  Full or relative pathnames could be used.  When the MC-10 requests the the alias the path to which the alias points to will be used and opened normally.
+
+See the help for `mc alias show` for an example.
+
+## `mc alias show`
+Show the currently installed aliases:
+
+    Server Aliases
+    ==============
+    Alias: POKER.C10 Path: http://www.colorcomputerarchive.com/coco/MC-10/Cassettes/Games/Jim%20Gerrie's%20Games/POKER.C10
+    Alias: DEMO Path: /demo
+    Alias: DWTERM.WAV Path: /demo/dwterm.wav
+
+Explanation of example Aliases:
+
+* `POKER.C10` -- This is a _web alias_ -- `LOAD "POKER.C10"`
+* `DEMO` -- This alias is a _directory alias_ -- `SETDIR "DEMO"`
+* `DWTERM.WAV` -- This is a _file alias_ -- `LOADM "DWTERM.WAV"`
+
+## `mc alias add <alias> <path>`
+
+Adds the requested alias with path as the destination. The alias is always converted to upper case before addition lookup. The path that an alias points to is case sensitive.  Spaces and punctuation are permitted.
+
+Add a Web Alias:
+
+    pyDriveWire>  mc alias add poker.c10 http://www.colorcomputerarchive.com/coco/MC-10/Cassettes/Games/Jim%20Gerrie's%20Games/POKER.C10
+    Add Alias
+    ==============
+    Alias: POKER.C10 Path: http://www.colorcomputerarchive.com/coco/MC-10/Cassettes/Games/Jim%20Gerrie's%20Games/POKER.C10
+
+Add a file alias:
+
+    pyDriveWire>  mc alias add dwterm.wav /demo/dwterm.wav
+    Add Alias
+    ==============
+    Alias: DWTERM.WAV Path: /demo/dwterm.wav
+
+## `mc alias remove <alias>`
+
+Remove an alias.  The alias is always converted to upper case before addition removal.
+
+    pyDriveWire>  mc alias remove qbert.c10
+    Remove Alias
+    ==============
+    Alias: QBERT.C10 Path: http://www.colorcomputerarchive.com/coco/MC-10/Cassettes/Games/Jim%20Gerrie's%20Games/QBERT.C10
+
+[Back to top](#toc)
+# 15. <a name="ch_dload"></a>Appendix: DLOAD Protocol Support
+
+Issuing the command:
+
+    pyDriveWire> dload enable 1200
+
+Will switch on the DLOAD protocol at 1200 baud.  You could put any baud rate you want there, but the CoCo only supports 300 (,0) and 1200 baud (,1)
+
+Next you need to tell the pyDriveWire server where to look for the files the CoCo is asking for.  The command for this is:
+
+    pyDriveWire> dload setdir /path/to/dload/files
+
+Now if you placed a file named “FOO” in the /path/to/dload/files directory, you could either do:
+
+    CoCo: DLOAD “FOO”,1
+
+or
+
+    CoCo: DLOADM “FOO”,1
+
+to load the file in.
+
+One drawback of the DLOAD protocol is that it only supports an 8 byte long file name.  This pretty much means that file name extensions go out the window.  While you could do:
+
+    mv FOO.BAS FOO
+
+or
+
+    mv FOO.BIN FOO
+
+Even though the two files are really different files you can only have one of them online at a time.  pyDriveWire provides a way to manage this called “aliases”.  You could set up aliases like this:
+
+    pyDriveWire> dload alias add FOOBAS FOO.BAS
+    pyDriveWire> dload alias add FOOBIN FOO.BIN
+
+Now from the CoCo side you can load both files:
+
+    CoCo: DLOAD “FOOBAS”,1
+    CoCo: DLOADM “FOOBIN”,1
+
+This is also handy for something that you load frequently, such as HDBDOS.  You could create an alias for it and put it in your pydrivewirerc configuration file so it’s always there.  What follows is a procedure to BootStrap HDBDOS on a CoCo2.      pyDriveWire> dload alias add HDBDOS hdbdw3cc2.bin
+    pyDriveWire> dload enable 1200
+    
+    CoCo: DLOADM “HDBDOS”,1
+    
+    pyDriveWire> dload disable
+    
+    CoCo: EXEC
+
+Now your Coco is running HDBDOS and since DLOAD is disabled DriveWire is enabled again!
+
+
+## DLOAD Protocol Command Reference
+
+### `dload status`
+### `dload enable <300|1200>`
+### `dload disable`
+### `dload translate`
+
+### `dload setdir <path>`
+
+Use the `dload setdir <path>` command to set the directory for DLOAD protocol operations if a full path specification is not provided:
+
+    pyDriveWire>  dload setdir ~/demo/dload
+    dload SetDir: /home/n6il/demo/dload
+
+### `dload getdir`
+
+Use the `dload getdir` command to get the directory for DLOAD protocol operations:
+
+    pyDriveWire>  dload getdir
+    dload GetDir: /home/n6il/demo/dload
+
+### `dload listdir`
+Use the `mc listdir` command to list the files the current directory for DLOAD protocol operations:
+
+    pyDriveWire>  dload listdir
+    ==== dload Dir Listing ===
+    Dir: /home/n6il/demo/dload
+    ---
+    HELLO.BAS
+    TEST.BIN
+
+### `dload alias show`
+### `dload alias add <name> <path>`
+### `dload alias remove <name>`
+
+[Back to top](#toc)
+# 15. <a name="ch_namedobj"></a>Appendix: Named Object Support
+
+## DriveWire Named Object Command Reference
+
+### `namedobj setdir <path>`
+
+Use the `namedobj setdir <path>` command to set the directory for DriveWire Named Object operations if a full path specification is not provided:
+
+    pyDriveWire>  namedobj setdir ~/demo/dweebs
+    namedobj SetDir: /home/n6il/demo/dweebs
+
+### `namedobj getdir`
+
+Use the `namedobj getdir` command to set the directory for DriveWire Named Object operations:
+
+    pyDriveWire>  namedobj getdir
+    namedobj GetDir: /home/n6il/demo/dweebs
+
+### `namedobj listdir`
+Use the `namedobj listdir` command to list the files the current directory for DriveWire Named Object operations:
+
+    pyDriveWire>  namedobj listdir
+    ==== namedobj Dir Listing ===
+    Dir: /home/n6il/demo/dweebs
+    ---
+    AUTOLOAD.DWL
+    DW
+    SAVE
+    DOS
+
+
+### `namedobj alias show`
+### `namedobj alias add <name> <path>`
+### `namedobj alias remove <name>`
+
 

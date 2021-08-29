@@ -109,6 +109,9 @@ class DWParser:
         connParser = ParseNode("conn")
         connParser.add("debug", ParseAction(self.doConnDebug))
         serverParser.add("conn", connParser)
+        serverParser.add("pwd", ParseAction(self.doPwd))
+        serverParser.add("getdir", ParseAction(self.doDwGetDir))
+        serverParser.add("setdir", ParseAction(self.doDwSetDir))
 
         portParser = ParseNode("port")
         portParser.add("show", ParseAction(self.doPortShow))
@@ -204,26 +207,46 @@ class DWParser:
         uiParser = ParseNode("ui")
         uiParser.add("server", uiServerParser)
 
-        aliasParser = ParseNode("alias")
-        aliasParser.add("show", ParseAction(self.doMcAliasShow))
-        aliasParser.add("add", ParseAction(self.doMcAliasAdd))
-        aliasParser.add("remove", ParseAction(self.doMcAliasRemove))
+        mcAliasParser = ParseNode("alias")
+        mcAliasParser.add("show", ParseAction(self.doMcAliasShow))
+        mcAliasParser.add("add", ParseAction(self.doMcAliasAdd))
+        mcAliasParser.add("remove", ParseAction(self.doMcAliasRemove))
 
         mcParser = ParseNode("mc")
-        mcParser.add("alias", aliasParser)
+        mcParser.add("alias", mcAliasParser)
         mcParser.add("setdir", ParseAction(self.doMcSetDir))
         mcParser.add("getdir", ParseAction(self.doMcGetDir))
+        mcParser.add("listdir", ParseAction(self.doMcListDir))
         mcParser.add("show", ParseAction(self.doShow))
         mcParser.add("eject", ParseAction(self.doEject))
 
+        dloadAliasParser = ParseNode("alias")
+        dloadAliasParser.add("show", ParseAction(self.doDloadAliasShow))
+        dloadAliasParser.add("add", ParseAction(self.doDloadAliasAdd))
+        dloadAliasParser.add("remove", ParseAction(self.doDloadAliasRemove))
+
         dloadParser = ParseNode("dload")
-        dloadParser.add("alias", aliasParser)
+        dloadParser.add("alias", dloadAliasParser)
         dloadParser.add("status", ParseAction(self.doDloadStatus))
         dloadParser.add("enable", ParseAction(self.doDloadEnable))
         dloadParser.add("disable", ParseAction(self.doDloadDisable))
-        dloadParser.add("setdir", ParseAction(self.doMcSetDir))
-        dloadParser.add("getdir", ParseAction(self.doMcGetDir))
+        dloadParser.add("setdir", ParseAction(self.doDloadSetDir))
+        dloadParser.add("getdir", ParseAction(self.doDloadGetDir))
+        dloadParser.add("listdir", ParseAction(self.doDloadListDir))
         dloadParser.add("translate", ParseAction(self.doDloadTranslate))
+
+        nobjAliasParser = ParseNode("alias")
+        nobjAliasParser.add("show", ParseAction(self.doNamedObjAliasShow))
+        nobjAliasParser.add("add", ParseAction(self.doNamedObjAliasAdd))
+        nobjAliasParser.add("remove", ParseAction(self.doNamedObjAliasRemove))
+
+        nobjParser = ParseNode("namedobj")
+        nobjParser.add("alias", nobjAliasParser)
+        nobjParser.add("setdir", ParseAction(self.doNamedObjSetDir))
+        nobjParser.add("getdir", ParseAction(self.doNamedObjGetDir))
+        nobjParser.add("listdir", ParseAction(self.doNamedObjListDir))
+        nobjParser.add("show", ParseAction(self.doShow))
+        nobjParser.add("eject", ParseAction(self.doEject))
 
         self.parseTree = ParseNode("")
         self.parseTree.add("dw", dwParser)
@@ -232,9 +255,11 @@ class DWParser:
         self.parseTree.add("ui", uiParser)
         self.parseTree.add("mc", mcParser)
         self.parseTree.add("dload", dloadParser)
+        self.parseTree.add("namedobj", nobjParser)
         self.parseTree.add("telnet", ParseAction(self.doTelnet))
         self.parseTree.add("ssh", ParseAction(self.doSsh))
         self.parseTree.add("help", ParseAction(self.ptWalker))
+        self.parseTree.add("pwd", ParseAction(self.doPwd))
         self.parseTree.add("?", ParseAction(self.ptWalker))
 
     def __init__(self, server):
@@ -250,6 +275,8 @@ class DWParser:
         pathEnd = len(data)
         stream = False
         mode = 'rb+'
+        raw = False
+        proto = 'dw'
         for s in opts[2:]:
             if s.lower() == '--stream':
                 stream = True
@@ -257,8 +284,25 @@ class DWParser:
             elif s.lower() == '--ro':
                 mode = 'r'
                 pathEnd -= 5  # len(' --ro')
+            elif s.lower() == '--raw':
+                raw = True
+                pathEnd -= 6  # len(' --raw')
+            elif s.lower() == '--dw':
+                proto = 'dw'
+                pathEnd -= 5  # len(' --dw')
+            #elif s.lower() == '--mc':
+            #    proto = 'mc'
+            #    pathEnd -= 5  # len(' --mc')
+            elif s.lower() == '--dload':
+                proto = 'dload'
+                raw = True
+                pathEnd -= 8  # len(' --dload')
+            elif s.lower() == '--namedobj':
+                proto = 'namedobj'
+                raw = True
+                pathEnd -= 11  # len(' --namedobj')
         path = data[pathStart:pathEnd]
-        self.server.open(int(drive), path, mode=mode, stream=stream)
+        self.server.open(int(drive), path, mode=mode, stream=stream, raw=raw, proto=proto)
         return "open(%d, %s)" % (int(drive), path)
 
     def doDiskCreate(self, data):
@@ -271,8 +315,9 @@ class DWParser:
         stream = False
         mode = 'ab+'
         path = data[pathStart:pathEnd]
-        self.server.open(int(drive), path, mode=mode, stream=stream, create=True)
+        self.server.open(int(drive), path, mode=mode, stream=stream, create=True, proto='dw')
         return "create(%d, %s)" % (int(drive), path)
+
 
     def doDiskInfo(self, data):
         opts = data.split(' ')
@@ -289,16 +334,15 @@ class DWParser:
             'Format: %s' % fi.fmt,
             'Offset: %s' % fi.offset,
             'Byte Offset: %s' % fi.byte_offset,
-            'flags: mode=%s, remote=%s stream=%s' % (fi.mode, fi.remote, fi.stream)
+            'Proto: %s' % fi.proto,
+            'flags: mode=%s, remote=%s stream=%s raw=%s' % (fi.mode, fi.remote, fi.stream, fi.raw)
         ]
         return '\r\n'.join(out)
 
     def doReset(self, data):
         drive = int(data.split(' ')[0])
-        path = self.server.files[drive].file.name
-        self.server.close(drive)
-        self.server.open(drive, path)
-        return "reset(%d, %s)" % (int(drive), path)
+        self.server.reset(drive)
+        return "reset(%d, %s)" % (int(drive), self.server.files[drive].name)
 
     def doEject(self, data):
         drive = data.split(' ')[0]
@@ -542,8 +586,10 @@ class DWParser:
         return '\r\n'.join(out)
 
     # def doDir(self, data, nxti):
-    def doDir(self, data):
+    def doDir(self, data, msg=None):
         out = ['']
+        if msg is not None:
+           out += msg
         # print "doDir data=(%s)" % data
         if not data:
             data = os.getcwd()
@@ -551,8 +597,10 @@ class DWParser:
         out.append('')
         return '\n\r'.join(out)
 
-    def doList(self, path):
+    def doList(self, path, msg=None):
         out = []
+        if msg is not None:
+           out += msg
         # cmd = ['cat']
         # path = data.split(' ')[0]
         if not path:
@@ -784,52 +832,125 @@ class DWParser:
             r += [e]
         return '\n'.join(r)
 
-    def doMcSetDir(self, data):
+    def doSetDir(self, data, proto):
+        data = os.path.expanduser(data).lstrip().rstrip()
+        protoCmd = proto if proto != 'dw' else 'dw server'
+        if len(data) == 0:
+            return "Usage: %s setdir <path>" % protoCmd
         try:
             os.chdir(data)
         except Exception as e:
             return str(e)
-        return "chdir(%s)" % data
+        self.server.dirs[proto] = data
+        return "%s SetDir: %s" % (proto, data)
 
-    def doMcGetDir(self, data):
-        dir = ''
+    def doGetDir(self, data, proto):
+        data = ''
         try:
-            dir = os.getcwd()
+            data = self.server.dirs[proto]
         except Exception as e:
             return str(e)
-        return "Cwd: %s" % dir
+        return "%s GetDir: %s" % (proto, data)
 
-    def doMcAliasShow(self, data):
-        r = ['Server Aliases',
+    def doListDir(self, data, proto):
+        d = self.server.dirs[proto]
+        msg = [
+            '==== %s Dir: %s  ===' % (proto, d),
+        ]
+        return self.doDir(d, msg=msg)
+
+    def doMcSetDir(self, data):
+        return self.doSetDir(data, 'mc')
+
+    def doMcGetDir(self, data):
+        return self.doGetDir(data, 'mc')
+
+    def doMcListDir(self, data):
+        return self.doListDir(data, 'mc')
+
+    def doDwSetDir(self, data):
+        return self.doSetDir(data, 'dw')
+
+    def doDwGetDir(self, data):
+        return self.doGetDir(data, 'dw')
+
+    def doAliasShow(self, data, proto):
+        r = [proto+' Aliases',
              '==============']
-        for k, v in self.server.emCeeAliases.items():
+        for k, v in self.server.aliases[proto].items():
             r.append("Alias: %s Path: %s" % (k, v))
         return '\n'.join(r)
 
-    def doMcAliasAdd(self, data):
+    def doAliasAdd(self, data, proto):
+        data = data.lstrip().rstrip()
+        protoCmd = proto if proto != 'dw' else 'dw server'
         idx = data.find(' ')
-        if idx == -1:
-            return "mc alias add <name> <path>"
+        if idx == -1 or len(data) == 0:
+            return "%s alias add <name> <path>" % protoCmd
         alias = data[:idx].upper()
         path = data[idx + 1:]
-        self.server.emCeeAliases[alias] = path
-        r = ['Add Alias',
+        self.server.aliases[proto][alias] = path
+        r = ['Add %s Alias' % proto,
              '==============',
              'Alias: %s Path: %s' % (alias, path)
              ]
         return '\n'.join(r)
 
-    def doMcAliasRemove(self, data):
-        alias = data.upper()
-        path = self.server.emCeeAliases.get(alias, None)
-        if not path:
-            return "Alias %s doesn't exit" % alias
-        r = ['Remove Alias',
+    # XXX ???
+    #def doAliasRemove(self, data, proto):
+    #    data = data.lstrip().rstrip()
+    def doDwSetDir(self, data):
+        return self.doSetDir(data, 'dw')
+
+    def doDwGetDir(self, data):
+        return self.doGetDir(data, 'dw')
+
+    def doAliasShow(self, data, proto):
+        r = [proto+' Aliases',
+             '==============']
+        for k, v in self.server.aliases[proto].items():
+            r.append("Alias: %s Path: %s" % (k, v))
+        return '\n'.join(r)
+
+    def doAliasAdd(self, data, proto):
+        data = data.lstrip().rstrip()
+        protoCmd = proto if proto != 'dw' else 'dw server'
+        idx = data.find(' ')
+        if idx == -1 or len(data) == 0:
+            return "%s alias add <name> <path>" % protoCmd
+        alias = data[:idx].upper()
+        path = data[idx + 1:]
+        self.server.aliases[proto][alias] = path
+        r = ['Add %s Alias' % proto,
              '==============',
              'Alias: %s Path: %s' % (alias, path)
              ]
-        del self.server.emCeeAliases[alias]
         return '\n'.join(r)
+
+    def doAliasRemove(self, data, proto):
+        data = data.lstrip().rstrip()
+        protoCmd = proto if proto != 'dw' else 'dw server'
+        if len(data) == 0:
+            return "%s alias remove <name>" % protoCmd
+        alias = data.upper()
+        path = self.server.aliases[proto].get(alias, None)
+        if not path:
+            return "%s: Alias %s doesn't exit" % (proto, alias)
+        r = ['Remove %s Alias' % proto,
+             '==============',
+             'Alias: %s Path: %s' % (alias, path)
+             ]
+        del self.server.aliases[proto][alias]
+        return '\n'.join(r)
+
+    def doMcAliasShow(self, data):
+      return self.doAliasShow(data, 'mc')
+
+    def doMcAliasAdd(self, data):
+      return self.doAliasAdd(data, 'mc')
+
+    def doMcAliasRemove(self, data):
+      return self.doAliasRemove(data, 'mc')
 
     def doPrintFlush(self, data):
         if self.server.vprinter:
@@ -931,8 +1052,16 @@ class DWParser:
             if d:
                 out += ["dw disk insert %d %s" % (i, d.name)]
             i += 1
-        for k in server.emCeeAliases:
-            out += ["mc alias add %s %s" % (k, server.emCeeAliases[k])]
+        for pkey in ['mc', 'dload', 'namedobj']:
+           for k in server.aliases[akey]:
+               out += ["%s alias add %s %s" % (pkey, k, server.aliases[pkey][k])]
+        #for k in server.aliases['emcee']:
+        #    out += ["mc alias add %s %s" % (k, server.emCeeAliases[k])]
+        #for k in server.aliases['dload']:
+        #    out += ["dload alias add %s %s" % (k, server.emCeeAliases[k])]
+        #for k in server.aliases['namedobj']:
+        #    out += ["namedobj alias add %s %s" % (k, server.emCeeAliases[k])]
+        return out
         return out
 
     def genConfig(self):
@@ -1024,6 +1153,50 @@ class DWParser:
             args.dloadTranslate = False
         return "dloadTranslate=%s" % (args.dloadTranslate)
 
+    def doDloadAliasShow(self, data):
+      return self.doAliasShow(data, 'dload')
+
+    def doDloadAliasAdd(self, data):
+      return self.doAliasAdd(data, 'dload')
+
+    def doDloadAliasRemove(self, data):
+      return self.doAliasRemove(data, 'dload')
+
+    def doDloadSetDir(self, data):
+        return self.doSetDir(data, 'dload')
+
+    def doDloadGetDir(self, data):
+        return self.doGetDir(data, 'dload')
+
+    def doDloadListDir(self, data):
+        return self.doListDir(data, 'dload')
+
+    def doNamedObjAliasShow(self, data):
+      return self.doAliasShow(data, 'namedobj')
+
+    def doNamedObjAliasAdd(self, data):
+      return self.doAliasAdd(data, 'namedobj')
+
+    def doNamedObjAliasRemove(self, data):
+      return self.doAliasRemove(data, 'namedobj')
+
+    def doNamedObjSetDir(self, data):
+        return self.doSetDir(data, 'namedobj')
+
+    def doNamedObjGetDir(self, data):
+        return self.doGetDir(data, 'namedobj')
+
+    def doNamedObjListDir(self, data):
+        return self.doListDir(data, 'namedobj')
+
+    def doPwd(self, data):
+        out = [
+            'Current Dir: %s' % os.getcwd(),
+        ]
+        for proto in ['dw', 'mc', 'dload', 'namedobj']:
+            out.append('%s Dir: %s' % (proto, self.server.dirs[proto]))
+
+        return('\r\n'.join(out))
 
     def parse(self, data, interact=False):
         data = data.lstrip().strip()

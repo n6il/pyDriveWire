@@ -142,6 +142,11 @@ class CocoCas:
         self.blk = None
         self.nameFile = None
         self.remote = False
+        #
+        self.offset = 0
+        self.raw = True
+        self.eolxlate = False
+        self.proto = 'mc'
 
     def checkWeb(self, fileName):
         try:
