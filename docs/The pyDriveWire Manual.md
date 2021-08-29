@@ -1729,11 +1729,11 @@ Use the `mc getdir` command to get the default directory for EmCee protocol oper
 ### `mc listdir`
 Use the `mc listdir` command to list the files the current directory for EmCee protocol operations:
 
-   pyDriveWire>  mc listdir
-   ==== mc Dir Listing ===
-   Dir: /home/n6il/demo/mc-10
-   ---
-   BOMSQUAD.C10
+    pyDriveWire>  mc listdir
+    ==== mc Dir Listing ===
+    Dir: /home/n6il/demo/mc-10
+    ---
+    BOMSQUAD.C10
 
 ### `dload setdir <path>`
 
@@ -1752,12 +1752,12 @@ Use the `dload getdir` command to get the directory for DLOAD protocol operation
 ### `dload listdir`
 Use the `mc listdir` command to list the files the current directory for DLOAD protocol operations:
 
-   pyDriveWire>  dload listdir
-   ==== dload Dir Listing ===
-   Dir: /home/n6il/demo/dload
-   ---
-   HELLO.BAS
-   TEST.BIN
+    pyDriveWire>  dload listdir
+    ==== dload Dir Listing ===
+    Dir: /home/n6il/demo/dload
+    ---
+    HELLO.BAS
+    TEST.BIN
 
 ### `namedobj setdir <path>`
 
@@ -1776,14 +1776,14 @@ Use the `namedobj getdir` command to set the directory for DriveWire Named Objec
 ### `namedobj listdir`
 Use the `namedobj listdir` command to list the files the current directory for DriveWire Named Object operations:
 
-   pyDriveWire>  namedobj listdir
-   ==== namedobj Dir Listing ===
-   Dir: /home/n6il/demo/dweebs
-   ---
-   AUTOLOAD.DWL
-   DW
-   SAVE
-   DOS
+    pyDriveWire>  namedobj listdir
+    ==== namedobj Dir Listing ===
+    Dir: /home/n6il/demo/dweebs
+    ---
+    AUTOLOAD.DWL
+    DW
+    SAVE
+    DOS
 
 ### Directories after the examples:
 
