@@ -22,7 +22,7 @@ import tempfile
 
 from dwconstants import *
 
-VERSION = 'v0.5c'
+VERSION = 'v0.5d'
 
 defaultConfigValues = {
     'config': '~/.pydrivewirerc',

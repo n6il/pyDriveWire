@@ -1,4 +1,4 @@
-# The pyDriveWire Manual v0.5c
+# The pyDriveWire Manual v0.5d
 
 Python Implementation of DriveWire 4 and EmCee Protocols
 
@@ -20,14 +20,16 @@ DriveWire 4 and EmCee Procotols can be used simultaneously on the server without
 8. [Daemon Mode](#ch8)
 9. [EmCee Server](#ch9)
 10. [Experimental Printing Support](#ch10)
-11. [Experimental SSH Support] (#ch_ssh)
-11. [Debugging](#ch11)
-12. [HDB-DOS Mode](#ch12)
-13. [Appendix: Supported DriveWire Commands](#ch13)
-14. [Appendix: Directories](#ch_directories)
-15. [Appendix: Aliases](#ch_aliases)
-16. [Appendix: DLOAD Protocol Support](#ch_dload)
-17. [Appendix: Named Object Support](#ch_namedobj)
+11. [Experimental SSH Support](#ch_ssh)
+12. [Debugging](#ch11)
+13. [HDB-DOS Mode](#ch12)
+14. [Appendix: Supported DriveWire Commands](#ch13)
+15. [NEW: Directories](#ch_directories)
+16. [NEW: Aliases](#ch_aliases)
+17. [NEW: DLOAD Protocol Support](#ch_dload)
+18. [NEW: Named Object Support](#ch_namedobj)
+19. [NEW: Dragon DosPlus Extender Support](#ch_dragon)
+20. [NEW: DriveWire Virtual Modem for TCP, Telnet, and SSH](#ch_vport)
 
 # 1. <a name="ch1"></a>Features
 
@@ -1321,7 +1323,13 @@ For Windows you might try this:
 
 [Back to top](#toc)
 
-# <a name="ch11"></a>11. Debugging
+# <a name="ch_ssh"></a>11. SSH Support
+
+
+
+[Back to top](#toc)
+
+# <a name="ch12"></a>12. Debugging
 
 pyDriveWire server has extremely powerful debugging capabilities.  These far surpass what is available in any other DriveWire server out there in both conciseness, readability, and utility.
 
@@ -1434,7 +1442,7 @@ If you really want to learn the internal details of how the DriveWire Protocol w
 
 [Back to top](#toc)
 
-# 12. <a name="ch12"></a>HDB-DOS Mode
+# 13. <a name="ch13"></a>HDB-DOS Mode
 DriveWire4 added a "HDB-DOS" mode to better support HDB-DOS disk images.  pyDriveWire has enhanced support for this.
 
 This is not the easiest DriveWire feature to understand and use properly.  To use it successfully you will need to know a few peices of information about your disk image
@@ -1554,7 +1562,7 @@ etc.
 
 [Back to top](#toc)
 
-# 13. <a name="ch13"></a>Appendix: Supported DriveWire Commands
+# 14. <a name="ch14"></a>Appendix: Supported DriveWire Commands
 
 * `dw disk` 
 	* `dw disk show`
@@ -1618,7 +1626,7 @@ etc.
 	* `dw server timeout <s>`
 	
 [Back to top](#toc)
-# 13. <a name="ch_directories"></a>Appendix: Directories
+# 15. <a name="ch_directories"></a>Appendix: Directories
 pyDriveWire provides a flexible system for configuring which directories you want to use.  There is also a filename alias system available for use with the EmCee, DLOAD, and NamedObject support.
 
 ## Directories
@@ -1796,7 +1804,7 @@ Use the `namedobj listdir` command to list the files the current directory for D
 
 
 [Back to top](#toc)
-# 14. <a name="ch_aliases"></a>Appendix: Aliases
+# 16. <a name="ch_aliases"></a>Appendix: Aliases
 ## EmCee Server Aliases
 The pyDriveWire server has a powerful "aliasing" system that is quite different than the official EmCee servers.  The pyDriveWire system has three different types of aliases.  File and Web Aliases can be  with LOAD/SAVE commands and Path Aliases can be used with DIR/SETDIR commands.  The official servers can only use aliases for the `SETDIR` command.
 
@@ -1872,7 +1880,7 @@ Remove an alias.  The alias is always converted to upper case before addition re
     Alias: QBERT.C10 Path: http://www.colorcomputerarchive.com/coco/MC-10/Cassettes/Games/Jim%20Gerrie's%20Games/QBERT.C10
 
 [Back to top](#toc)
-# 15. <a name="ch_dload"></a>Appendix: DLOAD Protocol Support
+# 17. <a name="ch_dload"></a>Appendix: DLOAD Protocol Support
 
 Issuing the command:
 
@@ -1960,7 +1968,7 @@ Use the `mc listdir` command to list the files the current directory for DLOAD p
 ### `dload alias remove <name>`
 
 [Back to top](#toc)
-# 15. <a name="ch_namedobj"></a>Appendix: Named Object Support
+# 18. <a name="ch_namedobj"></a>Appendix: Named Object Support
 
 ## DriveWire Named Object Command Reference
 
@@ -1995,4 +2003,135 @@ Use the `namedobj listdir` command to list the files the current directory for D
 ### `namedobj alias add <name> <path>`
 ### `namedobj alias remove <name>`
 
+[Back to top](#toc)
+# 19. <a name="ch_dragon"></a>Appendix: Dragon DosPlus Extender Support
 
+The DosPlus Extender for Dragon computers has DriveWire support.
+The extender has been implemented for DriveWire servers which
+do not provide proper support for VDK files.  When the Dragon
+makes a request for a particular LSN, the ReadEx and Write
+commands sent by the extender are actually LSN+1. This seems
+to be because other DriveWire servers do not have full support
+for the VDK disk image format.  pyDriveWire will properly
+detect a VDK image file and never send the VDK header to the
+client.  When pyDriveWire's dosplus mode is enabled the
+reverse LSN = LSN-1 is applied to correct this.
+
+Note: The dosplus mode has no effect when using DWEEBS/DWLOAD
+
+Note: The `dosplus` feature is needed for all disk Read/Write access being
+done through the DosPlus extender, regardless of the disk image format you
+are using (VDK, JVC, DSK, OS9)
+
+There are three different ways to turn on the dosplus mode:
+
+* The dosplus flag can be set on a per-disk image basis
+* A command line option to globally enable dosplus for all instances
+* A config file option can be used to enable dosplus for specific instances
+
+If you already know that pyDriveWire will used exclusively with Dragon(s) Running DosPlus you can set the `--dosplus` command line option.  If you have multiple pyDriveWire instances, you can enable the dosplus mode on the instances which will be used with Dragon(s) Running DosPlus and/or disable it on other instances by adding the `dw server dosplus <flag>` option in the config section for those instance(s).
+
+Commands added:
+
+Insert a disk with the dosplus workaround enabled:
+
+    dw disk insert <drive> <path> --dosplus
+
+Query whether dosplus is enabled for a drive:
+
+    dw disk dosplus <drive>
+    dw disk info <drive>
+
+Change the dosplus flag for a given drive.  This command can be issued at the pyDriveWire REPL prompt, Web command console, and can also be specified in your config file:
+
+    dw disk dosplus <drive> <setting>
+    
+    Setting can be: 0, f[alse], n[o], off
+                    1, t[rue], y[es], on
+
+Query the server global dosplus default:
+
+    dw server dosplus
+
+Set the dosplus flag for a specific instance. This command can be issued at the pyDriveWire REPL prompt, Web command console, and can also be specified in your config file for individual instances:
+
+    dw server dosplus <setting>
+
+    Setting can be: 0, f[alse], n[o], off
+                    1, t[rue], y[es], on
+
+Enable the server global dosplus default from the command line:
+
+    ./pyDriveWire --dosplus ...
+
+[Back to top](#toc)
+# 20. <a name="ch_vport"></a>DriveWire Virtual Modem for TCP, Telnet and SSH
+
+pyDriveWire has a system of "virtual ports" which can be used to communicate over the Internet.  This is done in one of four ways: The DriveWire Virtual Modem, TCP commands, Telnet and SSH Commands.
+
+## Using pyDriveWire's Virtual Modem
+
+pyDriveWire's Virtual modem provides a Hayes-like AT interface for making outgoing connections.  To use it, you first must run some terminal software.
+
+* DwTerm for RSDOS: [https://gitgub.com/n6il/DwTerm](https://gitgub.com/n6il/DwTerm)
+* DwTermMC10: [https://gitgub.com/n6il/DwTermMc10](https://gitgub.com/n6il/DwTermMc10)
+* Any terminal program under NitrOS-9 such as SuperComm.  Use `/n` for the port, baud doesn't matter
+
+Once you have your terminal program loaded and running you will be greeted with a blank screen.  To ask pyDriveWire to open the virtual modem port, initiate a simple AT command and you should get an OK back in response:
+
+    AT
+    OK
+    ATI
+    pyDriveWire v0.5d  
+    OK
+
+So, anyone remember how to make a modem connection using a modem?  How about that `ATDT` command.  Except instead of a phone number you can use an IP address or DNS name.
+
+    ATDT<host>
+    ATDT<host>:<port>
+    ATDTtelnet://<host>[:<port>]
+    ATDTssh://<username>:<password>@<hostname>[:<port>]
+
+The first one will use the default Telnet port `23`.  If you need to use a different port you can specify the port number after the colon (:)   You can also make telnet and ssh connections as shown above.
+
+## Using the `telnet` and `ssh` Commands
+
+You can also use the `telnet` and `ssh` commands at the `pyDriveWire> ` REPL prompt.  Just Press Enter first
+
+    <Press Enter>
+    pyDriveWire> telnet <host>[:port]
+    pyDriveWire> ssh <hostname>[:<port>] <username> <password>
+
+## Changing Terminal Parameters for SSH
+
+When SSH Connections are made some parameters such as your terminal type and screen size are sent to the remote end.  The default settings are:
+
+* term - ansi
+* rows - 16
+* cols - 32
+
+These can be controlled using the following commands:
+
+      dw port term [<term>]
+      dw port rows [<rows>]
+      dw port cols [<cols>]
+
+Note that the parameters to the above commands is optional.  If you don't supply the parameters the current value of the setting will be shown.  These commands can be placed in your .pydrivewire config file if you want them to be remembered.
+
+You can also see the current settings with the following command:
+
+    pyDriveWire>  dw port show
+    
+    
+    Port   Status
+    -----  --------------------------------------
+    
+    Term: ansi Rows: 16 Cols: 32
+
+You can also set these from the command line:
+
+      --port-term PORTTERM  Port default TERM, default: ansi
+      --port-rows PORTROWS  Port default rows, default: 16
+      --port-cols PORTCOLS  Port default cols, default: 32
+
+[Back to top](#toc)
