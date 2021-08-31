@@ -96,6 +96,7 @@ class DWParser:
         diskParser.add("offset", ParseAction(self.doDiskOffset))
         diskParser.add("create", ParseAction(self.doDiskCreate))
         diskParser.add("info", ParseAction(self.doDiskInfo))
+        diskParser.add("dosplus", ParseAction(self.doDiskDosPlus))
 
         serverParser = ParseNode("server")
         serverParser.add("instance", ParseAction(self.doInstanceShow))
@@ -106,6 +107,7 @@ class DWParser:
         serverParser.add("timeout", ParseAction(self.doTimeout))
         serverParser.add("version", ParseAction(self.doVersion))
         serverParser.add("hdbdos", ParseAction(self.doHdbDos))
+        serverParser.add("dosplus", ParseAction(self.doServerDosPlus))
         connParser = ParseNode("conn")
         connParser.add("debug", ParseAction(self.doConnDebug))
         serverParser.add("conn", connParser)
@@ -277,6 +279,7 @@ class DWParser:
         mode = 'rb+'
         raw = False
         proto = 'dw'
+        dosplus = None
         for s in opts[2:]:
             if s.lower() == '--stream':
                 stream = True
@@ -301,8 +304,14 @@ class DWParser:
                 proto = 'namedobj'
                 raw = True
                 pathEnd -= 11  # len(' --namedobj')
+            elif s.lower() == '--dosplus':
+                dosplus = True
+                pathEnd -= 10  # len(' --dosplus')
         path = data[pathStart:pathEnd]
-        self.server.open(int(drive), path, mode=mode, stream=stream, raw=raw, proto=proto)
+        try:
+            self.server.open(int(drive), path, mode=mode, stream=stream, raw=raw, proto=proto, dosplus=dosplus)
+        except Exception as e:
+            return str(e)
         return "open(%d, %s)" % (int(drive), path)
 
     def doDiskCreate(self, data):
@@ -325,6 +334,8 @@ class DWParser:
             raise Exception("dw disk info <drive>")
         drive = int(opts[0])
         fi = self.server.files[drive]
+        if fi is None:
+            return "Drive %d: Not inserted" % drive
         out = [
             'Drive: %d' % drive,
             'Path: %s' % fi.file.name,
@@ -335,7 +346,7 @@ class DWParser:
             'Offset: %s' % fi.offset,
             'Byte Offset: %s' % fi.byte_offset,
             'Proto: %s' % fi.proto,
-            'flags: mode=%s, remote=%s stream=%s raw=%s' % (fi.mode, fi.remote, fi.stream, fi.raw)
+            'flags: mode=%s, remote=%s stream=%s raw=%s dosplus=%s' % (fi.mode, fi.remote, fi.stream, fi.raw, fi.dosplus)
         ]
         return '\r\n'.join(out)
 
@@ -369,6 +380,45 @@ class DWParser:
                 raise
                 return "Invalid offset %s" % (hex(offset))
         return "drive(%d) offset(%s)" % (drive, hex(offset))
+
+    def doDosPlus(self, data, server=False):
+        if server:
+           usageStr = "Usage: dw server dosplus [0|1|on|off|t|T|f|F|y|Y|n|N]"
+           opt = 0
+           nopts = 1
+        else:
+           usageStr = "Usage: dw disk dosplus <drive> [0|1|on|off|t|T|f|F|y|Y|n|N]"
+           opt = 1
+           nopts = 2
+        print data
+        dp = data.split(' ')
+        print dp
+        if not server and (len(dp) < 1 or len(dp) > 2):
+            return usageStr
+        if server:
+           n = self.server.dosplus
+        else:
+           drive = int(dp[0])
+           n = self.server.files[drive].dosplus
+        if len(dp) == nopts:
+            if dp[opt].startswith(('1', 'on', 't', 'T', 'y', 'Y')):
+                n = True
+            elif dp[opt].startswith(('0', 'off', 'f', 'F', 'n', 'N')):
+                n = False
+            elif not server:
+                return usageStr
+        if server:
+            self.server.dosplus = n
+            return "server dosplus(%s)" % (n)
+        else:
+            self.server.files[drive].dosplus = n
+            return "drive(%d) dosplus(%s)" % (drive, n)
+
+    def doDiskDosPlus(self, data):
+        return self.doDosPlus(data, server=False)
+
+    def doServerDosPlus(self, data):
+        return self.doDosPlus(data, server=True)
 
     def doInstanceSelect(self, data):
         instance = data.split(' ')[0]
@@ -1039,6 +1089,8 @@ class DWParser:
                 continue
             if k == 'hdbdos':
                 v = server.hdbdos
+            if k in ['hdbdos', 'dosplus']:
+                v = eval("server.%s" % k)
             elif k == 'debug':
                 v = server.debug
             elif k == 'offset' and v == '0':
@@ -1050,10 +1102,17 @@ class DWParser:
         i = 0
         for d in server.files:
             if d:
-                out += ["dw disk insert %d %s" % (i, d.name)]
+                flags=''
+                if d.dosplus:
+                    flags += ' --dosplus'
+                elif d.raw:
+                    flags += ' --raw'
+                elif d.stream:
+                    flags += ' --stream'
+                out += ["dw disk insert %d %s%s" % (i, d.name, flags)]
             i += 1
         for pkey in ['mc', 'dload', 'namedobj']:
-           for k in server.aliases[akey]:
+           for k in server.aliases[pkey]:
                out += ["%s alias add %s %s" % (pkey, k, server.aliases[pkey][k])]
         #for k in server.aliases['emcee']:
         #    out += ["mc alias add %s %s" % (k, server.emCeeAliases[k])]

@@ -116,6 +116,11 @@ def ParseArgs():
         action='store_true',
         help='HDBDos Mode')
     parser.add_argument(
+        '--dosplus',
+        dest='dosplus',
+        action='store_true',
+        help='Workaround for DosPlus Mode')
+    parser.add_argument(
         '--offset',
         dest='offset',
         help='Number of sector offset for sector 0',
@@ -336,6 +341,7 @@ def ReadConfig(args):
                 iargs.debug = debug
                 iargs.offset = args.offset
                 iargs.hdbdos = args.hdbdos
+                iargs.dosplus = args.dosplus
                 iargs.noreconnect = args.noreconnect
                 iargs.printFormat = args.printFormat
                 # iargs.printMode = None

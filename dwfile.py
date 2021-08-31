@@ -27,7 +27,7 @@ formats = {
 
 
 class DWFile:
-    def __init__(self, name, mode='r', typ=None, stream=False, offset=0, raw=False, eolxlate=False, proto='dw'):
+    def __init__(self, name, mode='r', typ=None, stream=False, offset=0, raw=False, eolxlate=False, proto='dw', dosplus=False):
         self.name = name
         self.mode = mode
         self.remote = False
@@ -42,6 +42,7 @@ class DWFile:
         self.os9Image = False
         self.offset = offset
         self.byte_offset = 0
+        self.dosplus = dosplus
         if not self.stream:
             try:
                 self.guessMaxLsn()

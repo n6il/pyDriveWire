@@ -43,6 +43,7 @@ class DWServer:
         self.instances = instances
         self.instance = instance
         self.hdbdos = args.hdbdos
+        self.dosplus = args.dosplus
         self.offset = eval(args.offset)
         self.args = args
         self.dload = False
@@ -70,14 +71,16 @@ class DWServer:
         self.connections[si] = conn
         return si
 
-    def open(self, disk, fileName, stream=False, mode="rb+", create=False, offset=None, hdbdos=None, raw=False, eolxlate=False, proto='dw'):
+    def open(self, disk, fileName, stream=False, mode="rb+", create=False, offset=None, hdbdos=None, raw=False, eolxlate=False, proto='dw', dosplus=None):
         if offset is None:
             offset = self.offset
         if hdbdos is None:
             hdbdos = self.hdbdos
+        if dosplus is None:
+            dosplus = self.dosplus
         if proto in self.dirs:
             os.chdir(self.dirs[proto])
-        self.files[disk] = DWFile(fileName, mode, stream=stream, offset=offset, raw=raw, eolxlate=eolxlate, proto=proto)
+        self.files[disk] = DWFile(fileName, mode, stream=stream, offset=offset, raw=raw, eolxlate=eolxlate, proto=proto, dosplus=dosplus)
         print(
             '%s: disk=%d file=%s stream=%s mode=%s' %
             ('Created' if create else 'Opened', disk, fileName, stream, mode))
@@ -217,6 +220,9 @@ class DWServer:
                     flags += "H"
                 else:
                     lsn += self.files[disk].offset
+                if self.files[disk].dosplus:
+                    flags +="D"
+                    lsn -= 1
                 self.files[disk].seek(lsn * SECSIZ)
                 assert(self.files[disk].tell() == (lsn * SECSIZ))
             except BaseException:
@@ -315,6 +321,9 @@ class DWServer:
                     flags += "H"
                 else:
                     lsn += self.files[disk].offset
+                if self.files[disk].dosplus:
+                    flags +="D"
+                    lsn -= 1
                 self.files[disk].seek(lsn * SECSIZ)
             except BaseException:
                 traceback.print_exc()
