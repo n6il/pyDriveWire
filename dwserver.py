@@ -114,13 +114,15 @@ class DWServer:
         mode = df.mode
         offset = df.offset
         hdbdos = df.hdbdos
+        dosplus = df.dosplus
         raw = df.raw
         eolxlate = df.eolxlate
         proto = df.proto
         print('Reset: disk=%d file=%s' % (int(disk), fileName))
         self.close(disk)
         self.open(disk, fileName, stream=stream, mode=mode, offset=offset,
-            hdbdos=hdbdos, raw=df.raw, eolxlate=eolxlate, proto=proto)
+            hdbdos=hdbdos, raw=df.raw, eolxlate=eolxlate, proto=proto,
+            dosplus=dosplus)
 
     def cmdStat(self, cmd):
         info = self.conn.read(STATSIZ, self.timeout)
@@ -659,14 +661,14 @@ class DWServer:
                     drive = 0
                 else:
                     if (self.files[drive] is None) or (self.files[drive] and self.files[drive].file.name != fn):
-                        self.open(drive, fn, mode='ab+', raw=True, proto='namedobj')
+                        self.open(drive, fn, mode='ab+', raw=True, proto='namedobj', dosplus=False)
                         self.NamedObjDrive = drive
 
             if mode.startswith('w'):
                 if exists:
                     drive = 0
                 else:
-                    self.open(drive, fn, mode='ab+', raw=True, proto='namedobj')
+                    self.open(drive, fn, mode='ab+', raw=True, proto='namedobj', dosplus=False)
                     self.namedObjDrive = drive
         self.conn.write(chr(drive))
         return drive, fn
@@ -1146,7 +1148,8 @@ class DWServer:
                     eolxlate = self.args.dloadTranslate
                 else:
                     eolxlate = False
-                self.open(0, fn, mode='r', offset=0, hdbdos=False, raw=True, eolxlate=eolxlate, proto='dload')
+                self.open(0, fn, mode='r', offset=0, hdbdos=False, raw=True,
+                          eolxlate=eolxlate, proto='dload', dosplus=False)
                 self.files[0].ftype = ftype
                 self.files[0].ftype = aflag
         
