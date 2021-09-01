@@ -147,6 +147,10 @@ class CocoCas:
         self.raw = True
         self.eolxlate = False
         self.proto = 'mc'
+	self.stream = False
+	self.hdbdos = False
+	self.dosplus = False
+
 
     def checkWeb(self, fileName):
         try:
