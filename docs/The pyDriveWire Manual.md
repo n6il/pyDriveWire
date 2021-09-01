@@ -2073,8 +2073,8 @@ pyDriveWire has a system of "virtual ports" which can be used to communicate ove
 
 pyDriveWire's Virtual modem provides a Hayes-like AT interface for making outgoing connections.  To use it, you first must run some terminal software.
 
-* DwTerm for RSDOS: [https://gitgub.com/n6il/DwTerm](https://gitgub.com/n6il/DwTerm)
-* DwTermMC10: [https://gitgub.com/n6il/DwTermMc10](https://gitgub.com/n6il/DwTermMc10)
+* DwTerm for RSDOS: [https://github.com/n6il/DwTerm](https://github.com/n6il/DwTerm)
+* DwTermMC10: [https://github.com/n6il/DwTermMc10](https://github.com/n6il/DwTermMc10)
 * Any terminal program under NitrOS-9 such as SuperComm.  Use `/n` for the port, baud doesn't matter
 
 Once you have your terminal program loaded and running you will be greeted with a blank screen.  To ask pyDriveWire to open the virtual modem port, initiate a simple AT command and you should get an OK back in response:
