@@ -700,14 +700,24 @@ class DWServer:
             try:
                 fname = self.aliases['mc'].get(fname.upper(), fname)
                 os.chdir(self.dirs['mc'])
-                self.files[filnum] = CocoCas(fname, fmode)
-                self.files[filnum].seek()
-                # self.files[filnum] = MlFileReader(fname, fmode, ftyp)
-                # if ftyp == 2: # ml file
-                #        self.files[filnum].readHeader()
-                #        address = self.files[filnum].addr
-                #        size = self.files[filnum]# .
-            except BaseException:
+                if os.path.exists(fname):
+                   self.files[filnum] = CocoCas(fname, fmode)
+                   self.files[filnum].seek()
+                   # self.files[filnum] = MlFileReader(fname, fmode, ftyp)
+                   # if ftyp == 2: # ml file
+                   #        self.files[filnum].readHeader()
+                   #        address = self.files[filnum].addr
+                   #        size = self.files[filnum]# .
+                else:
+                   error = E_MC_NE
+            except IOError as e:
+                if e.errno == 21:
+                    error = E_MC_FN
+                elif e.errno == 13:
+                    error = E_MC_FM
+                else:
+                    error = E_MC_FS
+            except BaseException as e:
                 error = E_MC_IO
         if not error:
             try:
