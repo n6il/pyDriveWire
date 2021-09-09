@@ -270,9 +270,14 @@ class DWParser:
 
     def doInsert(self, data):
         opts = data.split(' ')
+        usageMsg = "dw disk insert <drive> <path> [<opts>]"
         if len(opts) < 2:
-            raise Exception("dw disk insert <drive> <path> [<opts>]")
+            raise Exception('Usage: '+usageMsg)
         drive = opts[0]
+        try:
+            _ = int(drive)
+        except:
+            raise Exception("Invalid drive: %s\r\nUsage: %s" % (drive, usageMsg))
         pathStart = len(drive) + 1
         pathEnd = len(data)
         stream = False
@@ -315,10 +320,15 @@ class DWParser:
         return "open(%d, %s)" % (int(drive), path)
 
     def doDiskCreate(self, data):
+        usageMsg = "dw disk create <drive> <path> [<opts>]"
         opts = data.split(' ')
         if len(opts) < 2:
-            raise Exception("dw disk create <drive> <path> [<opts>]")
+            raise Exception(usageMsg)
         drive = opts[0]
+        try:
+            _ = int(drive)
+        except:
+            raise Exception("Invalid drive: %s\r\nUsage: %s" % (drive, usageMsg))
         pathStart = len(drive) + 1
         pathEnd = len(data)
         stream = False
@@ -330,9 +340,13 @@ class DWParser:
 
     def doDiskInfo(self, data):
         opts = data.split(' ')
+        usageMsg = "dw disk info <drive>"
         if len(opts) < 1:
-            raise Exception("dw disk info <drive>")
-        drive = int(opts[0])
+            raise Exception(usageMsg)
+        try:
+           drive = int(opts[0])
+        except:
+            raise Exception("Invalid drive: %s\r\nUsage: %s" % (opts[0], usageMsg))
         fi = self.server.files[drive]
         if fi is None:
             return "Drive %d: Not inserted" % drive
@@ -351,34 +365,63 @@ class DWParser:
         return '\r\n'.join(out)
 
     def doReset(self, data):
-        drive = int(data.split(' ')[0])
+        try:
+           drive = int(data.split(' ')[0])
+        except:
+           raise Exception("dw disk reset <drive>")
+        dl = len(self.server.files)
+        if drive >= dl:
+            raise Exception('Drive higher than maximum %d' % dl)
+        if self.server.files[drive] is None:
+            return "Drive %d not mounted" % drive
         self.server.reset(drive)
         return "reset(%d, %s)" % (int(drive), self.server.files[drive].name)
 
     def doEject(self, data):
-        drive = data.split(' ')[0]
-        self.server.close(int(drive))
-        return "close(%d)" % (int(drive))
+        try:
+            drive = int(data.split(' ')[0])
+        except:
+            raise Exception("Usage: dw disk eject <drive>")
+        dl = len(self.server.files)
+        if drive >= dl:
+            raise Exception('Drive higher than maximum %d' % dl)
+        if self.server.files[drive] is None:
+            return "Drive %d not mounted" % drive
+        self.server.close(drive)
+        return "close(%d)" % (drive)
 
     def doHdbDos(self, data):
         data = data.lstrip().rstrip()
-        if data.startswith(('1', 'on', 't', 'T', 'y', 'Y')):
-            self.server.hdbdos = True
-        if data.startswith(('0', 'off', 'f', 'F', 'n', 'N')):
-            self.server.hdbdos = False
+        if data:
+           if data.startswith(('1', 'on', 't', 'T', 'y', 'Y')):
+               self.server.hdbdos = True
+           elif data.startswith(('0', 'off', 'f', 'F', 'n', 'N')):
+               self.server.hdbdos = False
+           else:
+               raise Exception("dw server hdbdos [0|1|on|off|t|T|f|F|y|Y|n|N]")
         return "hdbdos=%s" % (self.server.hdbdos)
 
     def doDiskOffset(self, data):
         dp = data.split(' ')
-        drive = int(dp[0])
+        usageMsg = 'dw disk offset <drive> <offset>'
+        if len(dp) <2:
+            raise Exception('Usage: %s' % usageMsg)
+        try:
+           drive = int(dp[0])
+        except:
+           raise Exception("Invalid drive: %s\r\nUsage: %s" % (dp[0], usageMsg))
+        dl = len(self.server.files)
+        if drive >= dl:
+            raise Exception('Drive higher than maximum %d' % dl)
+        if self.server.files[drive] is None:
+            return "Drive %d not mounted" % drive
         offset = self.server.files[drive].offset
         if len(dp) >= 2:
             try:
                 offset = eval(dp[1])
                 self.server.files[drive].offset = offset
             except BaseException:
-                raise
-                return "Invalid offset %s" % (hex(offset))
+                return "Invalid offset: %s" % (hex(offset))
         return "drive(%d) offset(%s)" % (drive, hex(offset))
 
     def doDosPlus(self, data, server=False):
@@ -394,11 +437,14 @@ class DWParser:
         dp = data.split(' ')
         print dp
         if not server and (len(dp) < 1 or len(dp) > 2):
-            return usageStr
+            raise exception('Usage: '+usageStr)
         if server:
            n = self.server.dosplus
         else:
-           drive = int(dp[0])
+           try:
+               drive = int(dp[0])
+           except:
+               raise Exception("Invalid drive: %s\r\nUsage: %s" % (dp[0], usageStr))
            n = self.server.files[drive].dosplus
         if len(dp) == nopts:
             if dp[opt].startswith(('1', 'on', 't', 'T', 'y', 'Y')):
@@ -406,7 +452,7 @@ class DWParser:
             elif dp[opt].startswith(('0', 'off', 'f', 'F', 'n', 'N')):
                 n = False
             elif not server:
-                return usageStr
+                raise Exception(usageStr)
         if server:
             self.server.dosplus = n
             return "server dosplus(%s)" % (n)
@@ -421,8 +467,13 @@ class DWParser:
         return self.doDosPlus(data, server=True)
 
     def doInstanceSelect(self, data):
-        instance = data.split(' ')[0]
-        self.server = self.server.instances[int(instance)]
+        try:
+            instance = int(data.split(' ')[0])
+        except:
+            raise Exception("dw instance select <instance>")
+        if instance >= len(self.server.instances):
+            return 'Invalid instance %d' % instance
+        self.server = self.server.instances[instance]
         return "Selected Instance %s: %s" % (
             self.server.instance, self.server.conn.name())
 
@@ -447,7 +498,12 @@ class DWParser:
 
     def doPortClose(self, data):
         data = data.lstrip().rstrip()
-        channel = chr(int(data))
+        if not data:
+           raise Exception("Usage: dw port close <portNum>")
+        try:
+           channel = chr(int(data))
+        except:
+           raise Exception("Invalid port %s" % channel)
         if channel not in self.server.channels:
             return "Invalid port %s" % channel
         ch = self.server.channels[channel]
@@ -478,11 +534,20 @@ class DWParser:
         return '\n\r'.join(out)
 
     def doPortDebug(self, data):
+        data = data.lstrip().rstrip()
+        usageStr = "Usage: dw port debug <port> [0|1|on|off|t|T|f|F|y|Y|n|N]"
+        if not data:
+            raise Exception(usageStr)
         dv = data.split(' ')
-        cn = dv[0]
-        channel = chr(int(cn))
-        if not chr(int(channel)) in self.server.channels:
-            return "Invalid port %s" % cn
+        if len(dv)<1 or len(dv)>2:
+            raise Exception(usageStr)
+        try:
+           cn = dv[0]
+           channel = chr(int(cn))
+        except:
+           raise Exception('Invalid port: %s' %cn)
+        if not channel in self.server.channels:
+            return "Invalid port: %s" % cn
         state = None
         if len(dv) > 1:
             state = dv[1]
@@ -518,7 +583,7 @@ class DWParser:
             try:
                 int(data)
             except:
-                raise Exception('Usage: dw port cols <rows>')
+                raise Exception('Usage: dw port cols <cols>')
         args = self.server.args
         if data:
             args.portCols = int(data)
@@ -603,18 +668,24 @@ class DWParser:
         return '\n\r'.join(out)
 
     def doConnDebug(self, data):
+        data = data.lstrip().rstrip()
         if data.startswith(('1', 'on', 't', 'T', 'y', 'Y')):
             self.server.conn.debug = True
-        if data.startswith(('0', 'off', 'f', 'F', 'n', 'N')):
+        elif data.startswith(('0', 'off', 'f', 'F', 'n', 'N')):
             self.server.conn.debug = False
+        elif data:
+           raise Exception("Usage: dw server conn debug [0|1|on|off|t|T|f|F|y|Y|n|N]")
         return "connDebug=%s" % (self.server.conn.debug)
 
     def doTimeout(self, data):
-        opts = data.split(' ')
+        opts = data.lstrip().rstrip().split(' ')
         if opts:
-            timeout = float(opts[0])
+            try:
+               timeout = float(opts[0])
+            except:
+               raise Exception("Invalid timeout: %s" % data)
             self.server.timeout = timeout
-        return "debug=%s" % (self.server.timeout)
+        return "timeout=%s" % (self.server.timeout)
 
     def doVersion(self, data):
         return "pyDriveWire Server %s" % self.server.version
@@ -623,15 +694,19 @@ class DWParser:
         out = []
         if data.startswith(('on', 't', 'T', 'y', 'Y')):
             self.server.debug = True
-        if data.startswith(('off', 'f', 'F', 'n', 'N')):
+        elif data.startswith(('off', 'f', 'F', 'n', 'N')):
             self.server.debug = False
-        if data and data[0].isdigit():
+        elif data and data[0].isdigit():
             d = int(data[0])
             self.server.debug = d
             if d == 2:
                 out += [self.doConnDebug('1')]
-            elif d == 0:
+            elif d < 2:
                 out += [self.doConnDebug('0')]
+            else:
+                raise Exception("dw server debug [T|f|F|F|Y|y|N|n|0|1|2|on|off]")
+        elif data:
+            raise Exception("dw server debug [T|f|F|F|Y|y|N|n|0|1|2|on|off]")
         out += ["debug=%s" % (self.server.debug)]
         return '\r\n'.join(out)
 
@@ -643,7 +718,7 @@ class DWParser:
         # print "doDir data=(%s)" % data
         if not data:
             data = os.getcwd()
-        out.extend(os.listdir(data))
+        out.extend(os.listdir(os.path.expanduser(data)))
         out.append('')
         return '\n\r'.join(out)
 
@@ -653,8 +728,9 @@ class DWParser:
            out += msg
         # cmd = ['cat']
         # path = data.split(' ')[0]
+        path = path.lsplit().rsplit()
         if not path:
-            raise Exception("list: Bad Path")
+            raise Exception("Usage: dw server list <path>")
         # cmd.append(path)
         # data2 = subprocess.Popen(
         # 	" ".join(cmd),
@@ -662,7 +738,7 @@ class DWParser:
         # 	stderr=subprocess.STDOUT,
         # 	shell=True)
         # out.extend(data2.stdout.read().strip().split('\n'))
-        out.extend(open(path).read().split('\n'))
+        out.extend(open(os.path.expanduser(path)).read().split('\n'))
         # out.append('')
         return '\n\r'.join(out)
 
@@ -883,14 +959,11 @@ class DWParser:
         return '\n'.join(r)
 
     def doSetDir(self, data, proto):
-        data = os.path.expanduser(data).lstrip().rstrip()
+        data = os.path.expanduser(data.lstrip().rstrip())
         protoCmd = proto if proto != 'dw' else 'dw server'
         if len(data) == 0:
-            return "Usage: %s setdir <path>" % protoCmd
-        try:
-            os.chdir(data)
-        except Exception as e:
-            return str(e)
+            raise Exception("Usage: %s setdir <path>" % protoCmd)
+        os.chdir(data)
         self.server.dirs[proto] = data
         return "%s SetDir: %s" % (proto, data)
 
@@ -1293,7 +1366,8 @@ class DWParser:
                 except Exception as ex:
                     #raise
                     if interact:
-                        raise
+                        if self.server.debug == 2:
+                           raise
                     res = "FAIL %s" % str(ex)
                 return res
             else:
