@@ -1882,6 +1882,7 @@ Remove an alias.  The alias is always converted to upper case before addition re
 [Back to top](#toc)
 # 17. <a name="ch_dload"></a>Appendix: DLOAD Protocol Support
 
+
 Issuing the command:
 
     pyDriveWire> dload enable 1200
@@ -1930,6 +1931,38 @@ This is also handy for something that you load frequently, such as HDBDOS.  You 
     CoCo: EXEC
 
 Now your Coco is running HDBDOS and since DLOAD is disabled DriveWire is enabled again!
+
+
+## How to use DLOAD from MAME
+
+It is possible to use DLOAD from inside of MAME.  The general workflow looks like this:
+
+    +-------------------------------------------------------+
+    |                MAME                                   |
+    |                                                       |
+    | +------------+      +----------- +      +-----------+ |    TCP/IP     +-------------+
+    | |   CoCo1/2  +----->| null_modem |----->| bitbanger |----> socket --->| pyDriveWire |
+    | +------------+      +----------- +      +-----------+ |               +-------------+
+    |                                                       |
+    +-------------------------------------------------------+
+
+Here is the general recipe for how to do this:
+
+1. Start pyDriveWire with a listening socket the same way you would for using Becker Port `pyDriveWire --accept --port 65504`
+2. Start mame connecting the bit banger port to a socket: `mame coco2 -rs232 null_modem -bitb socket.localhost:65504`
+3. Set an adjusted DLOAD timing loop. See table below for poke commands.
+4. Enable DLOAD protocol in pyDriveWire by running `dload enable <baud>`
+5. Run `DLOAD` or `DLOADM` command, **WITHOUT** any `,0` or `,1` on the end, just `DLOAD"FOO"` or `DLOADM"NITROS9"`
+
+
+### Table: DLOAD TIMING CONSTANTS
+
+|Baud|Constant       |
+|----|---------------|
+| 300|`POKE &HE6,181`|
+|1200|`POKE &HE6,42` |
+|2400|`POKE &HE6,19` |
+
 
 
 ## DLOAD Protocol Command Reference
