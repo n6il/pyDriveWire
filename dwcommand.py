@@ -963,7 +963,6 @@ class DWParser:
         protoCmd = proto if proto != 'dw' else 'dw server'
         if len(data) == 0:
             raise Exception("Usage: %s setdir <path>" % protoCmd)
-        os.chdir(data)
         self.server.dirs[proto] = data
         return "%s SetDir: %s" % (proto, data)
 
