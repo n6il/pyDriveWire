@@ -38,6 +38,10 @@ class DWServer:
                 self.vprinter = DWPrinter(args)
             if 'ssh' in args.experimental:
                 print("DWServer: Enabling experimental ssh support")
+            if 'playsound' in args.experimental:
+                print("DWServer: Enabling experimental playsound support")
+                import playsound
+                from playsound import playsound
         self.aliases = {'mc':{}, 'dload':{}, 'namedobj': {}}
         self.dirs = {'dw': os.getcwd(), 'mc': os.getcwd(), 'dload': os.getcwd(), 'namedobj': os.getcwd()}
         self.instances = instances
@@ -762,6 +766,49 @@ class DWServer:
         if self.debug:
             print("cmd=%0x cmdNamedObjCreate drive=%d" % (ord(cmd), drive))
 
+    # $FA - PlaySound Extension
+    # Plays a sound out of the default system audio device
+    #
+    # Prerequisites: Must enable experimental feature flag:
+    #     -x playsound
+    #     option experimental playsound
+    # 
+    # Byte Value Description
+    # ---- ----- ------------
+    #    1  $FA  OP_PLAYSOUND
+    #    2    N  Length
+    #  3+N    -  Filename
+    #    
+    # Return Value:
+    #    0 - OK
+    #  $F4 - ERROR - File not found
+    #  $FA - ERROR - Playsound Not enabled
+    #
+    def cmdPlaySound(self, cmd):
+        err = E_OK
+        if 'playsound' in self.args.experimental:
+            import playsound
+            from playsound import playsound
+        else:
+            err = E_PLAYSOUND
+            print("Playsound not enabled. use: -x playsound")
+        data = self.conn.read(1, self.timeout)
+        length = unpack(">B", data)[0]
+        name = None
+        print(type(length))
+        if length > 0:
+            name = self.conn.read(length, self.timeout)
+            if not os.path.exists(name):
+                err = E_READ
+        else:
+            err = E_READ
+
+        if not err:
+            playsound(name, False)
+        self.conn.write(chr(err))
+        if self.debug:
+            print("cmd=%0x playsound(%s)" % (ord(cmd), name))
+
     def cmdErr(self, cmd):
         print("cmd=%0x cmdErr" % ord(cmd))
         # raise Exception("cmd=%0x cmdErr" % ord(cmd))
@@ -1379,6 +1426,7 @@ class DWServer:
         OP_PRINT: cmdPrint,
         OP_PRINTFLUSH: cmdPrintFlush,
         MC_ATTENTION: doEmCeeCmd,
+        OP_PLAYSOUND: cmdPlaySound,
     }
 
     def main(self):
