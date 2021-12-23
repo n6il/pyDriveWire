@@ -48,6 +48,7 @@ class DWServer:
         self.args = args
         self.dload = False
         self.namedObjDrive = None
+        self.comboLock = 0
 
     def _isNamedObjDrive(self, drive):
         if self.namedObjDrive is None:
@@ -424,11 +425,85 @@ class DWServer:
         if self.debug:
             print "cmd=%0x cmdTerm" % ord(cmd)
 
+    # enhanced DwInit with combo lock
+    # Combo lock stage 1: send 'p' OP_DWINIT must return 'p'
+    # Combo lock stage 2: send 'y' OP_DWINIT must return 'y'
+    # Combo lock stage 3: send request for information page
+    #   Server Enabled Features Page 1: 'E'
+    #       Bit definitions - see FEATURE defs in dwconstants.py
+    #       combo lock disabled
+    #   Server Available Features Page 1: 'F'
+    #       Bit definitions - see FEATURE defs in dwconstants.py
+    #       combo lock disabled
+    #    Server Version Page 1: 'V'
+    #       bits 4-7 major binary 0-15
+    #       bits 0-3 minor msb bcd 0-9
+    #       combo lock disabled
+    #    Server Version Page 2: 'v'
+    #       bits 4-7 minor lsb bcd 0-9
+    #       bits 0-3 sub - 0=none, 1='a', 2='b' etc.
+    #       combo lock disabled
     def cmdDWInit(self, cmd):
+        r = 0xff
         clientID = self.conn.read(1, self.timeout)
+        if not clientID:
+            clientID = '\xff'
         if self.debug:
-            print "cmd=%0x cmdDWInit" % ord(cmd)
-        self.conn.write(chr(0xff))
+            print("Combo Lock: %0x" % self.comboLock)
+            print("Client Id: %0x(%s)" % (ord(clientID),clientID=='p'))
+        if self.comboLock == 0:
+            if clientID == 'p':
+                r = ord(clientID)
+                self.comboLock = 1
+            else:
+                self.comboLock = 0
+        elif self.comboLock == 1:
+            if clientID == 'y':
+                r = ord(clientID)
+                self.comboLock = 2
+            else:
+                self.comboLock = 0
+        elif self.comboLock == 2:
+            r = 0
+            if clientID == 'E':
+                r |= FEATURE_EMCEE
+                r |= FEATURE_DLOAD if self.dload else 0
+                r |= FEATURE_HDBDOS if self.hdbdos else 0
+                r |= FEATURE_DOSPLUS if self.dosplus else 0
+                if 'printer' in self.args.experimental:
+                    r |= FEATURE_PRINTER
+                if 'ssh' in self.args.experimental:
+                    r |= FEATURE_SSH
+                if 'playsound' in self.args.experimental:
+                    r |= FEATURE_PLAYSND
+                self.comboLock = 0
+            if clientID == 'F':
+                r |= FEATURE_EMCEE
+                r |= FEATURE_DLOAD
+                r |= FEATURE_HDBDOS
+                r |= FEATURE_DOSPLUS
+                r |= FEATURE_PRINTER
+                r |= FEATURE_SSH
+                r |= FEATURE_PLAYSND
+                self.comboLock = 0
+            elif clientID == 'V':
+                    r |= (PYDW_VERSION_MAJOR << 4) & 0xf0
+                    minorMsb = (PYDW_VERSION_MINOR//10) & 0x0f
+                    r |= minorMsb
+                    self.comboLock = 0
+            elif clientID == 'v':
+                    minorLsb = (PYDW_VERSION_MINOR%10)
+                    r |= (minorLsb << 4) & 0xf0
+                    code = (ord(PYDW_VERSION_SUB)-ord('a')+1) if PYDW_VERSION_SUB else 0
+                    r |= code & 0x0f
+                    self.comboLock = 0
+            else:
+                self.comboLock = 0
+        else:
+            self.comboLock = 0
+        if self.debug:
+            print "cmd=%0x cmdDWInit cl=%0x id=%0x r=%0x" % (ord(cmd), self.comboLock, ord(clientID), r)
+        self.conn.write(chr(r))
 
     def cmdTime(self, cmd):
         t = ''
