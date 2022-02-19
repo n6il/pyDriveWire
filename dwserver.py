@@ -12,7 +12,7 @@ from dwutil import *
 from dwlib import canonicalize
 
 from cococas import *
-
+import threading
 
 
 NULL_SECTOR = NULL * SECSIZ
@@ -53,6 +53,7 @@ class DWServer:
         self.dload = False
         self.namedObjDrive = None
         self.comboLock = 0
+        self.threads = []
 
     def _isNamedObjDrive(self, drive):
         if self.namedObjDrive is None:
@@ -804,7 +805,9 @@ class DWServer:
             err = E_READ
 
         if not err:
-            playsound(name, False)
+            t = threading.Thread(target=playsound, args=(name, True))
+            self.threads.append(t)
+            t.start()
         self.conn.write(chr(err))
         if self.debug:
             print("cmd=%0x playsound(%s)" % (ord(cmd), name))
@@ -1431,6 +1434,12 @@ class DWServer:
 
     def main(self):
         while True:
+            for t,alive in [(t, t.is_alive()) for t in self.threads]:
+               if not alive:
+                  print("%s\n" % t)
+                  t.join()
+                  self.threads.remove(t)
+
             cmd = self.conn.read(1)
             if cmd:
                 if self.dload:
