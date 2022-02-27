@@ -4,6 +4,8 @@ from ctypes import *
 import traceback
 import os
 import re
+import sys
+import platform
 
 from dwconstants import *
 from dwchannel import *
@@ -805,9 +807,17 @@ class DWServer:
             err = E_READ
 
         if not err:
-            t = threading.Thread(target=playsound, args=(name, True))
-            self.threads.append(t)
-            t.start()
+            direct = False
+            if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+                machine = platform.machine()
+                if machine.startswith('arm') or machine.startswith('aarch'):
+                    direct = True
+            if direct:
+               playsound(name, False)
+            else:
+               t = threading.Thread(target=playsound, args=(name, True))
+               self.threads.append(t)
+               t.start()
         self.conn.write(chr(err))
         if self.debug:
             print("cmd=%0x playsound(%s)" % (ord(cmd), name))
