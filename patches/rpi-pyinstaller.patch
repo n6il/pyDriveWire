@@ -1,0 +1,21 @@
+--- /home/pi/Downloads/build_main.py	2022-02-26 20:02:06.006096442 -0800
++++ build_main.py	2022-02-26 20:43:50.190788109 -0800
+@@ -24,7 +24,7 @@
+ import pprint
+ import shutil
+ import sys
+-
++from fnmatch import fnmatch
+ 
+ # Relative imports to PyInstaller modules.
+ from .. import HOMEPATH, DEFAULT_DISTPATH, DEFAULT_WORKPATH
+@@ -469,6 +469,9 @@
+         self.binaries.extend(bindepend.Dependencies(self.binaries,
+                                                     redirects=self.binding_redirects))
+ 
++        logger.info('filter out rpi libraries')
++        self.binaries = [e for e in self.binaries if not fnmatch(e[1], '/opt/vc/lib/*')]
++
+         ### Include zipped Python eggs.
+         logger.info('Looking for eggs')
+         self.zipfiles.extend(deps_proc.make_zipfiles_toc())

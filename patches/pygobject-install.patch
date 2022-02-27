@@ -1,0 +1,11 @@
+--- a/wheel.py	2021-12-21 15:29:40.411713771 -0800
++++ b/wheel.py	2021-12-21 15:29:57.621623697 -0800
+@@ -716,7 +716,7 @@
+                     )
+                     if success:
+                         pyc_path = pyc_output_path(path)
+-                        assert os.path.exists(pyc_path)
++                        #assert os.path.exists(pyc_path)
+                         pyc_record_path = cast(
+                             "RecordPath", pyc_path.replace(os.path.sep, "/")
+                         )
