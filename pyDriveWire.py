@@ -68,7 +68,8 @@ def ParseArgs():
         '-x',
         dest='experimental',
         action='append',
-        help='experimental options')
+        help='experimental options',
+        default=[])
     parser.add_argument(
         '-D',
         '--cmd-port',

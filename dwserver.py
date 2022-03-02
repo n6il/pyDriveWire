@@ -798,7 +798,6 @@ class DWServer:
         data = self.conn.read(1, self.timeout)
         length = unpack(">B", data)[0]
         name = None
-        print(type(length))
         if length > 0:
             name = self.conn.read(length, self.timeout)
             if not os.path.exists(name):
@@ -819,8 +818,8 @@ class DWServer:
                self.threads.append(t)
                t.start()
         self.conn.write(chr(err))
-        if self.debug:
-            print("cmd=%0x playsound(%s)" % (ord(cmd), name))
+        if self.debug or err:
+            print("cmd=%0x rc=%d playsound(%s)" % (ord(cmd), err, name))
 
     def cmdErr(self, cmd):
         print("cmd=%0x cmdErr" % ord(cmd))
