@@ -44,8 +44,8 @@ class DWServer:
                 print("DWServer: Enabling experimental playsound support")
                 import playsound
                 from playsound import playsound
-        self.aliases = {'mc':{}, 'dload':{}, 'namedobj': {}}
-        self.dirs = {'dw': os.getcwd(), 'mc': os.getcwd(), 'dload': os.getcwd(), 'namedobj': os.getcwd()}
+        self.aliases = {'mc':{}, 'dload':{}, 'namedobj': {}, 'playsound':{}}
+        self.dirs = {'dw': os.getcwd(), 'mc': os.getcwd(), 'dload': os.getcwd(), 'namedobj': os.getcwd(), 'playsound': os.getcwd() }
         self.instances = instances
         self.instance = instance
         self.hdbdos = args.hdbdos
@@ -733,7 +733,7 @@ class DWServer:
             if not fn:
                 drive = 0
         if drive:
-            fn2 = self.aliases['namedobj'].get(fn, None)
+            fn2 = self.aliases['namedobj'].get(fn.upper(), None)
             if fn2 != None:
                 print('Alias: %s -> %s' % (fn, fn2))
                 fn = fn2
@@ -787,7 +787,7 @@ class DWServer:
     #  $F4 - ERROR - File not found
     #  $FA - ERROR - Playsound Not enabled
     #
-    def cmdPlaySound(self, cmd):
+    def _doPlaySound(self, name):
         err = E_OK
         if 'playsound' in self.args.experimental:
             import playsound
@@ -795,15 +795,22 @@ class DWServer:
         else:
             err = E_PLAYSOUND
             print("Playsound not enabled. use: -x playsound")
-        data = self.conn.read(1, self.timeout)
-        length = unpack(">B", data)[0]
-        name = None
-        if length > 0:
-            name = self.conn.read(length, self.timeout)
+        if not err:
+            fn2 = self.aliases['playsound'].get(name.upper(), None)
+            if fn2 != None:
+                print('Alias: %s -> %s' % (name, fn2))
+                name = fn2
+            pwd = os.getcwd()
+            os.chdir(self.dirs['playsound'])
             if not os.path.exists(name):
                 err = E_READ
-        else:
-            err = E_READ
+            os.chdir(pwd)
+
+        def _playsound(name, block):
+            pwd = os.getcwd()
+            os.chdir(self.dirs['playsound'])
+            playsound(name, block)
+            os.chdir(pwd)
 
         if not err:
             direct = False
@@ -812,11 +819,28 @@ class DWServer:
                 if machine.startswith('arm') or machine.startswith('aarch'):
                     direct = True
             if direct:
-               playsound(name, False)
+               _playsound(name, False)
             else:
-               t = threading.Thread(target=playsound, args=(name, True))
+               t = threading.Thread(target=_playsound, args=(name, True))
                self.threads.append(t)
                t.start()
+        return err
+
+    def cmdPlaySound(self, cmd):
+        err = E_OK
+        if 'playsound' not in self.args.experimental:
+            err = E_PLAYSOUND
+            print("Playsound not enabled. use: -x playsound")
+        data = self.conn.read(1, self.timeout)
+        length = unpack(">B", data)[0]
+        name = None
+        if length > 0:
+            name = self.conn.read(length, self.timeout)
+        else:
+            err = E_READ
+
+        if not err:
+            err = _doPlaySound(name)
         self.conn.write(chr(err))
         if self.debug or err:
             print("cmd=%0x rc=%d playsound(%s)" % (ord(cmd), err, name))
@@ -1445,7 +1469,6 @@ class DWServer:
         while True:
             for t,alive in [(t, t.is_alive()) for t in self.threads]:
                if not alive:
-                  print("%s\n" % t)
                   t.join()
                   self.threads.remove(t)
 

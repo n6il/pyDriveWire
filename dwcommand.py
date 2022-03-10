@@ -250,6 +250,18 @@ class DWParser:
         nobjParser.add("show", ParseAction(self.doShow))
         nobjParser.add("eject", ParseAction(self.doEject))
 
+        psAliasParser = ParseNode("alias")
+        psAliasParser.add("show", ParseAction(self.doPlaySoundAliasShow))
+        psAliasParser.add("add", ParseAction(self.doPlaySoundAliasAdd))
+        psAliasParser.add("remove", ParseAction(self.doPlaySoundAliasRemove))
+
+        playSoundParser = ParseNode("playsound")
+        playSoundParser.add("alias", psAliasParser)
+        playSoundParser.add("setdir", ParseAction(self.doPlaySoundSetDir))
+        playSoundParser.add("getdir", ParseAction(self.doPlaySoundGetDir))
+        playSoundParser.add("listdir", ParseAction(self.doPlaySoundListDir))
+        playSoundParser.add("play", ParseAction(self.doPlaySoundPlay))
+
         self.parseTree = ParseNode("")
         self.parseTree.add("dw", dwParser)
         self.parseTree.add("tcp", tcpParser)
@@ -258,6 +270,7 @@ class DWParser:
         self.parseTree.add("mc", mcParser)
         self.parseTree.add("dload", dloadParser)
         self.parseTree.add("namedobj", nobjParser)
+        self.parseTree.add("playsound", playSoundParser)
         self.parseTree.add("telnet", ParseAction(self.doTelnet))
         self.parseTree.add("ssh", ParseAction(self.doSsh))
         self.parseTree.add("help", ParseAction(self.ptWalker))
@@ -963,6 +976,8 @@ class DWParser:
         protoCmd = proto if proto != 'dw' else 'dw server'
         if len(data) == 0:
             raise Exception("Usage: %s setdir <path>" % protoCmd)
+        if not os.path.exists(data):
+            raise Exception("%s setdir: %s: No such path" % (protoCmd, data))
         self.server.dirs[proto] = data
         return "%s SetDir: %s" % (proto, data)
 
@@ -1183,7 +1198,7 @@ class DWParser:
                     flags += ' --stream'
                 out += ["dw disk insert %d %s%s" % (i, d.name, flags)]
             i += 1
-        for pkey in ['mc', 'dload', 'namedobj']:
+        for pkey in ['mc', 'dload', 'namedobj', 'playsound']:
            for k in server.aliases[pkey]:
                out += ["%s alias add %s %s" % (pkey, k, server.aliases[pkey][k])]
         #for k in server.aliases['emcee']:
@@ -1320,11 +1335,35 @@ class DWParser:
     def doNamedObjListDir(self, data):
         return self.doListDir(data, 'namedobj')
 
+    def doPlaySoundAliasShow(self, data):
+      return self.doAliasShow(data, 'playsound')
+
+    def doPlaySoundAliasAdd(self, data):
+      return self.doAliasAdd(data, 'playsound')
+
+    def doPlaySoundAliasRemove(self, data):
+      return self.doAliasRemove(data, 'playsound')
+
+    def doPlaySoundSetDir(self, data):
+        return self.doSetDir(data, 'playsound')
+
+    def doPlaySoundGetDir(self, data):
+        return self.doGetDir(data, 'playsound')
+
+    def doPlaySoundListDir(self, data):
+        return self.doListDir(data, 'playsound')
+
+    def doPlaySoundPlay(self, data):
+        if not data:
+            raise Exception("Usage: playsound play <path>")
+        r = self.server._doPlaySound(data)
+        return("PlaySound(%s) RC(%d)" % (data, r))
+
     def doPwd(self, data):
         out = [
             'Current Dir: %s' % os.getcwd(),
         ]
-        for proto in ['dw', 'mc', 'dload', 'namedobj']:
+        for proto in ['dw', 'mc', 'dload', 'namedobj', 'playsound']:
             out.append('%s Dir: %s' % (proto, self.server.dirs[proto]))
 
         return('\r\n'.join(out))
