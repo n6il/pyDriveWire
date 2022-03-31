@@ -840,7 +840,7 @@ class DWServer:
             err = E_READ
 
         if not err:
-            err = _doPlaySound(name)
+            err = self._doPlaySound(name)
         self.conn.write(chr(err))
         if self.debug or err:
             print("cmd=%0x rc=%d playsound(%s)" % (ord(cmd), err, name))
