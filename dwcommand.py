@@ -261,6 +261,7 @@ class DWParser:
         playSoundParser.add("getdir", ParseAction(self.doPlaySoundGetDir))
         playSoundParser.add("listdir", ParseAction(self.doPlaySoundListDir))
         playSoundParser.add("play", ParseAction(self.doPlaySoundPlay))
+        playSoundParser.add("stop", ParseAction(self.doPlaySoundStop))
 
         self.parseTree = ParseNode("")
         self.parseTree.add("dw", dwParser)
@@ -1358,6 +1359,10 @@ class DWParser:
             raise Exception("Usage: playsound play <path>")
         r = self.server._doPlaySound(data)
         return("PlaySound(%s) RC(%d)" % (data, r))
+
+    def doPlaySoundStop(self, data):
+        r = self.server.cmdPlaySoundStop(chr(0xFB))
+        return("PlaySoundStop")
 
     def doPwd(self, data):
         out = [

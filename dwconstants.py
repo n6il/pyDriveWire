@@ -53,6 +53,7 @@ OP_SERGETSTAT = chr(0x44)
 OP_SERSETSTAT = chr(0xC4)
 OP_SERTERM = chr(0xC5)
 OP_PLAYSOUND = chr(0xFA)
+OP_PLYSNDSTP = chr(0xFB)
 
 
 E_OK = 0

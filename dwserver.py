@@ -14,7 +14,7 @@ from dwutil import *
 from dwlib import canonicalize
 
 from cococas import *
-import threading
+import multiprocessing
 
 
 NULL_SECTOR = NULL * SECSIZ
@@ -55,7 +55,7 @@ class DWServer:
         self.dload = False
         self.namedObjDrive = None
         self.comboLock = 0
-        self.threads = []
+        self.procs = []
 
     def _isNamedObjDrive(self, drive):
         if self.namedObjDrive is None:
@@ -802,7 +802,10 @@ class DWServer:
                 name = fn2
             pwd = os.getcwd()
             os.chdir(self.dirs['playsound'])
-            if not os.path.exists(name):
+            try:
+                if not os.path.exists(name):
+                    err = E_READ
+            except TypeError:
                 err = E_READ
             os.chdir(pwd)
 
@@ -814,16 +817,16 @@ class DWServer:
 
         if not err:
             direct = False
-            if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
-                machine = platform.machine()
-                if machine.startswith('arm') or machine.startswith('aarch'):
-                    direct = True
+            #if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+            #    machine = platform.machine()
+            #    if machine.startswith('arm') or machine.startswith('aarch'):
+            #        direct = True
             if direct:
                _playsound(name, False)
             else:
-               t = threading.Thread(target=_playsound, args=(name, True))
-               self.threads.append(t)
-               t.start()
+               proc = multiprocessing.Process(target=_playsound, args=(name, True))
+               self.procs.append(proc)
+               proc.start()
         return err
 
     def cmdPlaySound(self, cmd):
@@ -844,6 +847,14 @@ class DWServer:
         self.conn.write(chr(err))
         if self.debug or err:
             print("cmd=%0x rc=%d playsound(%s)" % (ord(cmd), err, name))
+
+    def cmdPlaySoundStop(self, cmd):
+        count = len(self.procs)
+        for proc in self.procs:
+            proc.terminate()
+        self.procs = []
+        if self.debug:
+            print("cmd=%0x playsound stop: %d procs" % (ord(cmd), count))
 
     def cmdErr(self, cmd):
         print("cmd=%0x cmdErr" % ord(cmd))
@@ -1463,14 +1474,15 @@ class DWServer:
         OP_PRINTFLUSH: cmdPrintFlush,
         MC_ATTENTION: doEmCeeCmd,
         OP_PLAYSOUND: cmdPlaySound,
+        OP_PLYSNDSTP: cmdPlaySoundStop,
     }
 
     def main(self):
         while True:
-            for t,alive in [(t, t.is_alive()) for t in self.threads]:
+            for proc,alive in [(proc, proc.is_alive()) for proc in self.procs]:
                if not alive:
-                  t.join()
-                  self.threads.remove(t)
+                  proc.terminate()
+                  self.procs.remove(proc)
 
             cmd = self.conn.read(1)
             if cmd:
