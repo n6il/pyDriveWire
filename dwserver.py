@@ -787,6 +787,14 @@ class DWServer:
     #  $F4 - ERROR - File not found
     #  $FA - ERROR - Playsound Not enabled
     #
+    def _playsound(self, name, block):
+        import playsound
+        from playsound import playsound
+        pwd = os.getcwd()
+        os.chdir(self.dirs['playsound'])
+        playsound(name, block)
+        os.chdir(pwd)
+
     def _doPlaySound(self, name):
         err = E_OK
         if 'playsound' in self.args.experimental:
@@ -809,12 +817,6 @@ class DWServer:
                 err = E_READ
             os.chdir(pwd)
 
-        def _playsound(name, block):
-            pwd = os.getcwd()
-            os.chdir(self.dirs['playsound'])
-            playsound(name, block)
-            os.chdir(pwd)
-
         if not err:
             direct = False
             #if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
@@ -824,7 +826,7 @@ class DWServer:
             if direct:
                _playsound(name, False)
             else:
-               proc = multiprocessing.Process(target=_playsound, args=(name, True))
+               proc = multiprocessing.Process(target=self._playsound, args=(name, True))
                self.procs.append(proc)
                proc.start()
         return err
