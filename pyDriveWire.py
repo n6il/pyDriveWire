@@ -20,6 +20,8 @@ from daemon import Daemon
 import platform
 import tempfile
 
+import multiprocessing
+
 from dwconstants import *
 
 VERSION = 'v0.5d'
@@ -549,6 +551,7 @@ class pyDriveWireDaemon(Daemon):
 if __name__ == '__main__':
     # 	logging.basicConfig(stream=sys.stdout, level=logging.INFO,
     # 		format='%(asctime)s %(levelname)s %(module)s:%(lineno)s.%(funcName)s %(message)s'
+    multiprocessing.freeze_support()
 
     args = ParseArgs()
     if args.version:
