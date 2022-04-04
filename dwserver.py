@@ -20,6 +20,15 @@ import multiprocessing
 NULL_SECTOR = NULL * SECSIZ
 
 
+def _playsound(name, d, block):
+    import playsound
+    from playsound import playsound
+    pwd = os.getcwd()
+    os.chdir(d)
+    playsound(name, block)
+    os.chdir(pwd)
+
+
 class DWServer:
     def __init__(self, args, conn, version, instances, instance):
         self.conn = conn
@@ -787,14 +796,6 @@ class DWServer:
     #  $F4 - ERROR - File not found
     #  $FA - ERROR - Playsound Not enabled
     #
-    def _playsound(self, name, block):
-        import playsound
-        from playsound import playsound
-        pwd = os.getcwd()
-        os.chdir(self.dirs['playsound'])
-        playsound(name, block)
-        os.chdir(pwd)
-
     def _doPlaySound(self, name):
         err = E_OK
         if 'playsound' in self.args.experimental:
@@ -826,7 +827,7 @@ class DWServer:
             if direct:
                _playsound(name, False)
             else:
-               proc = multiprocessing.Process(target=self._playsound, args=(name, True))
+               proc = multiprocessing.Process(target=_playsound, args=(name, self.dirs['playsound'], True))
                self.procs.append(proc)
                proc.start()
         return err
