@@ -33,6 +33,7 @@ defaultConfigValues = {
     'printDir': '/tmp' if platform.system() == 'Darwin' else tempfile.gettempdir(),
     'printPrefix': 'cocoprints',
     'dloadSpeed': '300',
+    'dloadTranslate': True,
 }
 
 
@@ -357,6 +358,7 @@ def ReadConfig(args):
                 iargs.portSize = args.portCols
                 #iargs.portSize = portSize
                 iargs.dloadSpeed = args.dloadSpeed
+                iargs.dloadTranslate = args.dloadTranslate
                 # iargs.dloadEnable = args.dloadEnable
                 iargs.dloadEnable = False
                 instances.append(iargs)

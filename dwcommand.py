@@ -1258,7 +1258,7 @@ class DWParser:
                 msg.append('DLOAD Speed: %s' % (server.args.dloadSpeed))
         else:
             msg.append('DLOAD Disabled')
-        if args.dloadTranslate:
+        if 'dloadTranslate' in args and args.dloadTranslate:
                 msg.append('EOL Translation Enabled')
         else:
                 msg.append('EOL Translation Disabled')

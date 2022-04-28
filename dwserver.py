@@ -1269,6 +1269,8 @@ class DWServer:
     def _dloadFindFile(self, fn):
         ftype = DLOAD_FT_FNF
         aflag = DLOAD_AF_ASCII 
+        pwd = os.getcwd()
+        os.chdir(self.dirs['dload'])
         if os.path.exists(fn):
             with open(fn) as f:
                 fb = f.read(1)
@@ -1279,6 +1281,7 @@ class DWServer:
                     ftype = DLOAD_FT_BASIC
                     aflag = DLOAD_AF_ASCII
 
+        os.chdir(pwd)
         return(ftype, aflag)
 
     # DLOAD Open File
@@ -1330,8 +1333,11 @@ class DWServer:
                     eolxlate = self.args.dloadTranslate
                 else:
                     eolxlate = False
+                pwd = os.getcwd()
+                os.chdir(self.dirs['dload'])
                 self.open(0, fn, mode='r', offset=0, hdbdos=False, raw=True,
                           eolxlate=eolxlate, proto='dload', dosplus=False)
+                os.chdir(pwd)
                 self.files[0].ftype = ftype
                 self.files[0].ftype = aflag
         
