@@ -297,7 +297,7 @@ class DWSimpleSocket:
     def read(self, n=1, timeout=None):
         data = ''
         while not self.abort and len(data) < n:
-            d = self.conn.recv(n)
+            d = self.conn.recv(n - len(data))
             while not self.abort and d == '' and self.reconnect:
                 print("socket: %s: Disconnected" % (self))
                 self.close()
@@ -308,7 +308,7 @@ class DWSimpleSocket:
                     "socket: %s: Reconnecting to %s:%s" %
                     (self, self.host, self.port))
                 self.connect()
-                d = self.conn.recv(n)
+                d = self.conn.recv(n - len(data))
             if d != '':
                 data += d
         return data
