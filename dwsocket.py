@@ -139,11 +139,11 @@ class DWSocket(DWIO):
         # 	except:
         # 		pass
         self.conn = None
-        self.abort = True
+        # self.abort = True
         # self.sock.shutdown(socket.SHUT_RDWR)
 
     def _cleanup(self):
-        self.abort = True
+        # self.abort = True
         self._close()
         if self.sock:
             self._print("Closing: socket: %s" % self)

@@ -85,7 +85,8 @@ class DWIO:
         return self._outWaiting()
 
     def _outWaiting(self):
-        if self.rt and self.rt._Thread__stopped and self.rq.empty():
+        if self.rt and self.rt._Thread__stopped and self.rb.get()==0:
+            print("%s: _outWaiting: closing rb(%s)=%d" % (self, self.rb, self.rb.get()))
             self.rb.close()
         n = min(214, self.rb.get())
         # print "outWaiting",n
@@ -105,50 +106,68 @@ class DWIO:
             # Start the background reader thread only
             # when someone asks to start reading from it
             self.rt.start()
-        if self.rt and self.rt._Thread__stopped and self.rq.empty():
+        if self.rt and self.rt._Thread__stopped and self.rb.get()==0:
+            print("%s: read:1:  closing rb(%s)=%d" % (self, self.rb, self.rb.get()))
             self.rb.close()
-        while not self.rq.empty() or not self.abort:
+        if not rlen:
             d = ''
             if self.rbuf:
                 d = self.rbuf
                 self.rbuf = ''
-            else:
-                try:
-
-                    d = self.rq.get(True, _t)
-                except Exception as e:
-                    if timeout:
-                        print str(e)
-                        return ''
-                    pass
-            available = len(d)
-            required = available
-            # print rlen, len(rdata), available, len(self.rbuf)
-            if not available:
-                # print "waiting2"
-                continue
-            if rlen:
-                required = min(rlen - len(rdata), available)
+            while not self.rq.empty():
+                d += self.rq.get(True, _t)
             if readLine:
                 pos = d.find(ifs)
                 if pos >= 0:
-                    required = pos + 1
-            rdata += d[:required]
-
-            if (required < available):
-                self.rbuf = d[required:]
-            if readLine:
-                if pos >= 0:
-                    break
+                    self.rbuf = d[pos+1:]
+                    d = d[:pos+1]
+            rdata = d
+        else:
+            # while not self.rq.empty() or not self.abort:
+            while len(rdata) < rlen:
+                d = ''
+                if self.rbuf:
+                    d = self.rbuf
+                    self.rbuf = ''
                 else:
+                    try:
+
+                        d = self.rq.get(True, _t)
+                    except Exception as e:
+                        if timeout:
+                            print str(e)
+                            return ''
+                        pass
+                available = len(d)
+                required = available
+                # print rlen, len(rdata), available, len(self.rbuf)
+                if not available:
+                    # print "waiting2"
                     continue
-            if not rlen and self.rq.empty():
-                break
-            if len(rdata) == rlen:
-                break
+                if rlen:
+                    required = min(rlen - len(rdata), available)
+                if readLine:
+                    pos = d.find(ifs)
+                    if pos >= 0:
+                        required = pos + 1
+                rdata += d[:required]
+
+                if (required < available):
+                    self.rbuf = d[required:]
+                if readLine:
+                    if pos >= 0:
+                        break
+                    else:
+                        continue
+                #if not rlen and self.rq.empty():
+                #    break
+                if len(rdata) == rlen:
+                    break
+                print("self.abort=%s" % self.abort)
 
         # print "reading: %d (%s)" %(len(rdata),rdata if ord(rdata)>32 and ord(rdata)<128 else '.')
-        if self.rt and self.rt._Thread__stopped:
+        if self.rt and self.rt._Thread__stopped and self.rb.get()==0:
+            print("%s: read:2:  closing rb(%s)=%d" % (self, self.rb, self.rb.get()))
             self.rb.close()
         self.rb.sub(len(rdata))
         return rdata
@@ -209,7 +228,7 @@ class DWIO:
                 # print "put: (%s)" % d
                 self.rb.add(len(d))
                 self.rq.put(d)
-        self._print("%s: Exiting _readHandler..." % self)
+        self._print("%s: Exiting _readHandler...: rb=%d" % (self, self.rb.get()))
 
     def _read(self, rlen=None):
         data = ''
