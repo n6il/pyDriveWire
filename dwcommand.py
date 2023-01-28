@@ -780,11 +780,11 @@ class DWParser:
             ssh = True
             if not all([pr.username, pr.password, pr.hostname]):
                 raise Exception('Invalid URI: ssh://<username>:<password>@<hostname>[:<port>]')
-            try:
-                int(pr.port)
-            except BaseException:
-                raise Exception('Invalid URI: ssh://<username>:<password>@<hostname>[:<port>]')
             if pr.port:
+                try:
+                    int(pr.port)
+                except BaseException:
+                    raise Exception('Invalid URI: ssh://<username>:<password>@<hostname>[:<port>]')
                 hp = "%s:%s" % (pr.hostname, pr.port)
             else:
                 hp = pr.hostname
