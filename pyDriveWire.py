@@ -20,6 +20,8 @@ from daemon import Daemon
 import platform
 import tempfile
 
+import multiprocessing
+
 from dwconstants import *
 
 VERSION = 'v0.5d'
@@ -31,6 +33,7 @@ defaultConfigValues = {
     'printDir': '/tmp' if platform.system() == 'Darwin' else tempfile.gettempdir(),
     'printPrefix': 'cocoprints',
     'dloadSpeed': '300',
+    'dloadTranslate': True,
 }
 
 
@@ -68,7 +71,8 @@ def ParseArgs():
         '-x',
         dest='experimental',
         action='append',
-        help='experimental options')
+        help='experimental options',
+        default=[])
     parser.add_argument(
         '-D',
         '--cmd-port',
@@ -354,6 +358,7 @@ def ReadConfig(args):
                 iargs.portSize = args.portCols
                 #iargs.portSize = portSize
                 iargs.dloadSpeed = args.dloadSpeed
+                iargs.dloadTranslate = args.dloadTranslate
                 # iargs.dloadEnable = args.dloadEnable
                 iargs.dloadEnable = False
                 instances.append(iargs)
@@ -548,6 +553,7 @@ class pyDriveWireDaemon(Daemon):
 if __name__ == '__main__':
     # 	logging.basicConfig(stream=sys.stdout, level=logging.INFO,
     # 		format='%(asctime)s %(levelname)s %(module)s:%(lineno)s.%(funcName)s %(message)s'
+    multiprocessing.freeze_support()
 
     args = ParseArgs()
     if args.version:

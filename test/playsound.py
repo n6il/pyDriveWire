@@ -27,5 +27,6 @@ cs.send(OP_PLAYSOUND)
 cs.send(chr(len(fn)))
 cs.send(fn)
 data = cs.recv(1)
+print("Result: %d" % ord(data))
 assert(ord(data) == 0x00)
 

@@ -4,6 +4,8 @@ from ctypes import *
 import traceback
 import os
 import re
+import sys
+import platform
 
 from dwconstants import *
 from dwchannel import *
@@ -12,10 +14,19 @@ from dwutil import *
 from dwlib import canonicalize
 
 from cococas import *
-import threading
+import multiprocessing
 
 
 NULL_SECTOR = NULL * SECSIZ
+
+
+def _playsound(name, d, block):
+    import playsound
+    from playsound import playsound
+    pwd = os.getcwd()
+    os.chdir(d)
+    playsound(name, block)
+    os.chdir(pwd)
 
 
 class DWServer:
@@ -42,8 +53,8 @@ class DWServer:
                 print("DWServer: Enabling experimental playsound support")
                 import playsound
                 from playsound import playsound
-        self.aliases = {'mc':{}, 'dload':{}, 'namedobj': {}}
-        self.dirs = {'dw': os.getcwd(), 'mc': os.getcwd(), 'dload': os.getcwd(), 'namedobj': os.getcwd()}
+        self.aliases = {'mc':{}, 'dload':{}, 'namedobj': {}, 'playsound':{}}
+        self.dirs = {'dw': os.getcwd(), 'mc': os.getcwd(), 'dload': os.getcwd(), 'namedobj': os.getcwd(), 'playsound': os.getcwd() }
         self.instances = instances
         self.instance = instance
         self.hdbdos = args.hdbdos
@@ -53,7 +64,7 @@ class DWServer:
         self.dload = False
         self.namedObjDrive = None
         self.comboLock = 0
-        self.threads = []
+        self.procs = []
 
     def _isNamedObjDrive(self, drive):
         if self.namedObjDrive is None:
@@ -732,7 +743,7 @@ class DWServer:
             if not fn:
                 drive = 0
         if drive:
-            fn2 = self.aliases['namedobj'].get(fn, None)
+            fn2 = self.aliases['namedobj'].get(fn.upper(), None)
             if fn2 != None:
                 print('Alias: %s -> %s' % (fn, fn2))
                 fn = fn2
@@ -786,7 +797,7 @@ class DWServer:
     #  $F4 - ERROR - File not found
     #  $FA - ERROR - Playsound Not enabled
     #
-    def cmdPlaySound(self, cmd):
+    def _doPlaySound(self, name):
         err = E_OK
         if 'playsound' in self.args.experimental:
             import playsound
@@ -794,24 +805,60 @@ class DWServer:
         else:
             err = E_PLAYSOUND
             print("Playsound not enabled. use: -x playsound")
+        if not err:
+            fn2 = self.aliases['playsound'].get(name.upper(), None)
+            if fn2 != None:
+                print('Alias: %s -> %s' % (name, fn2))
+                name = fn2
+            pwd = os.getcwd()
+            os.chdir(self.dirs['playsound'])
+            try:
+                if not os.path.exists(name):
+                    err = E_READ
+            except TypeError:
+                err = E_READ
+            os.chdir(pwd)
+
+        if not err:
+            direct = False
+            #if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+            #    machine = platform.machine()
+            #    if machine.startswith('arm') or machine.startswith('aarch'):
+            #        direct = True
+            if direct:
+               _playsound(name, False)
+            else:
+               proc = multiprocessing.Process(target=_playsound, args=(name, self.dirs['playsound'], True))
+               self.procs.append(proc)
+               proc.start()
+        return err
+
+    def cmdPlaySound(self, cmd):
+        err = E_OK
+        if 'playsound' not in self.args.experimental:
+            err = E_PLAYSOUND
+            print("Playsound not enabled. use: -x playsound")
         data = self.conn.read(1, self.timeout)
         length = unpack(">B", data)[0]
         name = None
-        print(type(length))
         if length > 0:
             name = self.conn.read(length, self.timeout)
-            if not os.path.exists(name):
-                err = E_READ
         else:
             err = E_READ
 
         if not err:
-            t = threading.Thread(target=playsound, args=(name, True))
-            self.threads.append(t)
-            t.start()
+            err = self._doPlaySound(name)
         self.conn.write(chr(err))
+        if self.debug or err:
+            print("cmd=%0x rc=%d playsound(%s)" % (ord(cmd), err, name))
+
+    def cmdPlaySoundStop(self, cmd):
+        count = len(self.procs)
+        for proc in self.procs:
+            proc.terminate()
+        self.procs = []
         if self.debug:
-            print("cmd=%0x playsound(%s)" % (ord(cmd), name))
+            print("cmd=%0x playsound stop: %d procs" % (ord(cmd), count))
 
     def cmdErr(self, cmd):
         print("cmd=%0x cmdErr" % ord(cmd))
@@ -1223,6 +1270,8 @@ class DWServer:
     def _dloadFindFile(self, fn):
         ftype = DLOAD_FT_FNF
         aflag = DLOAD_AF_ASCII 
+        pwd = os.getcwd()
+        os.chdir(self.dirs['dload'])
         if os.path.exists(fn):
             with open(fn) as f:
                 fb = f.read(1)
@@ -1233,6 +1282,7 @@ class DWServer:
                     ftype = DLOAD_FT_BASIC
                     aflag = DLOAD_AF_ASCII
 
+        os.chdir(pwd)
         return(ftype, aflag)
 
     # DLOAD Open File
@@ -1287,8 +1337,11 @@ class DWServer:
                     eolxlate = self.args.dloadTranslate
                 else:
                     eolxlate = False
+                pwd = os.getcwd()
+                os.chdir(self.dirs['dload'])
                 self.open(0, fn, mode='r', offset=0, hdbdos=False, raw=True,
                           eolxlate=eolxlate, proto='dload', dosplus=False)
+                os.chdir(pwd)
                 self.files[0].ftype = ftype
                 self.files[0].ftype = aflag
             os.chdir(wd) 
@@ -1434,15 +1487,15 @@ class DWServer:
         OP_PRINTFLUSH: cmdPrintFlush,
         MC_ATTENTION: doEmCeeCmd,
         OP_PLAYSOUND: cmdPlaySound,
+        OP_PLYSNDSTP: cmdPlaySoundStop,
     }
 
     def main(self):
         while True:
-            for t,alive in [(t, t.is_alive()) for t in self.threads]:
+            for proc,alive in [(proc, proc.is_alive()) for proc in self.procs]:
                if not alive:
-                  print("%s\n" % t)
-                  t.join()
-                  self.threads.remove(t)
+                  proc.terminate()
+                  self.procs.remove(proc)
 
             cmd = self.conn.read(1)
             if cmd:
