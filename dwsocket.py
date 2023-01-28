@@ -170,10 +170,14 @@ class DWSocketServer(DWSocket):
                 self._print("Accepted Connection: %s" % str(self.addr))
             except Exception as ex:
                 print("Server Aborted", str(ex))
-
             if self.conn:
                 break
-            self._print("looping")
+            if not self.sock:
+                print("accept: No Socket")
+                self.conn = None
+                self.abort = True
+                break
+            self._print("accept: looping")
 
     def _read(self, count=256):
         data = None
