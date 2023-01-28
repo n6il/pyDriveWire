@@ -1,4 +1,4 @@
-# pyDriveWire v0.5c
+# pyDriveWire v0.6
 Python Implementation of DriveWire 4 and EmCee Protocols
 
 PyDriveWire is a nearly complete DriveWire4 Server written in Python.  The goal is to eventually implement all of the features available.  The server also implements additional features that are not available in DriveWire4.
@@ -14,12 +14,18 @@ DriveWire 4 and EmCee Procotols can be used simultaneously on the server without
 
 # 1. <a name="ch1"></a>Features
 
-* (new for v0.5c) [New Easy Installation Methods: Binary Package, Docker](#ch2)
-* (new for v0.5c) `dw config show` command
-* (new for v0.5c) `dw config save` command
-* (new for v0.5c) `dw disk create` command
-* (new for v0.5c) Major re-work of Virtual Serial Channels
-* (new for v0.5c) [Printing Support Enhancements](docs/The%20pyDriveWire%20Manual.md#ch10)
+* (new for v0.6) DLOAD Protocol Support
+* (new for v0.6) SSH Support
+* (new for v0.6) Dragon DosPlus Support
+* (new for v0.6) VDK Image Support
+* (new for v0.6) JVC Image Support
+* (new for v0.6) Named Object Support
+* [New Easy Installation Methods: Binary Package, Docker](#ch2)
+* `dw config show` command
+* `dw config save` command
+* `dw disk create` command
+* Major re-work of Virtual Serial Channels
+* [Printing Support Enhancements](docs/The%20pyDriveWire%20Manual.md#ch10)
 * [Web User Interface](docs/The%20pyDriveWire%20Manual.md#ch4) (`--ui-port`)
 * [Configuration File support](docs/The%20pyDriveWire%20Manual.md#ch6)
 * [Multiple Instance Support](docs/The%20pyDriveWire%20Manual.md#ch7) — Requires config file

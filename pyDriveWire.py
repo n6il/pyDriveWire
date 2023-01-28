@@ -24,7 +24,7 @@ import multiprocessing
 
 from dwconstants import *
 
-VERSION = 'v0.5d'
+VERSION = 'v0.6'
 
 defaultConfigValues = {
     'config': '~/.pydrivewirerc',
@@ -360,6 +360,7 @@ def ReadConfig(args):
                 iargs.dloadSpeed = args.dloadSpeed
                 iargs.dloadTranslate = args.dloadTranslate
                 # iargs.dloadEnable = args.dloadEnable
+                iargs.dloadTranslate = args.dloadTranslate
                 iargs.dloadEnable = False
                 instances.append(iargs)
                 continue

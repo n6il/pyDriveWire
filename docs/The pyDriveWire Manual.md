@@ -1,4 +1,4 @@
-# The pyDriveWire Manual v0.5d
+# The pyDriveWire Manual v0.6
 
 Python Implementation of DriveWire 4 and EmCee Protocols
 
@@ -10,48 +10,56 @@ DriveWire 4 and EmCee Procotols can be used simultaneously on the server without
 
 # <a name="toc"></a>Table of Contents
 
-1. [Features](#ch1)
-2. [Getting Started](#ch2)
-3. [Command Line and Config File Options](#ch3)
-4. [Web User Interface](#ch4)
-5. [Command Console Interfaces](#ch5)
-6. [Using a Config File](#ch6)
-7. [Multiple Instances](#ch7)
-8. [Daemon Mode](#ch8)
-9. [EmCee Server](#ch9)
-10. [Experimental Printing Support](#ch10)
+1. [Features](#ch_features)
+2. [Getting Started](#ch_starting)
+3. [Command Line and Config File Options](#ch_cli)
+4. [Web User Interface](#ch_webui)
+5. [Command Console Interfaces](#ch_cli)
+6. [Using a Config File](#ch_configfile)
+7. [Multiple Instances](#ch_instances)
+8. [Daemon Mode](#ch_daemon)
+9. [EmCee Server](#ch_emcee)
+10. [Experimental Printing Support](#ch_printing)
 11. [Experimental SSH Support](#ch_ssh)
-12. [Debugging](#ch11)
-13. [HDB-DOS Mode](#ch12)
-14. [Appendix: Supported DriveWire Commands](#ch13)
-15. [NEW: Directories](#ch_directories)
-16. [NEW: Aliases](#ch_aliases)
-17. [NEW: DLOAD Protocol Support](#ch_dload)
-18. [NEW: Named Object Support](#ch_namedobj)
-19. [NEW: Dragon DosPlus Extender Support](#ch_dragon)
-20. [NEW: DriveWire Virtual Modem for TCP, Telnet, and SSH](#ch_vport)
+12. [Debugging](#ch_debugging)
+13. [HDB-DOS Mode](#ch_hdbdos)
+14. [NEW: Directories](#ch_directories)
+15. [NEW: Aliases](#ch_aliases)
+16. [NEW: DLOAD Protocol Support](#ch_dload)
+17. [NEW: Named Object Support](#ch_namedobj)
+18. [NEW: Dragon DosPlus Extender Support](#ch_dragon)
+19. [NEW: DriveWire Virtual Modem for TCP, Telnet, and SSH](#ch_vport)
+20. [Appendix: pyDriveWire Extensions to the DriveWire Protocol](#ch_extensions)
+21.  [Appendix: Supported DriveWire Commands](#ch_commands)
 
-# 1. <a name="ch1"></a>Features
+# 1. <a name="ch_features"></a>Features
 
-* (new for v0.5c) [New Easy Installation Methods: Binary Package, Docker](#ch2)
-* (new for v0.5c) `dw config show` command
-* (new for v0.5c) `dw config save` command
-* (new for v0.5c) `dw disk create` command
-* (new for v0.5c) Major re-work of Virtual Serial Channels
-* (new for v0.5c) [Printing Support Enhancements](#ch10)
-* [Web User Interface](#ch4) (`--ui-port`)
-* [Configuration File support](#ch6)
-* [Multiple Instance Support](#ch7) — Requires config file
-* [Daemon Mode](#ch8) - Linux/macOS Only - Requires config file
-* [Enhanced `pyDwCli` command console tool](#ch5)
+
+* (new for v0.6) DLOAD Protocol Support
+* (new for v0.6) SSH Support
+* (new for v0.6) Dragon DosPlus Support
+* (new for v0.6) VDK Image Support
+* (new for v0.6) JVC Image Support
+* (new for v0.6) Named Object Support
+* [New Easy Installation Methods: Binary Package, Docker](#ch_starting)
+* `dw config show` command
+* `dw config save` command
+* `dw disk create` command
+* Major re-work of Virtual Serial Channels
+* [Printing Support Enhancements](#ch_printing)
+* [Web User Interface](#ch_webui) (`--ui-port`)
+* [Configuration File support](#ch_configfile)
+* [Multiple Instance Support](#ch_instances) — Requires config file
+* [Daemon Mode](#ch_daemon) - Linux/macOS Only - Requires config file
+* [Enhanced `pyDwCli` command console tool](#ch_cli)
 * [Comprehensive and detailed manual for server features](#toc)
-* [Printing: EmCee/MCX-Basic Printing Support](#ch10)
-* [HDB-DOS Mode and Disk image offset](#ch12)
+* [Printing: EmCee/MCX-Basic Printing Support](#ch_printing)
+* [HDB-DOS Mode and Disk image offset](#ch_hdbdos)
 * Remote dw command input on TCP port
-* [EmCee Protocol Support](#ch9)
+* [EmCee Protocol Support](#ch_emcee)
 * Supported on Linux, macOS, and Windows
 * `dw server dir` and `dw server list` enhanced to run on _ALL_ OSes (Mac/Windows/Linux, etc)
-* [Experimental printing support prints to PDF or text file](#ch10)
+* [Experimental printing support prints to PDF or text file](#ch_printing)
 * Connections to serial ports at all supported baud rates: 38400, 57600, 115200, 230400, 460800, 921600
 * Listen for incoming connection on any TCP port with a default of 65504
 * Ability to make outgoing TCP connections for serial-net converters
@@ -71,9 +79,9 @@ DriveWire 4 and EmCee Procotols can be used simultaneously on the server without
 
 [Back to top](#toc)
 
-# 2. <a name="ch2"></a>Getting Started
+# 2. <a name="ch_starting"></a>Getting Started
 
-(new for v0.5c) pyDriveWire has two Easy Installtion Methods: Binary Package and Docker.  These options are designed for Ease Of Use and do not require a complex series of installation steps.   pyDriveWire can also be run directly from any `pypy` or `python` install if it meets the appropriate requirements.
+pyDriveWire has two Easy Installtion Methods: Binary Package and Docker.  These options are designed for Ease Of Use and do not require a complex series of installation steps.   pyDriveWire can also be run directly from any `pypy` or `python` install if it meets the appropriate requirements.
 
 In terms of performance, the Python and Binary Package installation methods are fully functional but have the lowest performance.  Docker provides a medium level of performance.  pypy should be used to get the maximum performance out of pyDriveWire.
 
@@ -98,7 +106,7 @@ Using a Binary Package is very simple:
 2. Unzip the package
 3. The package contains two executable programs `pyDriveWire` and `pyDwCli` and a copy of this manual.
 4. Run the `pyDriveWire` executable.  See next section for examples:
-5. Full details of the command line options are in the [Command Line and Config File Options](#ch3) section.
+5. Full details of the command line options are in the [Command Line and Config File Options](#ch_cli) section.
 
 ## 2.2 Running a Binary Package
 Example: Run pyDriveWire with the HTTP UI on port 6800 and use a serial port:
@@ -118,7 +126,7 @@ Example: Run pyDriveWire with the HTTP UI on port 6800 and the Becker port conne
 1. Install Docker Desktop
 2. Clone the container: `docker pull mikeyn6il/pydrivewire`
 3. Run the container.  See next section for examples.  
-4. Full details of the command line options are in the [Command Line and Config File Options](#ch3) section.
+4. Full details of the command line options are in the [Command Line and Config File Options](#ch_cli) section.
 
 ## 2.4 Running The Docker Container
 Example: Run pyDriveWire with the HTTP UI on port 6800 and use a serial port:
@@ -145,7 +153,7 @@ Example: Run pyDriveWire with the HTTP UI on port 6800 and the Becker port conne
     	--ui-port 6800 --accept --port 65504
 
  
-## 2.4 Installation Requirements<a name="ch2.1"></a>
+## 2.4 Installation Requirements<a name="ch_starting.1"></a>
 
 * pypy -- For maximum performance it is recommended to run the server with
 pypy.  pypy is a Python interpreter that does JIT compilation and results in
@@ -234,7 +242,7 @@ pyDriveWire.py <options>`
 
 [Back to top](#toc)
 
-# 3. <a name="ch3"></a>Command Line and Config File Options
+# 3. <a name="ch_cli"></a>Command Line and Config File Options
 
 This manual section is meant as a quick and comprehensive guide to all of the pyDriveWire configuraiton options.  Many of the options have a detailed manual page which describes that individual feature.  There will be a link to those pages.
 
@@ -249,7 +257,7 @@ This manual section is meant as a quick and comprehensive guide to all of the py
                           [--print-cmd PRINTCMD]
                           [FILE [FILE ...]]
     
-    pyDriveWire Server v0.5c
+    pyDriveWire Server v0.6
     
     positional arguments:
       FILE                  list of files
@@ -347,7 +355,7 @@ The following disk image options options are supported:
  
 ## Config File (global)
 
-The pyDriveWire config file can be used to set all of the command line options.  This section tells you where to put the config file and how to specify it on the command line.  The details of the config file itself are in the [Using a Config File](#ch6) section of this manual.
+The pyDriveWire config file can be used to set all of the command line options.  This section tells you where to put the config file and how to specify it on the command line.  The details of the config file itself are in the [Using a Config File](#ch_configfile) section of this manual.
 
 The config file can either be in a default location or can be specified from the command line.
 
@@ -459,7 +467,7 @@ pyDriveWire will automatically attempt to reconnect outgoing TCP connections.  T
     
 ## Web/HTTP UI (global)
 
-pyDriveWire has a Web/HTTP User Interface.  See the [Web User Interface](#ch4) manual for more details.
+pyDriveWire has a Web/HTTP User Interface.  See the [Web User Interface](#ch_webui) manual for more details.
 
 ### Command Line:
 
@@ -562,7 +570,7 @@ or specify pid file location:
 
 ## Printer: Enable Experimental Printing Mode
 
-Please see the [Experimental Printing Support](#ch10) manual section for more detail about this feature.
+Please see the [Experimental Printing Support](#ch_printing) manual section for more detail about this feature.
 
 ### Command Line
 
@@ -577,7 +585,7 @@ or
     
 ## Printer: Select the output format: `txt` or `pdf`
 
-Please see the [Experimental Printing Support](#ch10) manual section for more detail about this feature.
+Please see the [Experimental Printing Support](#ch_printing) manual section for more detail about this feature.
 
 ### Command Line
 
@@ -589,7 +597,7 @@ Please see the [Experimental Printing Support](#ch10) manual section for more de
     
 ## Printer: Select Output File
 
-Please see the [Experimental Printing Support](#ch10) manual section for more detail about this feature.
+Please see the [Experimental Printing Support](#ch_printing) manual section for more detail about this feature.
 
 ### Command Line
 
@@ -602,7 +610,7 @@ Please see the [Experimental Printing Support](#ch10) manual section for more de
 
 ## Printer: Select Output Directory
 
-Please see the [Experimental Printing Support](#ch10) manual section for more detail about this feature.
+Please see the [Experimental Printing Support](#ch_printing) manual section for more detail about this feature.
 
 ### Command Line
 
@@ -613,7 +621,7 @@ Please see the [Experimental Printing Support](#ch10) manual section for more de
     option printDir <directory>
 
 ## Printer: Spool File Prefix
-Please see the [Experimental Printing Support](#ch10) manual section for more detail about this feature.
+Please see the [Experimental Printing Support](#ch_printing) manual section for more detail about this feature.
 
 ### Command Line
 
@@ -625,7 +633,7 @@ Please see the [Experimental Printing Support](#ch10) manual section for more de
 
 ## Printer: Command
 
-Please see the [Experimental Printing Support](#ch10) manual section for more detail about this feature.
+Please see the [Experimental Printing Support](#ch_printing) manual section for more detail about this feature.
 
 ### Command Line
 
@@ -638,7 +646,7 @@ Please see the [Experimental Printing Support](#ch10) manual section for more de
 
 [Back to top](#toc)
 
-# 4. <a name="ch4"></a>Web User Interface
+# 4. <a name="ch_webui"></a>Web User Interface
 
 ![](webui_1.png)
 
@@ -704,11 +712,11 @@ The Command Console screen allows you to run commands on the pyDriveWire server 
 
 The screen has 2 parts: A scollable window with all the commands and command output, and second text box to enter commands and a button submit those commands to the server
 
-The command window is designed to be interactive so that you can easily explore the available commands without looking up in the manual. Please see the [Command Console Interfaces](#ch5) manual section for more detail.
+The command window is designed to be interactive so that you can easily explore the available commands without looking up in the manual. Please see the [Command Console Interfaces](#ch_cli) manual section for more detail.
 
 [Back to top](#toc)
 
-# 5. <a name="ch5"></a>Command Console Interfaces
+# 5. <a name="ch_cli"></a>Command Console Interfaces
 
 pyDriveWire can be controlled in multiple ways by using different Command Console Interfaces.  Those interfaces are:
 
@@ -730,7 +738,14 @@ If you hit enter on this command pyDriveWire will print some initialization info
     Accept connection on 65504
     <dwsocket.DWSocketServer instance at 0x0000000106d22ea0>: Starting _readHandler...
     accepting
-    pyDriveWire>  
+    
+    ****************************************
+    * pyDriveWire Server v0.6
+    *
+    * Enter commands at the prompt
+    ****************************************
+    
+    pyDriveWire> _
 
 Simply type your commands at this prompt.  See the tutorial below.
 
@@ -738,7 +753,7 @@ Simply type your commands at this prompt.  See the tutorial below.
 
 pyDwCli is a standalone command line tool which you can use to control the pyDriveWire server.  
 
-To use pyDwCli you must set up the WebUI.  See the [Web User Interface](#ch4) manual section for a bit more detail on this, but in short you either put the option in your [Config File](#ch6) 
+To use pyDwCli you must set up the WebUI.  See the [Web User Interface](#ch_webui) manual section for a bit more detail on this, but in short you either put the option in your [Config File](#ch_configfile) 
 
     option uiPort 6800
     
@@ -815,7 +830,7 @@ If you already know the command you want you can of course type it directly with
 
 [Back to top](#toc)
 
-# 6. <a name="ch6"></a>Using a Config File
+# 6. <a name="ch_configfile"></a>Using a Config File
 
 pyDriveWire accepts options from either the command line or a config file.
 There are two ways to provide a config file to pyDriveWire:
@@ -845,7 +860,7 @@ _Commands_ -- are any lines in the config file that are not options, instance ta
 
     dw disk insert 0 /demo/DWTERM.dsk
 
-_Instance Tags_ -- Tags are used to tell pyDriveWire that you want multiple instances.  Please see the [Multiple Instances](#ch7) manual section for more detail on how to configure this feature.
+_Instance Tags_ -- Tags are used to tell pyDriveWire that you want multiple instances.  Please see the [Multiple Instances](#ch_instances) manual section for more detail on how to configure this feature.
 
     [second instance]
    
@@ -863,7 +878,7 @@ _Comments_  -- are any lines where the first non-whitespce character is a `#`
     dw disk insert 0 /demo/DWTERM.dsk
     
 
-For a full description of all the config file options please see the [Command Line and Config File Options](#ch3) guide.
+For a full description of all the config file options please see the [Command Line and Config File Options](#ch_cli) guide.
 
 ### TCP/IP Accept Options ###
     option accept True
@@ -892,7 +907,7 @@ use with `--daemon` command line option
     
 [Back to top](#toc)
 
-# 7. <a name="ch7"></a>Multiple Instances
+# 7. <a name="ch_instances"></a>Multiple Instances
 pyDriveWire allows you to configure and use multiple instances which all run in parallel.  Each instance talks to one DriveWire client and each can mount different disk images.  The instances are configured in a config file to specify the connection point and any options you wish to set for for each instance.
 
 **Note:  At the current time instances can only be specified in the config file and can only be started or stopped along with the main invocation of pyDriveWire.**
@@ -974,7 +989,7 @@ The command prompt will also change to show the current instance.  You can see i
 
 [Back to top](#toc)
 
-# 8. <a name="ch8"></a>Daemon Mode
+# 8. <a name="ch_daemon"></a>Daemon Mode
 When pyDriveWire is run on any Linux/Unix/macOs operating system it can be run in a daemon mode where the server in the background in a "daemon" mode.  When run in this mode there is no console repl and you must use either the Web UI or pyDwCli to control it.
 
 **Note: This mode is _not_ supported on Windows**
@@ -985,7 +1000,7 @@ Daemon mode can be enabled from either the config file or from the command line.
 
 ## Daemon mode from a config file
 
-The easiest way to use Daemon mode is to create a config file (See [Using a Config File](#ch6)) and put the following options in it in instance 0:
+The easiest way to use Daemon mode is to create a config file (See [Using a Config File](#ch_configfile)) and put the following options in it in instance 0:
 
     option uiPort 6800
     option daemonPidFile /tmp/pyDriveWire.pid
@@ -1038,7 +1053,7 @@ This will start the server in `daemon` mode with a web UI listening on port `680
 
 [Back to top](#toc)
 
-# 9. <a name="ch9"></a>EmCee Server
+# 9. <a name="ch_emcee"></a>EmCee Server
 
 ## Experimental EmCee Protocol Support
 pyDriveWire version v0.4 adds experimental support for the EmCee protocol used on the TRS-80 MC-10 running MCX Basic (MCX Basic is available on the MCX-128 expansion card).  The EmCee protocol support is always turned on allowing any application connected to a pyDriveWire server to use EmCee and DriveWire protocols simeltaneously.  With this setup one could use a DriveWire application on a MC-10 or a EmCee application on a CoCo without the need to switch servers.
@@ -1195,7 +1210,7 @@ Remove an alias.  The alias is always converted to upper case before addition re
 
 [Back to top](#toc)
 
-# <a name="ch10"></a>10. Experimental Printing Support
+# <a name="ch_printing"></a>10. Experimental Printing Support
 
 pyDriveWire has experimental printing support.  
 
@@ -1207,6 +1222,10 @@ pyDriveWire v0.3 included experimental printing support.  The `-x printer` comma
 4. You can configure a "spool" directory.  Every time the print buffer is flushed it will output a new file in the spool directory
 5. You can configure a command to run on the spool file every time the print buffer is flushed. for example ./pyDriveWire --print-cmd "lpr -P cocofilter" means that when the print buffer is flushed the resulting file will get piped to lpr
 
+
+## Demonstration Video
+
+[MikeyN6IL's Dev VLOG $09: Printing with pyDriveWire](https://youtu.be/md7-FWv_NFM)
 
 ## Prerequisites
 
@@ -1325,11 +1344,90 @@ For Windows you might try this:
 
 # <a name="ch_ssh"></a>11. SSH Support
 
+pyDriveWire v0.6 adds SSH support to the Virtual Serial Terminals.  This
+allows one to run any a DriveWire Terminal program such as DWTerm or any
+terminal program under NitrOS-9 and make outbound SSH connections.
 
+** NOTE: SSH is an experimental feature and must be enabled by command line
+or config file **
+
+## Demonstration Video
+
+[MikeyN6IL's Dev VLOG $0A: SSH On the CoCo with pyDriveWire](https://youtu.be/_irvmqQxRww)
+
+## Python Prerequisites
+
+    pip install cryptography ecdsa paramiko
+
+## Enabling SSH Support
+
+Use one of the following methods to enable SSH Support: 
+
+### Command Line
+
+    -x ssh
+    
+or
+
+    --experimental ssh
+
+### Config File
+    option experimental ssh
+
+## Checking SSH Status
+
+You can issue the following command from your DriveWire enabled terminal
+program to see whether SSH support is enabled:
+
+    ssh
+    FAIL Ssh is not enabled, use: -x ssh
+
+If you see the message above, SSH support is not enabled.  Please see the
+sections above to enable it.
+
+If ssh has been enabled you will see:
+
+    ssh
+    FAIL Usage: ssh <hostname>[:<port>] <username> <password>
+
+## Making SSH Connections
+
+There are two different ways to make SSH connections from your DriveWire
+enabled terminal program.
+
+### Method 1: SSH Command
+
+    ssh <hostname>[:<port>] <username> <password>
+
+### Method 2: AT Command 
+
+    ATDssh://<username>:<password>@<hostname>[:<port>]
+
+## Controlling SSH Parameters
+
+### Get the current SSH parameters
+
+    dw port show
+
+The last line of the output shows the current SSH parameters
+
+    Term: ansi Rows: 16 Cols: 32
+
+### Set the Terminal type ($TERM)
+
+    dw port term vt100
+
+### Set terminal rows
+
+    dw port rows 24
+
+### Set terminal colums
+
+    dw port cols 80
 
 [Back to top](#toc)
 
-# <a name="ch12"></a>12. Debugging
+# <a name="ch_debugging"></a>12. Debugging
 
 pyDriveWire server has extremely powerful debugging capabilities.  These far surpass what is available in any other DriveWire server out there in both conciseness, readability, and utility.
 
@@ -1442,7 +1540,7 @@ If you really want to learn the internal details of how the DriveWire Protocol w
 
 [Back to top](#toc)
 
-# 13. <a name="ch13"></a>HDB-DOS Mode
+# 13. <a name="ch_hdbdos"></a>HDB-DOS Mode
 DriveWire4 added a "HDB-DOS" mode to better support HDB-DOS disk images.  pyDriveWire has enhanced support for this.
 
 This is not the easiest DriveWire feature to understand and use properly.  To use it successfully you will need to know a few peices of information about your disk image
@@ -1562,71 +1660,7 @@ etc.
 
 [Back to top](#toc)
 
-# 14. <a name="ch14"></a>Appendix: Supported DriveWire Commands
-
-* `dw disk` 
-	* `dw disk show`
-	* `dw disk insert <drive> <file>`
-	* `dw disk eject <drive>`
-	* `dw disk reset <drive>` -- (re-open)
-	* `dw disk offset <drive> <n>`
-	* `dw disk create <drive> <offset>`
-* `dw port`
-	* `dw port show`
-	* `dw port close <n>`
-*  `dw server`
-	* `dw server instance`
-	* `dw server dir [<path>]`
-	* `dw server list <file>`
-	* `dw server dump`
-	* `dw server debug <0|False|1|False>`
-	* `dw server timeout`
-	* `dw server version`
-	* `dw server conn debug <0|False|1|False>`
-	* `dw server hdbdos <0|False|1|True>`
-* `dw instance`
-	* `dw instance show`
-	* `dw instance add`
-	* `dw instance select`
-* A directory for DriveWire Named Object operations
-* `dw printer`
-	* `dw printer flush`
-	* `dw printer format`
-	* `	dw printer file`
-	* `dw printer dir`
-	* `	dw printer cmd`
-	* `dw printer status`
-* `tcp` commands
-	* `tcp connect <host> <port>`
-	* `tcp listen <port> ...` -- Remainder of options ignored
-	* `tcp join <channel>`
-	* `tcp kill <channel>`
-* AT Commands
-	* `AT`
-   * `ATD<host>:<port>`
-   * `ATDT<host>:<port>`
-   * `ATE`
-   * `ATH`
-   * `ATI`
-   * `ATO`
-   * `ATZ`
-* EmCee Commands
-	* `mc alias show`
-	* `mc alias add`
-	* `mc alias remove`
-	* `mc setdir`
-	* `mc getdir`
-	* `mc show`
-	* `mc eject`
-* Debugging commands
-   * `dw port debug [True|1|False|0]`
-	* `dw server debug [True|1|False|0]`
-	* `dw server conn debug [True|1|False|0]`
-	* `dw server dump`
-	* `dw server timeout <s>`
-	
-[Back to top](#toc)
-# 15. <a name="ch_directories"></a>Appendix: Directories
+# 14. <a name="ch_directories"></a>Appendix: Directories
 pyDriveWire provides a flexible system for configuring which directories you want to use.  There is also a filename alias system available for use with the EmCee, DLOAD, and NamedObject support.
 
 ## Directories
@@ -1804,7 +1838,7 @@ Use the `namedobj listdir` command to list the files the current directory for D
 
 
 [Back to top](#toc)
-# 16. <a name="ch_aliases"></a>Appendix: Aliases
+# 15. <a name="ch_aliases"></a>Appendix: Aliases
 ## EmCee Server Aliases
 The pyDriveWire server has a powerful "aliasing" system that is quite different than the official EmCee servers.  The pyDriveWire system has three different types of aliases.  File and Web Aliases can be  with LOAD/SAVE commands and Path Aliases can be used with DIR/SETDIR commands.  The official servers can only use aliases for the `SETDIR` command.
 
@@ -1880,10 +1914,19 @@ Remove an alias.  The alias is always converted to upper case before addition re
     Alias: QBERT.C10 Path: http://www.colorcomputerarchive.com/coco/MC-10/Cassettes/Games/Jim%20Gerrie's%20Games/QBERT.C10
 
 [Back to top](#toc)
-# 17. <a name="ch_dload"></a>Appendix: DLOAD Protocol Support
+# 16. <a name="ch_dload"></a>DLOAD Protocol Support
 
+pyDriveWire supports the DLOAD protocol available in early versions of Color Basic.  DLOAD can be used to download BASIC and Binary files to the CoCo.
 
-Issuing the command:
+**NOTE: When DLOAD is enabled DriveWire communication is disabled.  When DLOAD is disabled DriveWire is reenabled at the original baud rate**
+
+**NOTE: It is not possible to use DLOAD and DriveWire on the same instance at the same time.  Instances are however independent, so one instance can run DLOAD while others run DriveWire or EmCee protocols.**
+
+## Demonstration Video
+
+[MikeyN6IL's Dev VLOG $0B: DLOADing with pyDriveWire](https://youtu.be/_irvmqQxRww)
+
+## Issuing the command:
 
     pyDriveWire> dload enable 1200
 
@@ -2001,7 +2044,7 @@ Use the `mc listdir` command to list the files the current directory for DLOAD p
 ### `dload alias remove <name>`
 
 [Back to top](#toc)
-# 18. <a name="ch_namedobj"></a>Appendix: Named Object Support
+# 17. <a name="ch_namedobj"></a>Appendix: Named Object Support
 
 ## DriveWire Named Object Command Reference
 
@@ -2037,7 +2080,7 @@ Use the `namedobj listdir` command to list the files the current directory for D
 ### `namedobj alias remove <name>`
 
 [Back to top](#toc)
-# 19. <a name="ch_dragon"></a>Appendix: Dragon DosPlus Extender Support
+# 18. <a name="ch_dragon"></a>Appendix: Dragon DosPlus Extender Support
 
 The DosPlus Extender for Dragon computers has DriveWire support.
 The extender has been implemented for DriveWire servers which
@@ -2055,6 +2098,14 @@ Note: The dosplus mode has no effect when using DWEEBS/DWLOAD
 Note: The `dosplus` feature is needed for all disk Read/Write access being
 done through the DosPlus extender, regardless of the disk image format you
 are using (VDK, JVC, DSK, OS9)
+
+
+## Demonstration Video
+
+
+[MikeyN6IL's Dev VLOG $0C: pyDriveWire Does {Tano}Dragon{32,64}](https://youtu.be/leBagagIEAY)
+
+## Using DosPlus Mode
 
 There are three different ways to turn on the dosplus mode:
 
@@ -2098,7 +2149,7 @@ Enable the server global dosplus default from the command line:
     ./pyDriveWire --dosplus ...
 
 [Back to top](#toc)
-# 20. <a name="ch_vport"></a>DriveWire Virtual Modem for TCP, Telnet and SSH
+# 19. <a name="ch_vport"></a>DriveWire Virtual Modem for TCP, Telnet and SSH
 
 pyDriveWire has a system of "virtual ports" which can be used to communicate over the Internet.  This is done in one of four ways: The DriveWire Virtual Modem, TCP commands, Telnet and SSH Commands.
 
@@ -2115,7 +2166,7 @@ Once you have your terminal program loaded and running you will be greeted with 
     AT
     OK
     ATI
-    pyDriveWire v0.5d  
+    pyDriveWire v0.6  
     OK
 
 So, anyone remember how to make a modem connection using a modem?  How about that `ATDT` command.  Except instead of a phone number you can use an IP address or DNS name.
@@ -2166,5 +2217,308 @@ You can also set these from the command line:
       --port-term PORTTERM  Port default TERM, default: ansi
       --port-rows PORTROWS  Port default rows, default: 16
       --port-cols PORTCOLS  Port default cols, default: 32
+
+[Back to top](#toc)
+
+# <a name="ch_extensions"></a>Appendix: pyDriveWire Extensions to the DriveWire Protocol
+
+pyDriveWire has many extensions and enhancements compared to the standard
+DriveWire4 server.  Some of the extensions are on permanently, others can
+be enabled by command line, config file, or server commands.  Still others
+are experimental features.  The DriveWire 4 protocol provides extremely
+rudimentary ability to tell the client which protocol version the server
+supports.  Other information may be available by using server commands, but
+using server commands requires at least 100 lines of assembly code just to
+run one command and to parse the results.  pyDriveWire provides an
+extension which clients can use to determine the server version, which
+features are available and which features are currently enabled.  This is
+done in a way which is backwards compatible with the DriveWire 4
+specification.
+
+## The pyDriveWire Combination Lock
+
+pyDriveWire provides enhanced information to clients by use of a
+combination lock mechanism.  Once the client has activated the combination
+lock the client can request an individual page(byte) of information from
+the server and then the lock is closed again.  The combination lock must be
+activated for each individual page desired.
+
+### Combo Locks
+
+| Lock Code | Supported Servers |
+|-----------|-------------------|
+| `py`      | pyDriveWire v0.6 and later |
+
+### pyDriveWire Combo Lock Detail
+
+pyDriveWire's Combination Lock is activated as follows:
+
+1. Client sends `OP_DWINIT` command byte
+2. Client sends `p` lock combination byte #1
+3. Server repeats the lock code `p`.  A pyDriveWire server returning `$FF` does not
+support this extension.
+4. Client sends `OP_DWINIT` command byte
+5. Client sends `y` lock combination byte #2
+6. Server repeats the lock code `y`.  A pyDriveWire server returning `$FF` does not
+support this extension.
+7. At this point the combination lock is open
+8. Client sends `OP_DWINIT` command byte
+9. Client sends byte for desired information page
+10. Server returns information for requested page
+11. Combination Lock is closed.
+
+The combination for pyDriveWire's lock is the byte 'p' followed by 'y'.
+Other DriveWire servers may add their own combination lock and provide
+their own information.
+
+If a DriveWire server does not support this extension then it will simply return the default value that it normally would for that server.  This is how the client can determine what type of server it is communicating with and whether the extension is available or not.
+
+| Server | Return Values |
+|--------|---------------------|
+|DriveWire 2 or 3| No reply
+|DriveWire 4| $0404
+| pyDriveWire  and earlier| $FFFF
+| pyDriveWire v0.6 and later| `py`
+
+If the client finds the values returned do not match the combo lock then the server does not support this combo lock extension.
+
+## Information Pages
+
+Information pages are called up by the client sending a byte for the
+desired information page.  The following pages are reserved and shall not
+be used by any server:
+
+* $00 - $0F -- Reserved:: DriveWire Protocol Version
+* $F0 - $FF -- Reserved:: DriveWire Protocol Version
+
+The bytes $10 through $EF represent valid requests for information pages.
+
+### Page Data Types
+* Byte - Byte 1: data
+* String - Byte 1: String Length Byte 2-N: String returned one byte at a time
+* Block - Byte 1: Drive Number - Byte 2: length MSB Byte 3: Length LSB
+
+Block Transfers - The server returns data in a similar manner to NamedObjects.  The server presents the data on one of the DriveWire drives and returns the drive number and the data length in bytes to the client.  The client can then issue the required number of OP_READ or OP_READEX calls to obtain the data.
+
+pyDriveWire defines the following information pages:
+
+|Page|Description               |
+|---:|--------------------------|
+|'E' |Enabled Features, page 1  |
+|'e' |Enabled Features, page 2  |
+|'F' |Available Features, page 1|
+|'f' |Available Features, page 2|
+|'V' |Server Version page 1|
+|'v' |Server Version page 2|
+
+
+### Page 'E' - Enabled Features - Page 1
+
+Page Data Type: byte
+
+Supported Servers:
+
+* pyDriveWire v0.6 and later
+
+|Bit|Description|
+|--:|------------------------|
+|7  |Reserved
+|6  |PlaySound Support
+|5  |SSH Support
+|4  |Printing Support
+|3  |DosPlus Mode
+|2  |HDBDos Mode
+|1  |DLOAD Protocol
+|0  |EmCee Protocol - always 1
+
+### Page 'e' - Enabled Features - Page 2
+
+Page Data Type: byte
+
+Supported Servers:
+
+* None
+
+|Bit|Description|
+|--:|------------------------|
+|7  |Reserved
+|6  |
+|5  |
+|4  |
+|3  |
+|2  |
+|1  |
+|0  |
+
+### Page 'F' - Available Features - Page 1
+
+Page Data Type: byte
+
+Supported Servers:
+
+* pyDriveWire v0.6 and later
+
+|Bit|Description|
+|--:|------------------------|
+|7  |Reserved
+|6  |PlaySound Support
+|5  |SSH Support
+|4  |Printing Support
+|3  |DosPlus Mode
+|2  |HDBDos Mode
+|1  |DLOAD Protocol
+|0  |EmCee Protocol - always 1
+
+### Page 'f' - Available Features - Page 2
+
+Page Data Type: byte
+
+Supported Servers:
+
+* None
+
+|Bit|Description|
+|--:|------------------------|
+|7  | Reserved
+|6  |
+|5  |
+|4  |
+|3  |
+|2  |
+|1  |
+|0  |
+
+### Page 'V' - Server Version - Page 1
+
+Page Data Type: byte
+
+Supported Servers:
+
+* pyDriveWire v0.6 and later
+
+|Bits|Description|
+|---:|---------------------------|
+|4-7 |Major Version - binary 0-15
+|0-3 |Minor Version MSB - BCD 0-9
+
+### Page 'v' - Server Version - Page 2
+
+Page Data Type: byte
+
+Supported Servers:
+
+* pyDriveWire v0.6 and later
+
+|Bits|Description|
+|---:|---------------------------|
+|4-7 |Minor Version LSB - BCD 0-9
+|0-3 |Sub Version
+
+Sub Version
+
+|Value|Code|
+|----:|----|
+|0|None|
+|1|`a`|
+|2|`b`|
+|...||
+|15|`o`|
+
+
+[Back to top](#toc)
+
+# <a name="ch_commands"></a>Appendix: Supported DriveWire Commands
+
+* `dw disk` 
+	* `dw disk show`
+	* `dw disk insert <drive> <file>`
+	* `dw disk eject <drive>`
+	* `dw disk reset <drive>` -- (re-open)
+	* `dw disk offset <drive> <n>`
+	* `dw disk create <drive> <offset>`
+* `dw port`
+	* `dw port show`
+	* `dw port close <n>`
+	* `dw port debug`
+	* `dw port term`
+	* `dw port rows`
+	* `dw port cols`
+*  `dw server`
+	* `dw server instance`
+	* `dw server dir [<path>]`
+	* `dw server list <file>`
+	* `dw server dump`
+	* `dw server debug <0|False|1|False>`
+	* `dw server timeout`
+	* `dw server version`
+	* `dw server conn debug <0|False|1|False>`
+	* `dw server hdbdos <0|False|1|True>`
+* `dw instance`
+	* `dw instance show`
+	* `dw instance add`
+	* `dw instance select`
+* A directory for DriveWire Named Object operations
+* `dw printer`
+	* `dw printer flush`
+	* `dw printer format`
+	* `	dw printer file`
+	* `dw printer dir`
+	* `	dw printer cmd`
+	* `dw printer status`
+* `tcp` commands
+	* `tcp connect <host> <port>`
+	* `tcp listen <port> ...` -- Remainder of options ignored
+	* `tcp join <channel>`
+	* `tcp kill <channel>`
+* AT Commands
+	* `AT`
+   * `ATD<host>:<port>`
+   * `ATDT<host>:<port>`
+   * `ATE`
+   * `ATH`
+   * `ATI`
+   * `ATO`
+   * `ATZ`
+* EmCee Commands
+	* `mc alias show`
+	* `mc alias add`
+	* `mc alias remove`
+	* `mc setdir`
+	* `mc getdir`
+	* `mc show`
+	* `mc eject`
+* Debugging commands
+   * `dw port debug [True|1|False|0]`
+	* `dw server debug [True|1|False|0]`
+	* `dw server conn debug [True|1|False|0]`
+	* `dw server dump`
+	* `dw server timeout <s>`
+* SSH Commands
+	* `ssh <hostname>[:<port>] <username> <password>`
+	* `ATDssh://<username>:<password>@<hostname>[:<port>]`
+	* `dw port show`
+	* `dw port term`
+	* `dw port rows`
+	* `dw port cols`
+* `dload` Commands
+	* `dload alias show`
+	* `dload alias add`
+	* `dload alias remove`
+	* `dload status`
+	* `dload enable`
+	* `dload disable`
+	* `dload setdir`
+	* `dload getdir`
+	* `dload listdir`
+	* `dload translate`
+* `playsound` Commands
+	* `playsound alias show`
+	* `playsound alias add`
+	* `playsound alias remove`
+	* `playsound setdir`
+	* `playsound getdir`
+	* `playsound listdir`
+	* `playsound play`
+	* `playsound stop`
 
 [Back to top](#toc)
