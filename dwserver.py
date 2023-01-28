@@ -85,6 +85,7 @@ class DWServer:
         if dosplus is None:
             dosplus = self.dosplus
         if proto in self.dirs:
+            print("chdir: %s: %s" % (proto, self.dirs[proto]))
             os.chdir(self.dirs[proto])
         self.files[disk] = DWFile(fileName, mode, stream=stream, offset=offset, raw=raw, eolxlate=eolxlate, proto=proto, dosplus=dosplus)
         print(
@@ -1266,9 +1267,12 @@ class DWServer:
             #         3.  ASCII flag (0=binary file, FF=ASCII)
             fn = fn.strip()
             fn2 = self.aliases['dload'].get(fn.upper(), fn)
+            wd = os.getcwd()
             if fn2 != fn:
                 print('Alias: %s -> %s' % (fn, fn2))
                 fn = fn2
+            else:
+                os.chdir(self.dirs['dload'])
             (ftype, aflag) = self._dloadFindFile(fn)
             data = pack('>ss', ftype, aflag)
 
@@ -1287,7 +1291,7 @@ class DWServer:
                           eolxlate=eolxlate, proto='dload', dosplus=False)
                 self.files[0].ftype = ftype
                 self.files[0].ftype = aflag
-        
+            os.chdir(wd) 
 
         if self.debug:
             msg = "dloadFileReq: rc=%x" % (ord(rc))
