@@ -433,9 +433,7 @@ class DWParser:
            usageStr = "Usage: dw disk dosplus <drive> [0|1|on|off|t|T|f|F|y|Y|n|N]"
            opt = 1
            nopts = 2
-        print data
         dp = data.split(' ')
-        print dp
         if not server and (len(dp) < 1 or len(dp) > 2):
             raise exception('Usage: '+usageStr)
         if server:
@@ -1246,6 +1244,7 @@ class DWParser:
                 msg.append('EOL Translation Enabled')
         else:
                 msg.append('EOL Translation Disabled')
+        msg.append(self.doGetDir(data, 'dload'))
         return('\r\n'.join(msg))
 
     def doDloadEnable(self, data):

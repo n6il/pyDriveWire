@@ -163,7 +163,6 @@ class DWIO:
                 #    break
                 if len(rdata) == rlen:
                     break
-                print("self.abort=%s" % self.abort)
 
         # print "reading: %d (%s)" %(len(rdata),rdata if ord(rdata)>32 and ord(rdata)<128 else '.')
         if self.rt and self.rt._Thread__stopped and self.rb.get()==0:
