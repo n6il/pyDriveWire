@@ -1,5 +1,11 @@
 # pyDriveWire Installation Instructions for macOS
 
+v0.6 2023-02-09 23:18
+
+### Introduction
+
+pyDriveWire is a Python 2 project at the current time.  Since Python 2 reached End Of Life in April 2020, it has become increasingly difficult to install Python 2 and the associated packages.  We recommend using `pyenv` to install and manage the recommended version of Python (pypy2.7-7.3.11).  This document provides both quickstart and step-by-step instructions for installing `pyenv` and pyDriveWire. 
+
 ### <a name="toc">Table of Contents<toc></a>
 
 1. [Quickstart Guide](#quickstart)

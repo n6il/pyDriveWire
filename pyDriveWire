@@ -1,5 +1,22 @@
 #!/bin/bash
 
+pyenv=$(which pyenv)
+if [ "X$pyenv" != "X" ]; then
+	if [ -z "${PYENV_ROOT}" ]; then
+		# pyenv setup for pyDriveWire
+		export PYENV_ROOT="$HOME/.pyenv"
+		command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
+	fi
+	eval "$(pyenv init -)"
+	for pyversion in "$(dirname ${0})/.python-version" "${HOME}/.python-version" "${HOME}/.pyenv/version"; do
+		if [ -e "${pyversion}" ]; then
+			pyenv shell "$(cat ${pyversion})"
+			break
+		fi
+	done
+fi
+
+
 python=$(which pypy)
 if [ "X$python"  == "X" ]; then
 	echo "WARNING: pypy was not found.  It is recommended for maximum performance"

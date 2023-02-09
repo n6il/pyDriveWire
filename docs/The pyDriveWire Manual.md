@@ -35,6 +35,7 @@ DriveWire 4 and EmCee Procotols can be used simultaneously on the server without
 # 1. <a name="ch_features"></a>Features
 
 
+* (new for v0.6) [`pyenv` is now the recommended way to install Python](https://github.com/n6il/pyDriveWire/blob/v0.6/docs/pyDriveWire%20General%20Installation%20Instructions.md)
 * (new for v0.6) DLOAD Protocol Support
 * (new for v0.6) SSH Support
 * (new for v0.6) Dragon DosPlus Support
@@ -81,7 +82,7 @@ DriveWire 4 and EmCee Procotols can be used simultaneously on the server without
 
 # 2. <a name="ch_starting"></a>Getting Started
 
-pyDriveWire has two Easy Installtion Methods: Binary Package and Docker.  These options are designed for Ease Of Use and do not require a complex series of installation steps.   pyDriveWire can also be run directly from any `pypy` or `python` install if it meets the appropriate requirements.
+pyDriveWire has two Easy Installation Methods: Binary Package and Docker.  These options are designed for Ease Of Use and do not require a complex series of installation steps.   pyDriveWire can also be run directly from any `pypy` or `python` install if it meets the appropriate requirements.
 
 In terms of performance, the Python and Binary Package installation methods are fully functional but have the lowest performance.  Docker provides a medium level of performance.  pypy should be used to get the maximum performance out of pyDriveWire.
 
@@ -98,7 +99,7 @@ Packages are available for the following operating systems:
 * `win32` -- 32-bit Windows (Windows 7 or later)
 *  `rpi3` -- Raspberry Pi 3 (Raspbian Buster)
 *  `rpi4` -- Raspberry Pi 4 (Raspbian Jesse)
-*  `macOs` -- macOs (High Sierra or later)
+*  `macOs` -- Binary package is not available for v0.6.  Please follow instructions here: [pyDriveWire Installation Instructions for macOS](https://github.com/n6il/pyDriveWire/blob/v0.6/docs/pyDriveWire%20Installation%20Instructions%20for%20macOS.md)
 
 Using a Binary Package is very simple:
 
@@ -155,6 +156,7 @@ Example: Run pyDriveWire with the HTTP UI on port 6800 and the Becker port conne
  
 ## 2.4 Installation Requirements<a name="ch_starting.1"></a>
 
+* These days it is difficult to install Python 2.  `pyenv` is the recommended method to install `pypy2.7`
 * pypy -- For maximum performance it is recommended to run the server with
 pypy.  pypy is a Python interpreter that does JIT compilation and results in
 greatly increased speed
@@ -167,17 +169,22 @@ greatly increased speed
 * Windows
 
 
-## 2.6 Installation (Linux/macOS/UNIX)
-* Download Latest: [https://github.com/n6il/pyDriveWire/releases](https://github.com/n6il/pyDriveWire/releases)
-* Mac: `brew install pypy; pypy -m pip install pyserial`
-* Ubuntu: `apt-get install pypy; pypy -m pip install pyserial`
+## 2.6 Installation (macOS)
 
-_Experimental Printing Support_
+Please follow instructions here: [pyDriveWire Installation Instructions for macOS](https://github.com/n6il/pyDriveWire/blob/v0.6/docs/pyDriveWire%20Installation%20Instructions%20for%20macOS.md)
 
-* `pypy -m pip install reportlab`
+## 2.7 Installation (Linux/UNIX)
+Download Latest: [https://github.com/n6il/pyDriveWire/releases](https://github.com/n6il/pyDriveWire/releases)
 
+* Install `pyenv`
+* `pyenv install pypy2.7-7.3.11`
+* `cd ~/src/pyDriveWire`
+* `pyenv local pypy2.7-7.3.11`
+* `pypy -m pip install serial paramiko reportlab playsound`
 
-## 2.7 Installation (Windows)
+Please see [pyDriveWire General Installation Instructions](https://github.com/n6il/pyDriveWire/tree/master/docs/pyDriveWire%20General%20Installation%20Instructions.md) for more detailed steps.
+
+## 2.8 Installation (Windows)
 
 There are multiple ways to get Python and pyDriveWire installed on Windows.
 As long as the basic requirements are met you can use any method to install
@@ -186,8 +193,7 @@ workflows are below.
 
 ### Requirements
 
-* pyDriveWire is a Python 2.7 script.  It may or may not run on Python3
-  (will likely migrate at a later time). 
+* pyDriveWire is a Python 2.7 script.  It will not run on Python3
 * PyPy is preferred over CPython.  Pypy has Just-In-Time compilation and
   pyDriveWire will run a lot faster (and likely will also use lower CPU)
 than CPython, but pyDriveWire is completely compatible with either one.
