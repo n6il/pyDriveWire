@@ -15,14 +15,20 @@ The latest version of this document will always be at: [https://github.com/n6il/
 
 ## <a name="quickstart">Quickstart Guide</a>
 
-### macOS
-Open a Terminal and run the following command to perform an automated installation of pyDriveWire v0.6 on your Mac:
 
-```
-/bin/bash -c "$(curl -fsSL https://github.com/n6il/pyDriveWire/releases/download/v0.6/installer-macOS.sh)"
-```
+### Ready-to-go Binaries for Linux/Windows/RPi
 
-### General Instructions
+Binary packages are available at the following location:
+
+[https://github.com/n6il/pyDriveWire/releases/latest](https://github.com/n6il/pyDriveWire/releases/latest)
+
+Packages are available for the following operating systems:
+
+* `linux-x86_64` -- Any modern 64-bit Linux 
+* `win-x64` -- 64-bit Windows (Windows 7 or later)
+*  `rpi` -- Raspberry Pi 3/4 (Raspbian Jesse)
+
+### General DIY/Self Install Instructions
 
 1. Install `pyenv`
 2. `pyenv install pypy2.7-7.3.11`
@@ -32,6 +38,13 @@ Open a Terminal and run the following command to perform an automated installati
 
 
 [Return to toc](#toc)
+
+### macOS
+Open a Terminal and run the following command to perform an automated installation of pyDriveWire v0.6 on your Mac:
+
+```
+/bin/bash -c "$(curl -fsSL https://github.com/n6il/pyDriveWire/releases/download/v0.6/installer-macOS.sh)"
+```
 
 ## <a name="steps">Step-by-step instructions</a>
 ### 1. Install pyenv

@@ -82,6 +82,8 @@ DriveWire 4 and EmCee Procotols can be used simultaneously on the server without
 
 # 2. <a name="ch_starting"></a>Getting Started
 
+pyDriveWire is a Python 2 project at the current time (Python 3 port is in-progress).  Since Python 2 reached End Of Life in April 2020, it has become increasingly more difficult to install Python 2 and the associated packages.  We recommend using `pyenv` to install and manage the recommended version of Python (pypy2.7-7.3.11).  This document provides both quickstart and step-by-step instructions for installing `pyenv` and pyDriveWire. 
+
 pyDriveWire has two Easy Installation Methods: Binary Package and Docker.  These options are designed for Ease Of Use and do not require a complex series of installation steps.   pyDriveWire can also be run directly from any `pypy` or `python` install if it meets the appropriate requirements.
 
 In terms of performance, the Python and Binary Package installation methods are fully functional but have the lowest performance.  Docker provides a medium level of performance.  pypy should be used to get the maximum performance out of pyDriveWire.
@@ -96,9 +98,7 @@ Packages are available for the following operating systems:
 
 * `linux-x86_64` -- Any modern 64-bit Linux 
 * `win-x64` -- 64-bit Windows (Windows 7 or later)
-* `win32` -- 32-bit Windows (Windows 7 or later)
-*  `rpi3` -- Raspberry Pi 3 (Raspbian Buster)
-*  `rpi4` -- Raspberry Pi 4 (Raspbian Jesse)
+*  `rpi` -- Raspberry Pi 3/4 (Raspberry PI OS)
 *  `macOs` -- Binary package is not available for v0.6.  Please follow instructions here: [pyDriveWire Installation Instructions for macOS](https://github.com/n6il/pyDriveWire/blob/v0.6/docs/pyDriveWire%20Installation%20Instructions%20for%20macOS.md)
 
 Using a Binary Package is very simple:
