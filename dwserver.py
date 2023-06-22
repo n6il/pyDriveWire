@@ -199,6 +199,10 @@ class DWServer:
                     flags += 'E'
             except BaseException:
                 rc = E_READ
+        # Pad to SECSIZ
+        if len(data) < SECSIZ:
+            data=data.ljust(SECSIZ, '\x00')
+            flags += "P"
         self.conn.write(chr(rc))
         self.conn.write(dwCrc16(data))
         self.conn.write(data)
@@ -267,6 +271,10 @@ class DWServer:
                 # print "   rc=%d" % rc
                 traceback.print_exc()
         # print "cmdReadEx sending %d" % len(data)
+        # Pad to SECSIZ
+        if len(data) < SECSIZ:
+            data=data.ljust(SECSIZ, '\x00')
+            flags += "P"
         dataCrc = dwCrc16(data)
         self.conn.write(data)
         crc = self.conn.read(CRCSIZ, self.timeout)
@@ -747,6 +755,8 @@ class DWServer:
             if fn2 != None:
                 print('Alias: %s -> %s' % (fn, fn2))
                 fn = fn2
+            pwd = os.getcwd()
+            os.chdir(self.dirs['namedobj'])
             exists = os.path.exists(fn)
             if mode.startswith('r'):
                 if not exists:
@@ -762,6 +772,7 @@ class DWServer:
                 else:
                     self.open(drive, fn, mode='ab+', raw=True, proto='namedobj', dosplus=False)
                     self.namedObjDrive = drive
+            os.chdir(pwd)
         self.conn.write(chr(drive))
         return drive, fn
 

@@ -326,7 +326,7 @@ class DWParser:
             elif s.lower() == '--dosplus':
                 dosplus = True
                 pathEnd -= 10  # len(' --dosplus')
-        path = data[pathStart:pathEnd]
+        path = os.path.expanduser(data[pathStart:pathEnd])
         try:
             self.server.open(int(drive), path, mode=mode, stream=stream, raw=raw, proto=proto, dosplus=dosplus)
         except Exception as e:
