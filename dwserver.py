@@ -366,7 +366,7 @@ class DWServer:
                 if e.message == 'File not open for writing':
                     rc = E_WRPROT
                 print traceback.print_exc()
-        if rc == E_OK:
+        if rc == E_OK and not self._isNamedObjDrive(disk):
             if (lsn == 0) or (
                     not self.files[disk].os9Image and lsn >= self.files[disk].maxLsn):
                 self.files[disk].guessMaxLsn()
@@ -764,7 +764,7 @@ class DWServer:
                 else:
                     if (self.files[drive] is None) or (self.files[drive] and self.files[drive].file.name != fn):
                         self.open(drive, fn, mode='ab+', raw=True, proto='namedobj', dosplus=False)
-                        self.NamedObjDrive = drive
+                        self.namedObjDrive = drive
 
             if mode.startswith('w'):
                 if exists:
