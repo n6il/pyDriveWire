@@ -763,14 +763,14 @@ class DWServer:
                     drive = 0
                 else:
                     if (self.files[drive] is None) or (self.files[drive] and self.files[drive].file.name != fn):
-                        self.open(drive, fn, mode='ab+', raw=True, proto='namedobj', dosplus=False)
+                        self.open(drive, fn, mode='rb+', raw=True, proto='namedobj', dosplus=False)
                         self.namedObjDrive = drive
 
             if mode.startswith('w'):
                 if exists:
                     drive = 0
                 else:
-                    self.open(drive, fn, mode='ab+', raw=True, proto='namedobj', dosplus=False)
+                    self.open(drive, fn, mode='wb+', raw=True, proto='namedobj', dosplus=False)
                     self.namedObjDrive = drive
             os.chdir(pwd)
         self.conn.write(chr(drive))
