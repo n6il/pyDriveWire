@@ -1,5 +1,7 @@
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-from urlparse import parse_qs
+#!/usr/bin/env python3
+
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib.parse import parse_qs
 import cgi
 import threading
 from dwcommand import DWParser
@@ -46,23 +48,33 @@ class GP(BaseHTTPRequestHandler):
             response = 404
         self._set_headers('text/html', response)
         if response != 200:
-            self.wfile.write(
-                "<html><body><h1>%d Error: Invalid location: %s</h1></body></html>" %
-                (response, self.path))
+            error_msg = ("<html><body><h1>%d Error: Invalid location: %s</h1></body></html>" %
+                        (response, self.path)).encode('utf-8')
+            self.wfile.write(error_msg)
             return
-        # print parse_qs(self.path[2:])
+        # print(parse_qs(self.path[2:]))
         # self.wfile.write("<html><body><h1>Get Request Received!</h1></body></html>")
 
-        with open(path) as f:
+        with open(path, 'rb') as f:
             self.wfile.write(f.read())
 
     def do_POST(self):
         global parser
-        clen, pdict = cgi.parse_header(
-            self.headers.getheader('Content-Length'))
-        mtype, pdict = cgi.parse_header(self.headers.getheader('Content-Type'))
+        content_length = self.headers.get('Content-Length')
+        content_type = self.headers.get('Content-Type')
+
+        if content_length:
+            clen, pdict = cgi.parse_header(content_length)
+        else:
+            clen = 0
+        if content_type:
+            mtype, pdict = cgi.parse_header(content_type)
+
         data = self.rfile.read(int(clen))
-        # print "POST path: %s" % self.path
+        if isinstance(data, bytes):
+            data = data.decode('utf-8')
+
+        # print("POST path: %s" % self.path)
         response = 200
         if self.path.startswith('/upload'):
             qm = self.path.find('?')
@@ -70,13 +82,16 @@ class GP(BaseHTTPRequestHandler):
                 qd = parse_qs(self.path[qm + 1:])
                 name = qd['name'][0]
                 drive = qd['drive'][0]
-                print "upload drive: %s name: %s" % (drive, name)
+                print("upload drive: %s name: %s" % (drive, name))
                 # fileName = tempfile.mktemp(prefix=name.split('/')[-1].split('.')[0], suffix='.'+name.split('.')[-1])
                 fileName = os.path.join(tempfile.gettempdir(), name)
-                print fileName
+                print(fileName)
                 with open(fileName, 'wb') as f:
                     comma = data.index(',')
-                    f.write(base64.b64decode(data[comma + 1:]))
+                    base64_data = data[comma + 1:]
+                    if isinstance(base64_data, str):
+                        base64_data = base64_data.encode('utf-8')
+                    f.write(base64.b64decode(base64_data))
                 data = 'dw disk insert %s %s' % (drive, fileName)
                 response = 200
                 msg = "OK: drive:%s name:%s" % (drive, name)
@@ -85,13 +100,14 @@ class GP(BaseHTTPRequestHandler):
                 msg = "%d: Error: Invalid upload specification: %s" % (
                     response, self.path)
                 self._set_headers('text/html', response)
-                self.wfile.write(
-                    "<html><body><h1>%s</h1></body></html>" %
-                    (msg))
+                error_msg = ("<html><body><h1>%s</h1></body></html>" % msg).encode('utf-8')
+                self.wfile.write(error_msg)
                 return
+
         result = parser.parse(data.lstrip().rstrip()).replace('\r', '')
         self._set_headers('text/plain', response)
-        self.wfile.write(result + '\n')
+        result_bytes = (result + '\n').encode('utf-8')
+        self.wfile.write(result_bytes)
 
 
 class DWHttpServer:
@@ -109,7 +125,7 @@ class DWHttpServer:
     def run(self, server_class=HTTPServer, handler_class=GP, port=8088):
         server_address = ('', port)
         httpd = server_class(server_address, handler_class)
-        print 'Web UI running at http://localhost:%s' % port
+        print('Web UI running at http://localhost:%s' % port)
         httpd.serve_forever()
 
 
@@ -120,12 +136,12 @@ def start():
     t.start()
     return t
 t = start()
-wdata = raw_input()
+wdata = input()
 """
 
 if __name__ == '__main__':
     r = DWHttpServer(None, 8088)
-    wdata = raw_input()
+    wdata = input()
 
 
 # vim: ts=4 sw=4 sts=4 expandtab

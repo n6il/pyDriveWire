@@ -10,6 +10,6 @@ def dloadXor(data):
     xb = 0
     for c in bytearray(data):
         xb ^= c
-    return chr(xb)
+    return bytes([xb])
 
 # vim: ts=4 sw=4 sts=4 expandtab

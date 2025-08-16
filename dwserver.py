@@ -87,7 +87,6 @@ class DWServer:
             si = "%d" % (i + 1)
         self.connections[si] = conn
         return si
-
     def open(self, disk, fileName, stream=False, mode="rb+", create=False, offset=None, hdbdos=None, raw=False, eolxlate=False, proto='dw', dosplus=None):
         if offset is None:
             offset = self.offset
@@ -141,16 +140,15 @@ class DWServer:
         self.open(disk, fileName, stream=stream, mode=mode, offset=offset,
             hdbdos=hdbdos, raw=df.raw, eolxlate=eolxlate, proto=proto,
             dosplus=dosplus)
-
     def cmdStat(self, cmd):
         info = self.conn.read(STATSIZ, self.timeout)
         if not info:
-            print "cmd=%0x cmdStat timeout getting info" % (ord(cmd))
+            print("cmd=%0x cmdStat timeout getting info" % (ord(cmd)))
             return
         (disk, stat) = unpack(">BB", info)
         if self.debug:
-            print "cmd=%0x cmdStat disk=%d stat=%s" % (
-                ord(cmd), disk, hex(stat))
+            print("cmd=%0x cmdStat disk=%d stat=%s" % (
+                ord(cmd), disk, hex(stat)))
 
     def cmdRead(self, cmd, flags=''):
         disk = -1
@@ -158,14 +156,14 @@ class DWServer:
         rc = E_OK
         info = self.conn.read(INFOSIZ, self.timeout)
         if not info:
-            print "cmd=%0x cmdRead timeout getting info" % (ord(cmd))
+            print("cmd=%0x cmdRead timeout getting info" % (ord(cmd)))
             return
             # rc = E_READ
             # rc = E_CRC # force a re-read
         # if rc == E_OK:
-        (disk, lsn) = unpack(">BI", info[0] + NULL + info[1:])
+        (disk, lsn) = unpack(">BI", info[0:1] + NULL + info[1:])
         if self.debug:
-            print "cmd=%0x cmdRead disk=%d lsn=%d" % (ord(cmd), disk, lsn)
+            print("cmd=%0x cmdRead disk=%d lsn=%d" % (ord(cmd), disk, lsn))
         data = NULL_SECTOR
         if rc == E_OK:
             if self.files[disk] is None:
@@ -180,7 +178,7 @@ class DWServer:
                 if self._isNamedObjDrive(disk):
                     flags += 'O'
                 if not self._isNamedObjDrive(disk) and self.hdbdos:
-                    disk = lsn / 630
+                    disk = lsn // 630
                     lsn = lsn - (disk * 630)
                 else:
                     lsn += self.files[disk].offset
@@ -190,7 +188,7 @@ class DWServer:
                 raise
                 rc = E_SEEK
                 data = NULL_SECTOR
-                print "   rc=%d" % rc
+                print("   rc=%d" % rc)
         if rc == E_OK:
             try:
                 data = self.files[disk].file.read(SECSIZ)
@@ -199,11 +197,11 @@ class DWServer:
                     flags += 'E'
             except BaseException:
                 rc = E_READ
-        self.conn.write(chr(rc))
+        self.conn.write(chr(rc).encode('latin-1'))
         self.conn.write(dwCrc16(data))
         self.conn.write(data)
         if self.debug:
-            print "   rc=%d" % rc
+            print("   rc=%d" % rc)
 
     def cmdReRead(self, cmd):
         self.cmdRead(cmd, 'R')
@@ -215,12 +213,12 @@ class DWServer:
         flags = ''
         info = self.conn.read(INFOSIZ, self.timeout)
         if not info:
-            print "cmd=%0x cmdReadEx timeout getting info" % (ord(cmd))
+            print("cmd=%0x cmdReadEx timeout getting info" % (ord(cmd)))
             return
             # rc = E_READ
             # rc = E_CRC # force a re-read
         if rc == E_OK:
-            (disk, lsn) = unpack(">BI", info[0] + NULL + info[1:])
+            (disk, lsn) = unpack(">BI", info[0:1] + NULL + info[1:])
         data = NULL_SECTOR
         if self.files[disk] is None:
             rc = E_NOTRDY
@@ -235,7 +233,7 @@ class DWServer:
                 if self._isNamedObjDrive(disk):
                     flags += 'O'
                 if not self._isNamedObjDrive(disk) and self.hdbdos:
-                    disk = lsn / 630
+                    disk = lsn // 630
                     lsn = lsn - (disk * 630)
                     flags += "H"
                 else:
@@ -271,7 +269,7 @@ class DWServer:
         self.conn.write(data)
         crc = self.conn.read(CRCSIZ, self.timeout)
         if not crc:
-            print "cmd=%0x cmdReadEx timeout getting crc" % (ord(cmd))
+            print("cmd=%0x cmdReadEx timeout getting crc" % (ord(cmd)))
             # return
             rc = E_CRC
         # print "   len(info)=%d" % len(info)
@@ -279,18 +277,18 @@ class DWServer:
 
         if rc == E_OK:
             if crc != dataCrc:
-                print "CRC: read", hex(
+                print("CRC: read", hex(
                     unpack(
                         ">H", crc)[0]), "expected", hex(
                     unpack(
-                        ">H", dataCrc)[0])
+                        ">H", dataCrc)[0]))
                 rc = E_CRC
-            self.conn.write(chr(rc))
+            self.conn.write(chr(rc).encode('latin-1'))
         elif rc != E_CRC:
-            self.conn.write(chr(rc))
+            self.conn.write(chr(rc).encode('latin-1'))
         if self.debug or rc != E_OK:
-            print "cmd=%0x cmdReadEx disk=%d lsn=%d rc=%d f=%s" % (
-                ord(cmd), disk, lsn, rc, flags)
+            print("cmd=%0x cmdReadEx disk=%d lsn=%d rc=%d f=%s" % (
+                ord(cmd), disk, lsn, rc, flags))
         # print "   rc=%d" % rc
 
     def cmdReReadEx(self, cmd):
@@ -301,28 +299,28 @@ class DWServer:
         rc = E_OK
         disk = -1
         lsn = -1
-        data = ''
+        data = b''
         info = self.conn.read(INFOSIZ, self.timeout)
         if not info:
-            print "cmd=%0x cmdWrite timeout getting info" % (ord(cmd))
+            print("cmd=%0x cmdWrite timeout getting info" % (ord(cmd)))
             return
             # rc = E_WRITE
             # rc = E_CRC # force a re-write
         if rc == E_OK:
             data = self.conn.read(SECSIZ, self.timeout)
         if not data:
-            print "cmd=%0x cmdWrite timeout getting data" % (ord(cmd))
+            print("cmd=%0x cmdWrite timeout getting data" % (ord(cmd)))
             # return
             # rc = E_WRITE
             rc = E_CRC  # force a re-write
         if rc == E_OK:
             crc = self.conn.read(CRCSIZ, self.timeout)
             if not crc:
-                print "cmd=%0x cmdWrite timeout getting crc" % (ord(cmd))
+                print("cmd=%0x cmdWrite timeout getting crc" % (ord(cmd)))
                 # return
                 rc = E_CRC  # force a re-write
             else:
-                (disk, lsn) = unpack(">BI", info[0] + NULL + info[1:])
+                (disk, lsn) = unpack(">BI", info[0:1] + NULL + info[1:])
                 if crc != dwCrc16(data):
                     rc = E_CRC
         if rc == E_OK and self.files[disk] is None:
@@ -336,7 +334,7 @@ class DWServer:
                 if self._isNamedObjDrive(disk):
                     flags += 'O'
                 if not self._isNamedObjDrive(disk) and self.hdbdos:
-                    disk = lsn / 630
+                    disk = lsn // 630
                     lsn = lsn - (disk * 630)
                     flags += "H"
                 else:
@@ -355,19 +353,19 @@ class DWServer:
                 self.files[disk].file.flush()
             except Exception as e:
                 rc = E_WRITE
-                if e.message == 'File not open for writing':
+                if hasattr(e, 'message') and e.message == 'File not open for writing':
                     rc = E_WRPROT
-                print traceback.print_exc()
+                print(traceback.print_exc())
         if rc == E_OK:
             if (lsn == 0) or (
                     not self.files[disk].os9Image and lsn >= self.files[disk].maxLsn):
                 self.files[disk].guessMaxLsn()
         # if crc != dwCrc16(data):
         # 	rc=E_CRC
-        self.conn.write(chr(rc))
+        self.conn.write(chr(rc).encode('latin-1'))
         if self.debug or rc != E_OK:
-            print "cmd=%0x cmdWrite disk=%d lsn=%d rc=%d f=%s" % (
-                ord(cmd), disk, lsn, rc, flags)
+            print("cmd=%0x cmdWrite disk=%d lsn=%d rc=%d f=%s" % (
+                ord(cmd), disk, lsn, rc, flags))
         # print "   rc=%d" % rc
 
     def cmdReWrite(self, cmd):
@@ -383,7 +381,7 @@ class DWServer:
             ow = self.channels[channel].outWaiting()
             if ow < 0:
                 # Channel is closing
-                data = chr(16)
+                data = chr(16).encode('latin-1')
                 data += channel
                 msg = "channel=%d Closing" % nchannel
                 if self.channels[channel].state == DWV_S_CLOSED:
@@ -393,13 +391,13 @@ class DWServer:
             elif ow == 0:
                 continue
             elif ow < 3:
-                data = chr(1 + nchannel)
+                data = chr(1 + nchannel).encode('latin-1')
                 data += self.channels[channel].read(1)
-                msg = "channel=%d ByteWaiting=(%s)" % (nchannel, data[1])
+                msg = "channel=%d ByteWaiting=(%s)" % (nchannel, data[1:2])
                 break
             else:
-                data = chr(17 + nchannel)
-                data += chr(ow)
+                data = chr(17 + nchannel).encode('latin-1')
+                data += chr(ow).encode('latin-1')
                 msg = "channel=%d BytesWaiting=%d" % (nchannel, ow)
                 break
         # elif ow<0:
@@ -409,12 +407,12 @@ class DWServer:
 
         self.conn.write(data)
         if self.debug and msg:
-            print "cmd=%0x serRead %s" % (ord(cmd), msg)
+            print("cmd=%0x serRead %s" % (ord(cmd), msg))
 
     # XXX
     def cmdReset(self, cmd):
         if self.debug:
-            print "cmd=%0x cmdReset" % ord(cmd)
+            print("cmd=%0x cmdReset" % ord(cmd))
 
     # XXX
     def cmdInit(self, cmd):
@@ -428,21 +426,20 @@ class DWServer:
                 print(
                     "cmd=%0x cmdInit channel=%d closed" %
                     (ord(cmd), ord(channel)))
-        for channel in self.channels.keys():
+        for channel in list(self.channels.keys()):
             del self.channels[channel]
         if self.debug:
-            print "cmd=%0x cmdInit" % ord(cmd)
+            print("cmd=%0x cmdInit" % ord(cmd))
 
     def cmdNop(self, cmd):
         if self.debug:
-            print "cmd=%0x cmdNop" % ord(cmd)
+            print("cmd=%0x cmdNop" % ord(cmd))
 
     # XXX
     def cmdTerm(self, cmd):
         if self.debug:
-            print "cmd=%0x cmdTerm" % ord(cmd)
-
-    # enhanced DwInit with combo lock
+            print("cmd=%0x cmdTerm" % ord(cmd))
+# enhanced DwInit with combo lock
     # Combo lock stage 1: send 'p' OP_DWINIT must return 'p'
     # Combo lock stage 2: send 'y' OP_DWINIT must return 'y'
     # Combo lock stage 3: send request for information page
@@ -464,25 +461,25 @@ class DWServer:
         r = 0xff
         clientID = self.conn.read(1, self.timeout)
         if not clientID:
-            clientID = '\xff'
+            clientID = b'\xff'
         if self.debug:
             print("Combo Lock: %0x" % self.comboLock)
-            print("Client Id: %0x(%s)" % (ord(clientID),clientID=='p'))
+            print("Client Id: %0x(%s)" % (ord(clientID), clientID == b'p'))
         if self.comboLock == 0:
-            if clientID == 'p':
+            if clientID == b'p':
                 r = ord(clientID)
                 self.comboLock = 1
             else:
                 self.comboLock = 0
         elif self.comboLock == 1:
-            if clientID == 'y':
+            if clientID == b'y':
                 r = ord(clientID)
                 self.comboLock = 2
             else:
                 self.comboLock = 0
         elif self.comboLock == 2:
             r = 0
-            if clientID == 'E':
+            if clientID == b'E':
                 r |= FEATURE_EMCEE
                 r |= FEATURE_DLOAD if self.dload else 0
                 r |= FEATURE_HDBDOS if self.hdbdos else 0
@@ -494,7 +491,7 @@ class DWServer:
                 if 'playsound' in self.args.experimental:
                     r |= FEATURE_PLAYSND
                 self.comboLock = 0
-            if clientID == 'F':
+            if clientID == b'F':
                 r |= FEATURE_EMCEE
                 r |= FEATURE_DLOAD
                 r |= FEATURE_HDBDOS
@@ -503,12 +500,12 @@ class DWServer:
                 r |= FEATURE_SSH
                 r |= FEATURE_PLAYSND
                 self.comboLock = 0
-            elif clientID == 'V':
+            elif clientID == b'V':
                     r |= (PYDW_VERSION_MAJOR << 4) & 0xf0
                     minorMsb = (PYDW_VERSION_MINOR//10) & 0x0f
                     r |= minorMsb
                     self.comboLock = 0
-            elif clientID == 'v':
+            elif clientID == b'v':
                     minorLsb = (PYDW_VERSION_MINOR%10)
                     r |= (minorLsb << 4) & 0xf0
                     code = (ord(PYDW_VERSION_SUB)-ord('a')+1) if PYDW_VERSION_SUB else 0
@@ -519,21 +516,21 @@ class DWServer:
         else:
             self.comboLock = 0
         if self.debug:
-            print "cmd=%0x cmdDWInit cl=%0x id=%0x r=%0x" % (ord(cmd), self.comboLock, ord(clientID), r)
-        self.conn.write(chr(r))
+            print("cmd=%0x cmdDWInit cl=%0x id=%0x r=%0x" % (ord(cmd), self.comboLock, ord(clientID), r))
+        self.conn.write(chr(r).encode('latin-1'))
 
     def cmdTime(self, cmd):
-        t = ''
+        t = b''
         now = time.localtime()
-        t += chr(now.tm_year - 1900)
-        t += chr(now.tm_mon)
-        t += chr(now.tm_mday)
-        t += chr(now.tm_hour)
-        t += chr(now.tm_min)
-        t += chr(now.tm_sec)
+        t += chr(now.tm_year - 1900).encode('latin-1')
+        t += chr(now.tm_mon).encode('latin-1')
+        t += chr(now.tm_mday).encode('latin-1')
+        t += chr(now.tm_hour).encode('latin-1')
+        t += chr(now.tm_min).encode('latin-1')
+        t += chr(now.tm_sec).encode('latin-1')
         self.conn.write(t)
         if self.debug:
-            print "cmd=%0x cmdTime %s" % (ord(cmd), time.ctime())
+            print("cmd=%0x cmdTime %s" % (ord(cmd), time.ctime()))
 
     def cmdSerSetStat(self, cmd):
         channel = self.conn.read(1, self.timeout)
@@ -549,7 +546,7 @@ class DWServer:
                 "cmd=%0x cmdSerSetStat channel=%d timeout getting code" %
                 (ord(cmd), ord(channel)))
             return
-        data = ''
+        data = b''
         if code == SS_Open:
             self.channels[channel] = DWVModem(self, channel, debug=self.debug)
             if self.debug:
@@ -619,9 +616,8 @@ class DWServer:
         del self.channels[channel]
         if self.debug:
             print("cmd=%0x cmdSerTerm channel=%d" % (ord(cmd), ord(channel)))
-
     def cmdFastWrite(self, cmd):
-        channel = chr(ord(cmd) - 0x80)
+        channel = chr(ord(cmd) - 0x80).encode('latin-1')
         if channel not in self.channels:
             print(
                 "cmd=%0x cmdFastWrite bad channel=%d" %
@@ -743,6 +739,8 @@ class DWServer:
             if not fn:
                 drive = 0
         if drive:
+            if isinstance(fn, bytes):
+                fn = fn.decode('latin-1')
             fn2 = self.aliases['namedobj'].get(fn.upper(), None)
             if fn2 != None:
                 print('Alias: %s -> %s' % (fn, fn2))
@@ -754,7 +752,7 @@ class DWServer:
                 else:
                     if (self.files[drive] is None) or (self.files[drive] and self.files[drive].file.name != fn):
                         self.open(drive, fn, mode='ab+', raw=True, proto='namedobj', dosplus=False)
-                        self.NamedObjDrive = drive
+                        self.namedObjDrive = drive
 
             if mode.startswith('w'):
                 if exists:
@@ -762,7 +760,7 @@ class DWServer:
                 else:
                     self.open(drive, fn, mode='ab+', raw=True, proto='namedobj', dosplus=False)
                     self.namedObjDrive = drive
-        self.conn.write(chr(drive))
+        self.conn.write(chr(drive).encode('latin-1'))
         return drive, fn
 
     def cmdNamedObjMount(self, cmd):
@@ -778,8 +776,7 @@ class DWServer:
             print("cmd=%0x cmdNamedObjCreate: Error: %s" % (ord(cmd), fn))
         if self.debug:
             print("cmd=%0x cmdNamedObjCreate drive=%d" % (ord(cmd), drive))
-
-    # $FA - PlaySound Extension
+# $FA - PlaySound Extension
     # Plays a sound out of the default system audio device
     #
     # Prerequisites: Must enable experimental feature flag:
@@ -847,8 +844,10 @@ class DWServer:
             err = E_READ
 
         if not err:
+            if isinstance(name, bytes):
+                name = name.decode('latin-1')
             err = self._doPlaySound(name)
-        self.conn.write(chr(err))
+        self.conn.write(chr(err).encode('latin-1'))
         if self.debug or err:
             print("cmd=%0x rc=%d playsound(%s)" % (ord(cmd), err, name))
 
@@ -909,7 +908,7 @@ class DWServer:
         if error:
             checksum = error
         if opn:
-            response = chr(error)
+            response = chr(error).encode('latin-1')
         else:
             response = pack(">HHH", address, size, checksum)
         self.conn.write(response)
@@ -943,9 +942,8 @@ class DWServer:
             nfblk = CocoCasBlock(nf.getBlockData(), blktyp=0)  # namefile
             self.files[filnum].nf = nf
             self.files[filnum].writeBlock(nfblk)
-        self.conn.write(chr(error))
+        self.conn.write(chr(error).encode('latin-1'))
         return error
-
     def cmdEmCeeLoadFile(self, cmd):
         error = 0
         info = self.conn.read(2, self.timeout)
@@ -964,6 +962,8 @@ class DWServer:
                     (ord(cmd)))
                 error = E_MC_FN
         if not error:
+            if isinstance(fname, bytes):
+                fname = fname.decode('latin-1')
             error = self._emCeeLoadFile(0, fname, 'rb', ftyp)
         if error:
             print("cmd=%0x cmdEmCeeLoadFile error=%d" % (ord(cmd), error))
@@ -995,6 +995,8 @@ class DWServer:
                     "cmd=%0x cmdEmCeeLoadFile timout getting file name" %
                     (ord(cmd)))
                 error = E_MC_FN
+        if not error and isinstance(fname, bytes):
+            fname = fname.decode('latin-1')
         if fmode.startswith('r'):
             error = self._emCeeLoadFile(
                 filnum, fname, fmode, opn=True, error=error)
@@ -1094,27 +1096,29 @@ class DWServer:
             name = self.conn.read(nameLength, self.timeout)
         if not name:
             error = E_MC_IO
+        if not error and isinstance(name, bytes):
+            name = name.decode('latin-1')
         self._emCeeSaveFile(0, name, mode, exaddr, size, error)
         if self.debug:
             print("cmd=%0x cmdEmCeeSave" % ord(cmd))
 
     def cmdEmCeeWriteBlock(self, cmd):
         error = 0
-        data = ''
+        data = b''
         eof = False
         info = self.conn.read(3, self.timeout)
         if not info:
             error = E_MC_IO
         if not error:
             (fileNum, size) = unpack(">BH", info)
-            print fileNum
+            print(fileNum)
             if not self.files[fileNum]:
                 error = E_MC_NO
         if not error:
             if size == 0:
                 eof = True
                 self.files[fileNum].writeBlock(
-                    CocoCasBlock("\xff\x00\xff\x55"))
+                    CocoCasBlock(b"\xff\x00\xff\x55"))
                 self.files[fileNum].close()
             else:
                 data = self.conn.read(size, self.timeout)
@@ -1142,7 +1146,7 @@ class DWServer:
                 length = 0
             else:
                 length = len(self.emCeeDir[self.emCeeDirIdx])
-        self.conn.write(chr(error) + chr(length))
+        self.conn.write(chr(error).encode('latin-1') + chr(length).encode('latin-1'))
 
     def cmdEmCeeDirFile(self, cmd):
         error = 0
@@ -1160,6 +1164,8 @@ class DWServer:
         if not error and length > 0:
             try:
                 dirNam = self.conn.read(length, self.timeout)
+                if isinstance(dirNam, bytes):
+                    dirNam = dirNam.decode('latin-1')
             except BaseException:
                 error = E_MC_IO
         if not error:
@@ -1186,7 +1192,7 @@ class DWServer:
             error = E_MC_IO
         if not error:
             dirName = self.emCeeDir[self.emCeeDirIdx][:length]
-            self.conn.write(dirName)
+            self.conn.write(dirName.encode('latin-1'))
         if self.debug:
             print("cmd=%0x cmdEmCeeRetrieveName" % ord(cmd))
 
@@ -1217,6 +1223,8 @@ class DWServer:
         if not error:
             try:
                 dirNam = self.conn.read(length, self.timeout)
+                if isinstance(dirNam, bytes):
+                    dirNam = dirNam.decode('latin-1')
             except BaseException:
                 raise
                 error = E_MC_IO
@@ -1226,7 +1234,7 @@ class DWServer:
                 self.dirs['mc'] = dirNam
             except BaseException:
                 error = E_MC_NE
-        self.conn.write(chr(error))
+        self.conn.write(chr(error).encode('latin-1'))
         if self.debug:
             print("cmd=%0x cmdEmCeeSetDir" % ord(cmd))
 
@@ -1265,17 +1273,16 @@ class DWServer:
             except BaseException:
                 f = lambda s, x: DWServer.cmdEmCeeErr(s, x)
             f(self, mccmd)
-
-    # DLOAD Commands
+# DLOAD Commands
     def _dloadFindFile(self, fn):
         ftype = DLOAD_FT_FNF
         aflag = DLOAD_AF_ASCII 
         pwd = os.getcwd()
         os.chdir(self.dirs['dload'])
         if os.path.exists(fn):
-            with open(fn) as f:
+            with open(fn, 'rb') as f:
                 fb = f.read(1)
-                if fb == '\x00':
+                if fb == b'\x00':
                     ftype = DLOAD_FT_ML
                     aflag = DLOAD_AF_BIN
                 else:
@@ -1295,7 +1302,7 @@ class DWServer:
         #    2.  XOR of the bytes in the filename
         data = self.conn.read(9)
         fn = data[:8]
-        xb = data[8]
+        xb = data[8:9]
 
         # Check XOR byte
         #     4.  Host to BASIC -
@@ -1308,7 +1315,6 @@ class DWServer:
             rc = DLOAD_P_NAK
         self.conn.write(rc)
 
-
         #     4.  Host to BASIC -
         #         a) If no errors detected -
         if rc == DLOAD_P_ACK:
@@ -1316,6 +1322,8 @@ class DWServer:
             #             FF=file not found)
             #         3.  ASCII flag (0=binary file, FF=ASCII)
             fn = fn.strip()
+            if isinstance(fn, bytes):
+                fn = fn.decode('latin-1')
             fn2 = self.aliases['dload'].get(fn.upper(), fn)
             wd = os.getcwd()
             if fn2 != fn:
@@ -1324,12 +1332,12 @@ class DWServer:
             else:
                 os.chdir(self.dirs['dload'])
             (ftype, aflag) = self._dloadFindFile(fn)
-            data = pack('>ss', ftype, aflag)
+            data = pack('>2s', ftype + aflag)
 
             # 4.  XOR of file type and ASCII flag.
-            xb = dloadXor(data)
+            xb = dloadXor(ftype + aflag)
 
-            data = pack('>2ss', data, xb)
+            data = pack('>2ss', ftype + aflag, xb)
             self.conn.write(data)
 
             if ftype != DLOAD_FT_FNF:
@@ -1343,7 +1351,7 @@ class DWServer:
                           eolxlate=eolxlate, proto='dload', dosplus=False)
                 os.chdir(pwd)
                 self.files[0].ftype = ftype
-                self.files[0].ftype = aflag
+                self.files[0].aflag = aflag
             os.chdir(wd) 
 
         if self.debug:
@@ -1361,7 +1369,7 @@ class DWServer:
         #    2.  Block number (least significant 7 bits)
         #    3.  XOR of block number bytes
         data = self.conn.read(3)
-        (blkmsb, blklsb, xb) = unpack('>BBc', data)
+        (blkmsb, blklsb, xb) = unpack('>BB1s', data)
 
         # 4.  Host to BASIC -
         #    a) If no errors detected -
@@ -1406,7 +1414,7 @@ class DWServer:
         if rc == DLOAD_P_ACK:
             if eof:
                 # eof - empty data
-                fdata = ''
+                fdata = b''
             else:
                 self.files[0].file.seek(offset)
                 fdata = self.files[0].file.read(DLOAD_BLOCK_SIZE)
@@ -1414,11 +1422,11 @@ class DWServer:
             dl = len(fdata)
             # pad data to 128 bytes
             if dl < DLOAD_BLOCK_SIZE:
-                fdata = fdata.ljust(DLOAD_BLOCK_SIZE, '\x00')
-            data = '%s%s'% (chr(dl), fdata)
+                fdata = fdata.ljust(DLOAD_BLOCK_SIZE, b'\x00')
+            data = chr(dl).encode('latin-1') + fdata
             # Calculate XOR check byte
             xb = dloadXor(data)
-            data = '%s%s'% (data, xb)
+            data = data + xb
             self.conn.write(data)
 
         if self.debug:
@@ -1440,7 +1448,6 @@ class DWServer:
             DLOAD_P_FILR: dloadFileReq,
             DLOAD_P_BLKR: dloadBlockReq,
     }
-
 
     # DriveWire Command jump table
     dwcommand = {
@@ -1517,15 +1524,17 @@ class TestConn:
         self.i = 0
 
     def read(self, n):
-        cmd = DWServer.dwcommand.keys()[self.i]
+        cmd = list(DWServer.dwcommand.keys())[self.i]
         self.i = (self.i + 1) % len(DWServer.dwcommand.keys())
         return cmd
 
     def write(self, buf):
         for c in buf:
+            if isinstance(c, int):
+                c = chr(c)
             d = c if (ord(c) >= 32 and ord(c) < 128) else '.'
-            print "%s(%s) " % (hex(ord(c)), d),
-        print
+            print("%s(%s) " % (hex(ord(c)), d), end=' ')
+        print()
 
 
 if __name__ == '__main__':

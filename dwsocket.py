@@ -1,4 +1,5 @@
-# !/usr/local/bin/python
+#!/usr/bin/env python3
+
 import socket
 import threading
 from dwio import DWIO
@@ -42,7 +43,7 @@ class DWSocket(DWIO):
     def _read(self, count=256):
         data = None
         if self.abort or not self.conn:
-            return ''
+            return b''
         ri = []
         try:
             (ri, _, _) = select.select([self.conn.fileno()], [], [], 1)
@@ -51,15 +52,15 @@ class DWSocket(DWIO):
             raise Exception("%s: _read (1): Connection closed" % self)
             self._close()
         if any(ri):
-            # print "dwsocket: reading"
+            # print("dwsocket: reading")
             data = self.conn.recv(count)
         # else:
-            # print "dwsocket: waiting"
-        if data == '':
+            # print("dwsocket: waiting")
+        if data == b'':
             raise Exception("%s: _read (2): Connection closed" % self)
             self._close()
         # if data:
-        # 	print "r",data
+        # 	print("r",data)
         if self.debug and data is not None:
             self._print("\n< socket read: %s: %s" % (self, canonicalize(data)))
         return data
@@ -67,6 +68,8 @@ class DWSocket(DWIO):
     def _write(self, data):
         if self.abort or not self.conn:
             return -1
+        if isinstance(data, str):
+            data = data.encode('latin-1')
         n = 0
         wi = []
         try:
@@ -108,8 +111,8 @@ class DWSocket(DWIO):
         try:
             (_, wi, _) = select.select([], [self.conn.fileno()], [], 1)
         except Exception as e:
-            print str(e)
-            # print "Connection closed",self
+            print(str(e))
+            # print("Connection closed",self)
             # self._close()
         return any(wi)
         # return self.sock.in_waiting
@@ -123,8 +126,8 @@ class DWSocket(DWIO):
                 [self.conn.fileno()], [self.conn.fileno()], [], 0)
         except Exception as e:
             pass
-            # print str(e)
-            # print "Connection closed"
+            # print(str(e))
+            # print("Connection closed")
         if any(ri + wi):
             self._print("Closing: connection: %s" % self)
             try:
@@ -133,7 +136,7 @@ class DWSocket(DWIO):
             except BaseException:
                 pass
         # if any(wi):
-        # 	print "Closing socket"
+        # 	print("Closing socket")
         # 	try:
         # 		self.conn.shutdown(socket.SHUT_RDWR)
         # 	except:
@@ -184,7 +187,7 @@ class DWSocketServer(DWSocket):
         if not self.conn:
             self._print("accepting")
             self.accept()
-        data = ''
+        data = b''
         try:
             data = DWSocket._read(self, count)
         except Exception as e:
@@ -221,7 +224,7 @@ class DWSocketListener(DWSocket):
 
             while not self.abort:
                 ri = []
-                # print "select: %s" % fd
+                # print("select: %s" % fd)
                 (ri, _, _) = select.select([fd], [], [], 1)
 
                 if any(ri):
@@ -299,10 +302,10 @@ class DWSimpleSocket:
                     raise
 
     def read(self, n=1, timeout=None):
-        data = ''
+        data = b''
         while not self.abort and len(data) < n:
             d = self.conn.recv(n - len(data))
-            while not self.abort and d == '' and self.reconnect:
+            while not self.abort and d == b'' and self.reconnect:
                 print("socket: %s: Disconnected" % (self))
                 self.close()
                 if self.closedCb:
@@ -313,11 +316,13 @@ class DWSimpleSocket:
                     (self, self.host, self.port))
                 self.connect()
                 d = self.conn.recv(n - len(data))
-            if d != '':
+            if d != b'':
                 data += d
         return data
 
     def write(self, data):
+        if isinstance(data, str):
+            data = data.encode('latin-1')
         return self.conn.send(data)
 
     def close(self):
@@ -338,7 +343,7 @@ if __name__ == '__main__':
     sock = DWSocketServer()
 
     def cleanup():
-        print "main: Closing sockial port."
+        print("main: Closing socket port.")
         sock.close()
     import atexit
     atexit.register(cleanup)
@@ -346,19 +351,16 @@ if __name__ == '__main__':
     try:
         sock.accept()
         while True:
-            print ">",
-            wdata = raw_input()
+            print(">", end=' ')
+            wdata = input()
             sock.write(wdata)
             sock.write("\n> ")
-            # print "main: Wrote %d bytes" % len(wdata)
+            # print("main: Wrote %d bytes" % len(wdata))
             rdata = sock.readline()
-            # print "main: Read %d bytes" % len(rdata)
-            print rdata,
+            # print("main: Read %d bytes" % len(rdata))
+            print(rdata, end=' ')
     finally:
         cleanup()
-
-
-# vim: ts=4 sw=4 sts=4 expandtab
 
 
 # vim: ts=4 sw=4 sts=4 expandtab

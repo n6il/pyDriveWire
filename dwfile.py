@@ -1,13 +1,14 @@
-# !/usr/bin/python
+#!/usr/bin/env python3
 
 import sys
 import os
 from os import stat
 from struct import *
 import tempfile
-import urllib
-from urlparse import urlparse
-from urllib2 import Request, urlopen
+import urllib.request
+import urllib.parse
+from urllib.parse import urlparse
+from urllib.request import Request, urlopen
 import re
 
 COCO_SECTOR_SIZE = 256
@@ -67,7 +68,7 @@ class DWFile:
                 fileName = tempfile.mktemp(prefix=self.name.split(
                     '/')[-1].split('.')[0], suffix='.' + self.name.split('.')[-1])
                 print("Downloading: %s" % (self.name))
-                urllib.urlretrieve(self.name, fileName)
+                urllib.request.urlretrieve(self.name, fileName)
                 self.remote = True
         except ValueError:
             pass
@@ -95,7 +96,7 @@ class DWFile:
     def guessMaxLsn(self, data=None):
         st = stat(self.file.name)
         self.img_size = st.st_size
-        self.img_sectors = self.img_size / COCO_SECTOR_SIZE
+        self.img_sectors = self.img_size // COCO_SECTOR_SIZE
         self.fmt = None
         if self.raw:
             return
@@ -164,7 +165,7 @@ class DWFile:
             # make a guess
             sides = 1
             spt = 18
-            tracks = sectors / spt
+            tracks = sectors // spt
             secsiz = COCO_SECTOR_SIZE
             fmt_str = 'Single-Sided, %d Track, %d-Sectors/Track, %dByte/Sector Image' % (
                 tracks, spt, secsiz)
@@ -191,9 +192,9 @@ class DWFile:
         dd_spt = None
         dd_fmt_sides = None
         try:
-            dd_tot = unpack(">I", "\x00" + lsn0[0x0:3])[0]
-            dd_tks = unpack(">B", lsn0[0x3])[0]
-            dd_fmt = unpack(">B", lsn0[0x10])[0]
+            dd_tot = unpack(">I", b"\x00" + lsn0[0x0:3])[0]
+            dd_tks = unpack(">B", lsn0[0x3:0x4])[0]
+            dd_fmt = unpack(">B", lsn0[0x10:0x11])[0]
             dd_fmt_sides = (dd_fmt & 0x01) + 1
             dd_fmt_density = (dd_fmt & 0x02) >> 1
             dd_fmt_tpi = (dd_fmt & 0x04) >> 2
@@ -210,7 +211,7 @@ class DWFile:
             return fmt
             # raise Exception ("Not a valid OS-9 Image")
 
-        tracks = dd_tot / dd_spt / dd_fmt_sides
+        tracks = dd_tot // dd_spt // dd_fmt_sides
 
         if dd_tks != dd_spt or dd_tot != (tracks * dd_spt * dd_fmt_sides):
             return fmt
@@ -221,7 +222,7 @@ class DWFile:
         # print ("Disk Format: %x (%d TPI, %s Density, %s Sided)" % (dd_fmt, 96 if dd_fmt_tpi else 48, "Double" if dd_fmt_density else "Single", "Double" if dd_fmt_sides else "Single"))
         # print ("Tracks: %d" % tracks)
         # print ("Sides: %d" % dd_fmt_sides)
-        ks = dd_tot * COCO_SECTOR_SIZE / 1024
+        ks = dd_tot * COCO_SECTOR_SIZE // 1024
         # print ("Size: %dK" % ks)
         fmt_str = "NitrOS-9: %sK, %d Sides, %d tracks, %d-Sectors/Track, 256Byte/Sector Image" % (
             ks, dd_fmt_sides, tracks, dd_spt, )
@@ -240,7 +241,7 @@ class DWFile:
         fmt = None
         self.file.seek(0)
         hdr = self.file.read(2)
-        if hdr != 'dk':
+        if hdr != b'dk':
             self.file.seek(0)
             return None
         # Byte Offset 	Description
@@ -264,10 +265,10 @@ class DWFile:
             sides,
             flags1,
             flags2
-            ) = unpack('HBBBBBBBB', self.file.read(10))
+            ) = unpack('<HBBBBBBBB', self.file.read(10))
         self.byte_offset = hsize
         size = (sides * tracks * COCO_SECTORS_PER_TRACK * COCO_SECTOR_SIZE)
-        sizeK = size / 1024
+        sizeK = size // 1024
         fmt_str = "%sK, %d Sides, %d tracks, %d-Sectors/Track, 256Byte/Sector VDK Image" % (
                sizeK, sides, tracks,  COCO_SECTORS_PER_TRACK )
         fmt = {
@@ -311,9 +312,9 @@ class DWFile:
             xtrabytes -= 1
 
         ssize = 128 * (2**ssizc)
-        tracks = img_realsize / ssize / sides / spt
+        tracks = img_realsize // ssize // sides // spt
         size = (sides * tracks * spt * ssize)
-        sizeK = size / 1024
+        sizeK = size // 1024
         fmt_str = "%sK, %d Sides, %d tracks, %d-Sectors/Track, %sByte/Sector JVC Image" % (
                sizeK, sides, tracks,  spt , ssize)
         fmt = {
@@ -324,7 +325,7 @@ class DWFile:
             'descr': fmt_str,
                }
         self.file.seek(self.byte_offset)
-        print fmt
+        print(fmt)
         return fmt
 
 
@@ -377,7 +378,7 @@ class MlFileReader:
 
     def read(self, length=None):
         if self.typ == 0xff or self.remaining == 0:
-            return ''
+            return b''
         if not length:
             length = self.remaining
         self.remaining -= length
@@ -386,7 +387,7 @@ class MlFileReader:
     def tempRead(self, length=None):
         prev = self.file.tell()
         if self.typ == 0xff or self.remaining == 0:
-            return ''
+            return b''
         if not length:
             length = self.remaining
         data = self.file.read(length)
@@ -418,7 +419,7 @@ class DwHttpStreamingFile:
         req = Request(self.url)
         req.add_header("Range", "bytes=%d-%d" % (start, end))
 
-        content = ''
+        content = b''
         uh = urlopen(req)
         if uh.code >= 200 and uh.code < 300:
             content = uh.read()

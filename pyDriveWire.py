@@ -1,4 +1,4 @@
-# !/usr/local/bin/python
+#!/usr/bin/env python3
 import serial
 from dwserial import DWSerial
 from dwsocket import DWSocketServer, DWSocket, DWSimpleSocket
@@ -24,7 +24,7 @@ import multiprocessing
 
 from dwconstants import *
 
-VERSION = 'v0.6'
+VERSION = 'v0.7'
 
 defaultConfigValues = {
     'config': '~/.pydrivewirerc',
@@ -35,7 +35,6 @@ defaultConfigValues = {
     'dloadSpeed': '300',
     'dloadTranslate': True,
 }
-
 
 
 def ParseArgs():
@@ -211,7 +210,7 @@ def ParseArgs():
     err = _processMutuallyExclusiveArgs(args)
     if not err:
         args = ReadConfig(args)
-        # print args
+        # print(args)
         # err = None
         err = _processMutuallyExclusiveArgs(args)
     if err:
@@ -245,14 +244,14 @@ def ParseArgs():
     # Frozen overrides
     if getattr(sys, 'frozen', False):
         args.experimental = ['printer', 'ssh', 'playsound']
-    # print args
+    # print(args)
     return args
 
 
 def _processMutuallyExclusiveArgs(args):
     err = None
     accept, reject = _processMutuallyExclusiveOptions(args)
-    # print "pmea", accept, reject
+    # print("pmea", accept, reject)
     if any(_getOpts(args, reject)):
         allOpts = set(accept).union(set(reject))
         err = "Mutually exclusive options.  Can't use %s at the same time" % (
@@ -262,13 +261,13 @@ def _processMutuallyExclusiveArgs(args):
 
 def _getOptNames(args, opts):
     r = [o for o in list(opts) if eval('args.%s' % o)]
-    # print "getOpts", opts, r
+    # print("getOpts", opts, r)
     return ', '.join(r)
 
 
 def _getOpts(args, opts):
     r = [eval('args.%s' % o) for o in list(opts)]
-    # print "getOpts", opts, r
+    # print("getOpts", opts, r)
     return r
 
 
@@ -313,8 +312,13 @@ def ReadConfig(args):
     i = 0
     instance = 0
     iargs = args
-    debug = args.debug
+#    debug = args.debug
+    debug = args.debug if args.debug is not None else 0
 
+    # Also set args.debug if it's None
+    if args.debug is None:
+        args.debug = 0
+        
     accept, reject = _processMutuallyExclusiveOptions(args)
 
     cfgFile = os.path.expanduser(args.config)
@@ -377,7 +381,7 @@ def ReadConfig(args):
                         debug = val
 
                 if instance == 0:
-                    # print key, accept, reject
+                    # print(key, accept, reject)
                     if key in reject:
                         print(
                             '%d: rejecting line from config file (R): %s' %
@@ -409,14 +413,14 @@ def ReadConfig(args):
                 else:
                     exec('iargs.%s = val' % key)
 
-                # print "%d:option:%s" % (instance,line)
+                # print("%d:option:%s" % (instance,line))
             else:
                 if args.debug >= 1 and line.startswith('dw server debug'):
                     continue
                 if args.debug == 2 and line.startswith('dw server conn debug'):
                     continue
                 iargs.cmds += [line]
-                # print "%d:cmd:%s" % (instance,line)
+                # print("%d:cmd:%s" % (instance,line))
     args.instances = instances
     # args.cmds = cmds
     return args
@@ -456,7 +460,7 @@ def CreateServer(args, instance, instances, lock):
         cmds += ['dload enable']
     cmds += args.cmds
     for cmd in cmds:
-        print parser.parse(cmd)
+        print(parser.parse(cmd))
 
     if isinstance(conn, DWSocket) or isinstance(conn, DWSimpleSocket):
         conn.closedCb = lambda x: dws.cmdInit(OP_INIT)
@@ -465,7 +469,7 @@ def CreateServer(args, instance, instances, lock):
 
 def StartServer(args, dws):
     def cleanup():
-        # print "main: Closing serial port."
+        # print("main: Closing serial port.")
         for server in dws.instances:
             server.closeAll()
             server.conn.cleanup()
@@ -482,15 +486,15 @@ def StartServer(args, dws):
             mode = 'rb+'
             if i + 1 < len(args.files):
                 opt = args.files[i + 1].lower()
-                if opt.startswith('opt=')and len(opt) > 4:
-                    print "opt=%s" % opt
+                if opt.startswith('opt=') and len(opt) > 4:
+                    print("opt=%s" % opt)
                     for o in opt[4:].split(','):
-                        print "opt=%s" % o
+                        print("opt=%s" % o)
                         if o == 'stream':
                             stream = True
                         elif o == 'ro':
                             mode = 'r'
-            print "stream=%s mode=%s" % (stream, mode)
+            print("stream=%s mode=%s" % (stream, mode))
             dws.open(drive, f, mode=mode, stream=stream)
             drive += 1
         if dws.instance == 0:
@@ -552,8 +556,8 @@ class pyDriveWireDaemon(Daemon):
 
 
 if __name__ == '__main__':
-    # 	logging.basicConfig(stream=sys.stdout, level=logging.INFO,
-    # 		format='%(asctime)s %(levelname)s %(module)s:%(lineno)s.%(funcName)s %(message)s'
+    # logging.basicConfig(stream=sys.stdout, level=logging.INFO,
+    #     format='%(asctime)s %(levelname)s %(module)s:%(lineno)s.%(funcName)s %(message)s')
     multiprocessing.freeze_support()
 
     args = ParseArgs()
@@ -578,7 +582,7 @@ if __name__ == '__main__':
         pidMsg = '\b'
         if pid:
             pidMsg = 'pid:%d' % pid
-        print "pyDriveWire Server %s status:%s" % (pidMsg, status)
+        print("pyDriveWire Server %s status:%s" % (pidMsg, status))
     elif args.daemonStop:
         msg = ''
         if status == 'Running':
@@ -586,18 +590,16 @@ if __name__ == '__main__':
             msg = 'Stopped'
         else:
             msg = status
-        print "pyDriveWire Server pid:%s msg:%s" % (pid, msg)
+        print("pyDriveWire Server pid:%s msg:%s" % (pid, msg))
     elif args.daemon:
         daemon.start()
         pid = daemon.getPid()
         status = daemon.getStatus()
-        print "pyDriveWire Server pid:%s status:%s" % (pid, status)
-        sys.path.stdout.flush()
+        print("pyDriveWire Server pid:%s status:%s" % (pid, status))
+        sys.stdout.flush()
         sys.exit(0)
     else:
         StartServers(args)
 
-# vim: ts=4 sw=4 sts=4 expandtab
-
-
-# vim: ts=4 sw=4 sts=4 expandtab
+# vim: ts=4 sw=4 sts=4 expandtabstartswith('opt=') and len(opt) > 4:
+ 

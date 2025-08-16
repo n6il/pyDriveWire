@@ -1,4 +1,4 @@
-# The pyDriveWire Manual v0.6
+# The pyDriveWire Manual v0.7
 
 Python Implementation of DriveWire 4 and EmCee Protocols
 

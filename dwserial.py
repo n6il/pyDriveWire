@@ -1,4 +1,4 @@
-# !/usr/local/bin/python
+#!/usr/bin/env python3
 import serial
 from dwio import DWIO
 import dwlib
@@ -37,16 +37,16 @@ class DWSerial(DWIO):
 
     def _read(self, count=None):
         if self.abort:
-            return ''
-        data = ''
-        # print "dwserial: read"
+            return b''
+        data = b''
+        # print("dwserial: read")
         if count:
             data = self.ser.read(count)
         else:
             data = self.ser.read()
 
         if self.debug and data:
-            print "serread: len=%d %s" % (len(data), dwlib.canonicalize(data))
+            print("serread: len=%d %s" % (len(data), dwlib.canonicalize(data)))
         return data
 
     def _write(self, data):
@@ -54,7 +54,7 @@ class DWSerial(DWIO):
             return -1
         # time.sleep(0.010)
         if self.debug and data:
-            print "serwrite: len=%d %s" % (len(data), dwlib.canonicalize(data))
+            print("serwrite: len=%d %s" % (len(data), dwlib.canonicalize(data)))
         return self.ser.write(data)
 
     def _in_waiting(self):
@@ -76,19 +76,22 @@ if __name__ == '__main__':
     ser.connect()
 
     def cleanup():
-        # print "main: Closing serial port."
+        # print("main: Closing serial port.")
         ser.close()
     import atexit
     atexit.register(cleanup)
 
     try:
         while True:
-            wdata = raw_input()
+            wdata = input()
+            # Convert string to bytes for serial communication
+            if isinstance(wdata, str):
+                wdata = wdata.encode('latin1')
             ser.write(wdata)
-            print "main: Wrote %d bytes" % len(wdata)
+            print("main: Wrote %d bytes" % len(wdata))
             rdata = ser.read(len(wdata))
-            print "main: Read %d bytes" % len(rdata)
-            print rdata
+            print("main: Read %d bytes" % len(rdata))
+            print(rdata)
     finally:
         cleanup()
 

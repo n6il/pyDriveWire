@@ -1,3 +1,12 @@
+#!/usr/bin/env python3
+"""
+dwprinter.py - Virtual Printer Support for PyDriveWire
+
+Advanced printer spooling and formatting functionality for CoCo
+printing operations. Supports PDF generation, print job management,
+and CoCo printer emulation through the DriveWire interface.
+"""
+
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Preformatted
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.styles import ParagraphStyle
@@ -45,7 +54,7 @@ class DWPrinter:
     def write(self, data, dropCr=True):
         if not self.source_file:
             try:
-                if self.printFormat is 'pdf':
+                if self.printFormat == 'pdf':
                     self.source_file_name = tempfile.mktemp(".txt")
                 elif self.printFile:
                     self.source_file_name = self.printFile
@@ -135,7 +144,8 @@ class DWPrinter:
         styles.add(pre)
 
         doc = SimpleDocTemplate(pdf_file_name)
-        story = [Preformatted(open(self.source_file_name).read(), pre)]
+        with open(self.source_file_name) as f:
+            story = [Preformatted(f.read(), pre)]
         doc.build(story)
         # win32api.ShellExecute (0, "print", pdf_file_name, None, ".", 0)
         return pdf_file_name

@@ -6,10 +6,11 @@ from dwtelnet import DWTelnet
 import os
 import sys
 import re
-import urlparse
+from urllib import parse as urlparse
 import tempfile
 from dwserial import DWSerial
 
+ANSI_ESC = '\x1b'
 
 class ParseNode:
     def __init__(self, name, nodes=None):
@@ -33,27 +34,26 @@ class ParseNode:
         if r:
             return r
         # search partial
-        allNodes = self.nodes.keys()
+        allNodes = list(self.nodes.keys())
         for i in range(len(key) + 1):
             s = key[:i]
             nodes = [n for n in allNodes if n.startswith(s)]
-            # print i,"(%s"%s,nodes
+            # print(i,"(%s"%s,nodes)
             if len(nodes) == 1:
                 key = nodes[0]
                 return self.nodes.get(key, None)
         return None
 
     def repr(self):
-        return str(nodes)
+        return str(self.nodes)
 
     def help(self):
         p = []
         if self.name:
             p.append(self.name)
         p.append("commands:")
-        p.extend(self.nodes.keys())
+        p.extend(list(self.nodes.keys()))
         return "%s" % (' '.join(p))
-
 
 class ATParseNode(ParseNode):
     def __init__(self, name, nodes=None):
@@ -74,7 +74,6 @@ class ATParseNode(ParseNode):
         p.extend(["AT%s" % k for k in self.nodes])
         return "%s" % (' '.join(p))
 
-
 class ParseAction:
     def __init__(self, fn):
         self.fn = fn
@@ -83,8 +82,7 @@ class ParseAction:
         return self.fn(*args)
 
     def repr(self):
-        return fn
-
+        return self.fn
 
 class DWParser:
     def setupParser(self):
@@ -162,40 +160,43 @@ class DWParser:
             ParseAction(
                 lambda x: {
                     'msg': 'OK',
-                    'self.cmdClass': 'AT'}))
+                    'cmdClass': 'AT'}))
         atParser.add(
             "Z",
             ParseAction(
                 lambda x: {
                     'msg': 'OK',
-                    'self.cmdClass': 'AT'}))
+                    'cmdClass': 'AT'}))
         atParser.add("D", ParseAction(self.doDial))
         atParser.add(
             "I",
             ParseAction(
                 lambda x: {
                     'msg': 'pyDriveWire %s\r\nOK' % self.server.version,
-                    'self.cmdClass': 'AT'}))
+                    'cmdClass': 'AT'}))
         atParser.add(
             "O",
             ParseAction(
                 lambda x: {
                     'msg': 'OK',
-                    'self.cmdClass': 'AT'}))
+                    'cmdClass': 'AT'}))
         atParser.add(
             "H",
             ParseAction(
                 lambda x: {
                     'msg': 'OK',
-                    'self.cmdClass': 'AT'}))
+                    'cmdClass': 'AT'}))
         atParser.add(
             "E",
             ParseAction(
                 lambda x: {
                     'msg': 'OK',
-                    'self.cmdClass': 'AT',
-                    'self.echo': True}))
+                    'cmdClass': 'AT',
+                    'echo': True}))
 
+        # Continue with remaining parsers...
+# Continuing setupParser method...
+        
         uiSFileParser = ParseNode("file")
         uiSFileParser.add("defaultdir", ParseAction(self.doUSFdefaultdir))
         uiSFileParser.add("dir", ParseAction(self.doUSFdir))
@@ -449,7 +450,7 @@ class DWParser:
            nopts = 2
         dp = data.split(' ')
         if not server and (len(dp) < 1 or len(dp) > 2):
-            raise exception('Usage: '+usageStr)
+            raise Exception('Usage: '+usageStr)
         if server:
            n = self.server.dosplus
         else:
@@ -606,9 +607,9 @@ class DWParser:
         if not self.conn:
             return (1,1)
         print('doAnsiCpr')
-        okChars = '\e0123456789;R['
+        okChars = ANSI_ESC + '0123456789;R['
         print('send CPR')
-        self.conn.write('\e[6n')
+        self.conn.write(ANSI_ESC + '[6n')
         s = ''
         ok = True
         while ok:
@@ -634,9 +635,9 @@ class DWParser:
         if not self.conn:
             return(16,32)
         (oldRow, oldCol) = self._doAnsiCPR()
-        self.conn.write('\e[133;133H')
+        self.conn.write(ANSI_ESC + '[133;133H')
         (maxRow, maxCol) = self._doAnsiCPR()
-        self.conn.write('\e%d;%dH' % (oldRow, oldCol))
+        self.conn.write(ANSI_ESC + '[%d;%dH' % (oldRow, oldCol))
         return (maxRow, maxCol)
 
     # XXX: Not working
@@ -722,12 +723,12 @@ class DWParser:
         out += ["debug=%s" % (self.server.debug)]
         return '\r\n'.join(out)
 
-    # def doDir(self, data, nxti):
+# def doDir(self, data, nxti):
     def doDir(self, data, msg=None):
         out = ['']
         if msg is not None:
            out += msg
-        # print "doDir data=(%s)" % data
+        # print("doDir data=(%s)" % data)
         if not data:
             data = os.getcwd()
         out.extend(os.listdir(os.path.expanduser(data)))
@@ -740,7 +741,7 @@ class DWParser:
            out += msg
         # cmd = ['cat']
         # path = data.split(' ')[0]
-        path = path.lsplit().rsplit()
+        path = path.lstrip().rstrip()
         if not path:
             raise Exception("Usage: dw server list <path>")
         # cmd.append(path)
@@ -815,8 +816,8 @@ class DWParser:
             if len(r) == 1:
                 r.append('23')
             (host, port) = r
-            print "host (%s)" % host
-            print "port (%s)" % port
+            print("host (%s)" % host)
+            print("port (%s)" % port)
             try:
                 int(port)
             except BaseException:
@@ -849,17 +850,17 @@ class DWParser:
                 res = {
                     'msg': '\r\nCONNECTED',
                     'obj': sock,
-                    'self.cmdClass': 'AT',
-                    'self.online': True}
+                    'cmdClass': 'AT',
+                    'online': True}
             else:
                 res = {
                     'msg': None,
                     'obj': sock,
-                    'self.cmdClass': 'TCP'}
+                    'cmdClass': 'TCP'}
             sock.connect()
         except Exception as ex:
             if telnet or interactive:
-                res = {'msg': '\r\nFAIL %s' % str(ex), 'self.cmdClass': 'AT'}
+                res = {'msg': '\r\nFAIL %s' % str(ex), 'cmdClass': 'AT'}
             else:
                 res = "FAIL %s" % str(ex)
         return res
@@ -875,17 +876,17 @@ class DWParser:
         if not conn:
             raise Exception("Invalid connection: %s" % data)
         res = "OK killing connection %s\r\n" % data
-        print res
+        print(res)
         conn.binding = None
         conn.close()
-        del self.server.connections[r]
+        del self.server.connections[data]
         return res
 
     def doJoin(self, data):
         # r = data.split(':')
 
         conn = self.server.connections.get(data, None)
-        print "Binding %s to %s" % (conn, data)
+        print("Binding %s to %s" % (conn, data))
         if not conn:
             raise Exception("Invalid connection: %s" % data)
         conn.binding = data
@@ -911,7 +912,7 @@ class DWParser:
     def doUSFdir(self, data):
         r = []
         if os.path.isdir(data):
-            dd = [os.path.join(data, d) for d in listdir(data)]
+            dd = [os.path.join(data, d) for d in os.listdir(data)]
         else:
             dd = [data]
         for path in dd:
@@ -945,10 +946,11 @@ class DWParser:
         return "\n".join(r)
 
     def doUSFxdir(self, data):
-        import stuct
+        import struct
+        import time
         r = []
         if os.path.isdir(data):
-            dd = [os.path.join(data, d) for d in listdir(data)]
+            dd = [os.path.join(data, d) for d in os.listdir(data)]
         else:
             dd = [data]
         for path in dd:
@@ -963,12 +965,12 @@ class DWParser:
                 mt[3],  # tm_hour
                 mt[4],  # tm_min
                 os.path.isdir(path),
-                os.access(path, W_OK),
+                os.access(path, os.W_OK),
                 len(data)
             )
-            e += data
+            e += data.encode('utf-8')
             r += [e]
-        return '\n'.join(r)
+        return b'\n'.join(r).decode('utf-8')
 
     def doSetDir(self, data, proto):
         data = os.path.expanduser(data.lstrip().rstrip())
@@ -1022,7 +1024,7 @@ class DWParser:
         protoCmd = proto if proto != 'dw' else 'dw server'
         idx = data.find(' ')
         if idx == -1 or len(data) == 0:
-            return "%s alias add <name> <path>" % protoCmd
+            return "%s alias add <n> <path>" % protoCmd
         alias = data[:idx].upper()
         path = data[idx + 1:]
         self.server.aliases[proto][alias] = path
@@ -1032,42 +1034,13 @@ class DWParser:
              ]
         return '\n'.join(r)
 
-    # XXX ???
-    #def doAliasRemove(self, data, proto):
-    #    data = data.lstrip().rstrip()
-    def doDwSetDir(self, data):
-        return self.doSetDir(data, 'dw')
 
-    def doDwGetDir(self, data):
-        return self.doGetDir(data, 'dw')
-
-    def doAliasShow(self, data, proto):
-        r = [proto+' Aliases',
-             '==============']
-        for k, v in self.server.aliases[proto].items():
-            r.append("Alias: %s Path: %s" % (k, v))
-        return '\n'.join(r)
-
-    def doAliasAdd(self, data, proto):
-        data = data.lstrip().rstrip()
-        protoCmd = proto if proto != 'dw' else 'dw server'
-        idx = data.find(' ')
-        if idx == -1 or len(data) == 0:
-            return "%s alias add <name> <path>" % protoCmd
-        alias = data[:idx].upper()
-        path = data[idx + 1:]
-        self.server.aliases[proto][alias] = path
-        r = ['Add %s Alias' % proto,
-             '==============',
-             'Alias: %s Path: %s' % (alias, path)
-             ]
-        return '\n'.join(r)
-
+    # This is the actual implementation:
     def doAliasRemove(self, data, proto):
         data = data.lstrip().rstrip()
         protoCmd = proto if proto != 'dw' else 'dw server'
         if len(data) == 0:
-            return "%s alias remove <name>" % protoCmd
+            return "%s alias remove <n>" % protoCmd
         alias = data.upper()
         path = self.server.aliases[proto].get(alias, None)
         if not path:
@@ -1115,6 +1088,7 @@ class DWParser:
             if data.lower() in ['0', 'off', 'false', 'no', 'default']:
                 self.server.vprinter.printDir = None
             if data.lower() in ['default']:
+                import platform
                 self.server.vprinter.printDir = '/tmp' if platform.system() == 'Darwin' else tempfile.gettempdir()
             elif os.path.exists(data):
                 self.server.vprinter.printDir = data
@@ -1126,7 +1100,7 @@ class DWParser:
                 self.server.vprinter.printPrefix = 'cocoprints'
             else:
                 self.server.vprinter.printPrefix = data
-        return "printCmd=%s" % (self.server.vprinter.printPrefix)
+        return "printCmd=%s" % (self.server.vprinter.printPrefix)  # Note: Original has 'printCmd' here, might be a bug
 
     def doPrintCmd(self, data):
         if self.server.vprinter:
@@ -1207,7 +1181,6 @@ class DWParser:
         #for k in server.aliases['namedobj']:
         #    out += ["namedobj alias add %s %s" % (k, server.emCeeAliases[k])]
         return out
-        return out
 
     def genConfig(self):
         out = []
@@ -1234,7 +1207,7 @@ class DWParser:
             nl = []
             # nodes += [pt.name]
             for name, node in pt.nodes.items():
-                # print pt.name, name
+                # print(pt.name, name)
                 if isinstance(node, ParseNode):
                     nl += walkPt(node, nodes + [name])
                 else:
@@ -1242,7 +1215,7 @@ class DWParser:
                     if nodes and nodes[0] == 'AT':
                         joiner = ''
                     nl.append(joiner.join(nodes + [name]))
-                # print nl
+                # print(nl)
             return nl
         return '\r\n'.join(walkPt(self.parseTree))
 
@@ -1383,15 +1356,15 @@ class DWParser:
             if t2:
                 tokens.append(t2)
             else:
-                return {'res': "OK", 'self.cmdClass': 'AT'}
+                return {'res': "OK", 'cmdClass': 'AT'}
         else:
             tokens = data.split(' ')
         p = self.parseTree
         i = 0
         for t in tokens:
-            # print t
+            # print(t)
             v = p.lookup(t)
-            # print v
+            # print(v)
             if v:
                 i += len(t) + 1
             if isinstance(v, ParseNode):
@@ -1401,7 +1374,7 @@ class DWParser:
                     callData = data[3:].lstrip()
                 else:
                     callData = data[i:]
-                # print callData
+                # print(callData)
                 res = ''
                 try:
                     res = v.call(callData)
@@ -1439,26 +1412,26 @@ class DWRepl:
                 if len(self.server.instances) > 1:
                     server = self.parser.server
                     iprompt = '(%d)' % server.instance
-                print "pyDriveWire%s> " % iprompt,
-                wdata = raw_input()
+                print("pyDriveWire%s> " % iprompt, end='')
+                wdata = input()
             except EOFError:
-                print
-                print "Bye!"
+                print()
+                print("Bye!")
                 break
 
             # basic stuff
             if wdata.find(chr(4)) == 0 or wdata.lower() in ["exit", "quit"]:
                 # XXX Do some cleanup... how?
-                print "Bye!"
+                print("Bye!")
                 break
 
             try:
                 wdata = re.subn('.\b', '', wdata)[0]
                 wdata = re.subn('.\x7f', '', wdata)[0]
                 r = self.parser.parse(wdata, True)
-                print r
+                print(r)
             except Exception as ex:
-                print "ERROR:: %s" % str(ex)
+                print("ERROR:: %s" % str(ex))
                 traceback.print_exc()
 
         self.server.conn.cleanup()
@@ -1488,8 +1461,8 @@ class DWRemoteRepl:
                 s = re.subn('.\b', '', s)[0]
                 s = re.subn('.\x7f', '', s)[0]
                 if s in ['quit', 'QUIT', 'exit', 'EXIT']:
-                    sock.conn.close()
-                    sock.conn = None
+                    self.sock.conn.close()
+                    self.sock.conn = None
                     break
                 r = self.cmd.parse(s)
                 self.sock.write(r + '\n')

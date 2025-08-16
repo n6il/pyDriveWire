@@ -1,5 +1,5 @@
 import threading
-import Queue
+import queue
 from threading import Lock
 import copy
 from dwcommand import DWParser
@@ -37,7 +37,7 @@ for k, v in _dwvStatesDict.items():
 
 class DWVModem(DWIO):
     def __init__(self, server, channel, conn=None, debug=False):
-        print "DWVModem __init__"
+        print("DWVModem __init__")
         DWIO.__init__(self, threaded=False)
         self.server = server
         self.channel = channel
@@ -50,7 +50,7 @@ class DWVModem(DWIO):
         self.wbuf = ''
         self.parser = DWParser(server)
         self.connected = True
-        self.cq = Queue.Queue()
+        self.cq = queue.Queue()
         self.cmdThread = threading.Thread(target=self._cmdWorker)
         self.cmdThread.daemon = True
         # self.cmdThread.start()
@@ -63,12 +63,12 @@ class DWVModem(DWIO):
         self.closingTime = None
 
     def _acceptCb(self, conn):
-        print "%s: accept callback called" % self
+        print("%s: accept callback called" % self)
         n = self.server.registerConn(conn)
         r = "%s %s %s" % (n, conn.port, conn.addr[0])
         reply = r + "\r"  # + r + "\r\n"
         if self.debug:
-            print "reply: (%s)" % reply
+            print("reply: (%s)" % reply)
         self.rq.put(reply)
         self.rb.add(len(reply))
 
@@ -77,7 +77,7 @@ class DWVModem(DWIO):
             return
         cmd = self.cq.get(True)
         if self.debug:
-            print "parser", cmd
+            print("parser", cmd)
         res = self.parser.parse(cmd)
         exact = False
         reply = "0 OK command successful\r\n"
@@ -120,7 +120,7 @@ class DWVModem(DWIO):
             self.connected = True
             newState = DWV_S_LISTENING
             if self.debug:
-                print "%s: register callback: %s" % (res, self._acceptCb)
+                print("%s: register callback: %s" % (res, self._acceptCb))
             res.registerCb(self._acceptCb)
             res.at.start()
             self.listeners.append(res)
@@ -157,7 +157,7 @@ class DWVModem(DWIO):
         if not exact:
             reply = '\r\n' + reply + '\r\n'
         if self.debug:
-            print "reply: (%s)" % reply
+            print("reply: (%s)" % reply)
         self.rb.add(len(reply))
         self.rq.put(reply)
         if newState is None:
@@ -169,7 +169,7 @@ class DWVModem(DWIO):
 
     def write(self, data, ifs=('\r', '\n')):
         if self.debug:
-            print "ch: write:", canonicalize(data)
+            print("ch: write:", canonicalize(data))
         wdata = ''
         w = 0
         pos = -1
@@ -197,8 +197,8 @@ class DWVModem(DWIO):
 
                 if self.eatTwo:
                     if self.debug:
-                        print "ch: eating: %s" % canonicalize(
-                            self.wbuf[:pos + 1])
+                        print("ch: eating: %s" % canonicalize(
+                            self.wbuf[:pos + 1]))
                 if self.echo:
                     self.rq.put("\r")
                     self.rb.add(1)
@@ -206,7 +206,7 @@ class DWVModem(DWIO):
                 self.wbuf = self.wbuf[pos + 1:]
                 w += pos + 1
                 if self.debug:
-                    print "wdata=(%s) wbuf=(%s)" % (wdata, self.wbuf)
+                    print("wdata=(%s) wbuf=(%s)" % (wdata, self.wbuf))
                 if self.eatTwo:
                     self.eatTwo = False
 
@@ -222,12 +222,12 @@ class DWVModem(DWIO):
             d += DWIO.read(self, rlen)
             if d:
                 if self.debug:
-                    print "ch:i: read:", canonicalize(d)
+                    print("ch:i: read:", canonicalize(d))
         elif self.conn:
             d += self.conn.read(rlen)
             if d:
                 if self.debug:
-                    print "ch:c: read:", canonicalize(d)
+                    print("ch:c: read:", canonicalize(d))
         # print "d: (%s)" % d
         return d
 

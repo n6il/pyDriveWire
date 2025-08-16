@@ -3,13 +3,13 @@ import wave
 import re
 from struct import *
 import tempfile
-import urllib
+import urllib.request
 
-LEADER = '\x55' * 128
+LEADER = b'\x55' * 128
 
 
 class CocoCasNameFile:
-    filename = 'FILE    '
+    filename = b'FILE    '
     filetype = 0
     ascflg = 0xff
     gap = 1
@@ -34,6 +34,8 @@ class CocoCasNameFile:
              self.start,
              self.load) = unpack(">8sBBBHH", data)
         else:
+            if isinstance(filename, str):
+                filename = filename.encode('ascii')
             self.filename = filename.ljust(8)
             self.filetype = filetype
             self.ascflg = ascflg
@@ -68,31 +70,36 @@ class CocoCasNameFile:
             255: 'A',
             0: 'B',
         }
+        filename = self.filename.decode('ascii', errors='ignore') if isinstance(self.filename, bytes) else self.filename
         return "NameFile block: % 8s %s %s" % (
-            self.filename, filetypes[self.filetype], asciiflg[self.ascflg])
+            filename, filetypes[self.filetype], asciiflg[self.ascflg])
 
 
 class CocoCasBlock:
     blktyp = 0xff
     blklen = 0
     blkcsum = 0xff
-    blkdata = ''
+    blkdata = b''
 
     def __init__(self, data, blktyp=None):
         # if not data:
-        #    data = "\xff\x00\xff\x55"
+        #    data = b"\xff\x00\xff\x55"
+        if isinstance(data, str):
+            data = data.encode('latin-1')
         if blktyp is None:
             if len(data) < 4:
                 raise Exception("Short block min=4 len=%d'" % (len(data)))
-            if data[-1] != '\x55':
+            if data[-1:] != b'\x55':
                 raise Exception(
-                    "Bad block trailer, should be 'U' got '%c'" % data[-1])
+                    "Bad block trailer, should be 'U' got %r" % data[-1:])
             (self.blktyp, self.blklen) = unpack("BB", data[0:2])
             if self.blktyp not in [0, 1, 255]:
                 raise Exception("Bad block type %d" % self.blktyp)
             self.blkdata = data[2:2 + self.blklen]
-            (self.blkcsum) = unpack("B", data[2 + self.blklen])[0]
+            (self.blkcsum) = unpack("B", data[2 + self.blklen:2 + self.blklen + 1])[0]
         else:
+            if isinstance(data, str):
+                data = data.encode('latin-1')
             self.blkdata = data
             self.blktyp = blktyp
             self.blklen = len(data)
@@ -112,7 +119,7 @@ class CocoCasBlock:
             self.blklen,
             self.blkdata,
             self.blkcsum,
-            'U')
+            b'U')
 
     def __repr__(self):
         return "blktyp=%d blklen=%d blkcsum=%d" % (
@@ -133,9 +140,11 @@ class CocoCas:
             self.segments = []
         else:
             segments = self.file.read()
-            segments = re.sub('^\x00{5,}', '', segments)
-            segments = re.sub('\x00{5,}$', '', segments)
-            self.segments = segments.split('U<')
+            if isinstance(segments, str):
+                segments = segments.encode('latin-1')
+            segments = re.sub(b'^\x00{5,}', b'', segments)
+            segments = re.sub(b'\x00{5,}$', b'', segments)
+            self.segments = segments.split(b'U<')
         self.fn = fn
         self.mode = mode
         self.segment = 0
@@ -147,9 +156,9 @@ class CocoCas:
         self.raw = True
         self.eolxlate = False
         self.proto = 'mc'
-	self.stream = False
-	self.hdbdos = False
-	self.dosplus = False
+        self.stream = False
+        self.hdbdos = False
+        self.dosplus = False
 
 
     def checkWeb(self, fileName):
@@ -159,7 +168,7 @@ class CocoCas:
             fileName = tempfile.mktemp(prefix=self.name.split(
                 '/')[-1].split('.')[0], suffix='.' + self.name.split('.')[-1])
             print("Downloading: %s" % (self.name))
-            urllib.urlretrieve(self.name, fileName)
+            urllib.request.urlretrieve(self.name, fileName)
             self.remote = True
         except ValueError:
             pass
@@ -178,6 +187,8 @@ class CocoCas:
             if self.blk.blktyp == 0:
                 nameFile = CocoCasNameFile(self.blk.blkdata)
                 if fileName:
+                    if isinstance(fileName, str):
+                        fileName = fileName.encode('ascii')
                     found = (nameFile.filename == fileName)
                 else:
                     found = True
@@ -187,15 +198,15 @@ class CocoCas:
 
     def readBlk(self, temp=False):
         if self.segment == len(self.segments):
-            segment = "\xff\x00\xff\x55"
+            segment = b"\xff\x00\xff\x55"
         # skip the first segment: it's a leader or empty(no leader)
         else:
-            if re.match('^\x00*U*$', self.segments[self.segment]):
+            if re.match(b'^\x00*U*$', self.segments[self.segment]):
                 self.segment += 1
             segment = self.segments[self.segment]
         # fix splitting that may end with a leader
-        segment = re.sub('U\x00*U*$', 'U', segment)
-        # segment = re.sub('UU*$', 'U', segment)
+        segment = re.sub(b'U\x00*U*$', b'U', segment)
+        # segment = re.sub(b'UU*$', b'U', segment)
         self.blk = CocoCasBlock(segment)
         if not temp and self.blk.blktyp != 0xff:
             self.segment += 1
@@ -213,7 +224,7 @@ class CocoCas:
                 self.file.writeBlank(0.5)
                 self.file.write(LEADER)
                 self.file.writeBlank(0.003)
-                self.file.write('U<')
+                self.file.write(b'U<')
                 self.file.write(blk.getBlock())
                 if blk.blktyp == 0:
                     self.file.writeBlank(0.5)
@@ -230,7 +241,7 @@ class CocoCas:
         else:
             if self.wav:
                 self.file.writeBlank(0.003)
-                self.file.write('U<')
+                self.file.write(b'U<')
                 self.file.write(blk.getBlock())
             else:
                 self.segments.append(blk.getBlock())
@@ -240,7 +251,7 @@ class CocoCas:
         if self.mode.startswith('w'):
             if not self.wav:
                 self.file.seek(0)
-                self.file.write('U<'.join(self.segments))
+                self.file.write(b'U<'.join(self.segments))
                 self.file.flush()
             self.file.close()
 
@@ -261,20 +272,20 @@ class CocoCas:
         return stat
 
     def _getblock(self, data):
-        (blktyp, blklen) = unpack("BB", segment[0:2])
-        (checksum) = unpack("BB", segment[2 + blklen])
+        (blktyp, blklen) = unpack("BB", data[0:2])
+        (checksum) = unpack("B", data[2 + blklen:2 + blklen + 1])[0]
 
     def __iter__(self):
         self.segment = 0
         # skip the first segment: it's a leader or empty(no leader)
-        if re.match('^U*$', self.segments[self.segment]):
+        if re.match(b'^U*$', self.segments[self.segment]):
             self.segment += 1
         # first segment has to be the name file
         segment = self.segments[self.segment]
         return self
 
     def __next__(self):
-        if self.segment == len(segments):
+        if self.segment == len(self.segments):
             raise StopIteration
 
         self.segment += 1
@@ -326,14 +337,14 @@ class CocoWavFile:
                 self.compname,
             ))
 
-        self.nReadFrames = self.framerate / 1200
+        self.nReadFrames = self.framerate // 1200
         self.nbits = self.sampwidth * 8
         self.zeroval = 2**(self.nbits - 1) if self.sampwidth == 1 else 0
-        self.zero = chr(self.zeroval) if self.sampwidth == 1 else "\x00\x00"
+        self.zero = bytes([self.zeroval]) if self.sampwidth == 1 else b"\x00\x00"
         self.state = STATE_START
         self.prevState = None
         self.prev = self.zero
-        # print self.zeroval
+        # print(self.zeroval)
 
         if mode.startswith('w'):
             self.genWavTable()
@@ -347,7 +358,7 @@ class CocoWavFile:
         self.midhc = (self.lohhc + self.hilhc) / 2
         # mid = round((self.lohhc+self.hilhc)/2)
         self.mid = (self.loh + self.hil) / 2
-        # print "lol=%s loh=%s hil=%s hih=%s lohhc=%s hilhc=%s" % (self.lol, self.loh, self.hil, self.hih, self.lohhc, self.hilhc)
+        # print("lol=%s loh=%s hil=%s hih=%s lohhc=%s hilhc=%s" % (self.lol, self.loh, self.hil, self.hih, self.lohhc, self.hilhc))
         self.diff = 2 if self.sampwidth == 1 else 256
         self.zl = self.zeroval - self.diff
         self.zh = self.zeroval + self.diff
@@ -358,44 +369,44 @@ class CocoWavFile:
 #        for f in [1200, 2400]:
         # for f in [1094.68085106384, 2004.54545454545]:
         for f in [1125, 2250]:
-            wavData = ''
+            wavData = b''
             count = int(round(self.framerate / f))
             step = 2 * math.pi / count
             theta = 0.0  # step
             for i in range(count):
-                val = (self.zeroval + (mult * math.sin(theta)))
-                # print theta, val
+                val = int(self.zeroval + (mult * math.sin(theta)))
+                # print(theta, val)
                 wavData += pack(packDict[self.sampwidth], val)
                 theta += step
             self.wavTable.append(wavData)
 
     def atoi(self, n):
-        # print "n=%s" % n
+        # print("n=%s" % n)
         r = unpack(packDict[self.sampwidth], n)[0]
-        # print r
+        # print(r)
         return r
 
     def isZero(self, z):
         v = self.atoi(z)
-        # print zl,v,zh
+        # print(zl,v,zh)
         return self.atoi(z) > self.zl and self.atoi(z) < self.zh
 
     def getByte(self):
         if self.w.tell() == self.nframes:
-            return ''
+            return b''
         byte = 0
         # for i in range(7,-1,-1):
         for i in range(8):
             bit = self.getBit()
             if bit is None:
-                return ''
+                return b''
             byte |= (2**i) * bit
             # byte = byte << 1
-        # print byte
-        return chr(byte)
+        # print(byte)
+        return bytes([byte])
 
     def stateChange(self, s, ch):
-        # print "State Change: %s -> %s: %d" % (states[self.state], states[s], self.atoi(ch))
+        # print("State Change: %s -> %s: %d" % (states[self.state], states[s], self.atoi(ch)))
         self.prevState = self.state
         self.state = s
 
@@ -422,7 +433,7 @@ class CocoWavFile:
             cross1 = True
             while start is None or end is None:
                 char = self.w.readframes(1)
-                if char == '':
+                if char == b'':
                     if start:
                         # Got to the end of the file and found a cross before
                         # Slip back to the beginning of the bit check
@@ -435,10 +446,10 @@ class CocoWavFile:
                         continue
                     else:
                         return None
-                # print "char=%s p=%s" % (char, self.prev)
+                # print("char=%s p=%s" % (char, self.prev))
                 ci = self.atoi(char)
                 pi = self.atoi(self.prev)
-                # print "ci=%s pi=%s" % (ci, pi)
+                # print("ci=%s pi=%s" % (ci, pi))
                 if pi < self.zeroval - 1 and ci >= self.zeroval - 1:
                     self.stateChange(STATE_CROSS, char)
                 elif pi > self.zeroval + 1 and ci <= self.zeroval + 1:
@@ -451,13 +462,13 @@ class CocoWavFile:
                     pos = self.w.tell()
                     if not start:
                         start = pos
-                    # print "cross: start: start=%s cross1=%s end=%s" % (start ,cross1, end)
+                    # print("cross: start: start=%s cross1=%s end=%s" % (start ,cross1, end))
                     elif not end:
                         end = pos
-                # print "end: start=%s cross1=%s end=%s" % (start ,cross1, end)
+                # print("end: start=%s cross1=%s end=%s" % (start ,cross1, end))
 
             cc = end - start
-            # print self.hilhc, cc, self.lohhc
+            # print(self.hilhc, cc, self.lohhc)
             if (cc > self.lohhc) or (cc < self.hilhc):
                 # freqency is out of range
                 # skip this one and move to the next pair of zero crosses
@@ -466,7 +477,7 @@ class CocoWavFile:
             else:
                 cycles += cc
                 ncross += 1
-                # print "ncross=%s cc=%s cycles=%s" % (ncross, cc, cycles)
+                # print("ncross=%s cc=%s cycles=%s" % (ncross, cc, cycles))
 
         cycles = end - start
         if cycles <= self.midhc:
@@ -474,46 +485,51 @@ class CocoWavFile:
         if cycles > self.midhc:
             bit = 0
 
-        # print cycles, bit
+        # print(cycles, bit)
         return bit
 
     def passLeader(self, w):
-        b = 'U'
-        while b == 'U':
-            b = self, getByte(w)
-            print b
+        b = b'U'
+        while b == b'U':
+            b = self.getByte()
+            print(b)
         return b
 
     def read(self, count=None):
-        data = ''
+        data = b''
         # w = wave.open(fn)
         read = 0
-        b = '\x00'
-        while b != '':
+        b = b'\x00'
+        while b != b'':
             b = self.getByte()
             data += b
             # if b:
             #   n=ord(b)
             #   c=b if n>=32 and n<128 else '.'
-            #   print c,hex(n)
+            #   print(c,hex(n))
             read += 1
             if count and count == read:
                 break
         return data
 
     def writeByte(self, c):
-        ci = ord(c)
+        if isinstance(c, str):
+            ci = ord(c)
+        else:
+            ci = c if isinstance(c, int) else c[0]
         for i in range(8):
             bit = (ci >> i) & 1
             self.w.writeframes(self.wavTable[bit])
 
     def write(self, data):
+        if isinstance(data, str):
+            data = data.encode('latin-1')
         for c in data:
             self.writeByte(c)
 
     def writeBlank(self, s):
         nframes = int(round(self.framerate * s))
-        zeroData = nframes * chr(self.zeroval)
+        zeroData = bytes([self.zeroval]) * nframes
         self.w.writeframes(zeroData)
 
     def close(self):

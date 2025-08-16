@@ -1,23 +1,41 @@
+#!/usr/bin/env python3
+
+"""
+DriveWire Utility Functions
+"""
+
 def canonicalize(instr):
+    """
+    Create a hex dump representation of binary data
+    Args:
+        instr: input data (string or bytes)
+    Returns:
+        formatted hex dump string
+    """
+    if isinstance(instr, str):
+        data = instr.encode('latin-1')
+    else:
+        data = instr
+    
     outt = []
     npos = pos = 0
-    while pos <= len(instr):
+    while pos <= len(data):
         npos += 8
-        s = instr[pos:npos]
+        s = data[pos:npos]
         if not s:
             break
         hs = ''
         cs = ''
         for c in s:
-            n = ord(c)
+            n = c if isinstance(c, int) else ord(c)
             hs += "%02x" % n
-            cs += c if 32 < n < 127 else '.'
+            cs += chr(c) if 32 < n < 127 else '.'
         outt.append((pos, hs, cs))
         pos = npos
 
-    # print outt
+    # print(outt)
     outh = outc = ''
-    ostr = ["len: %s" % len(instr)]
+    ostr = ["len: %s" % len(data)]
     eight = sixteen = ppos = 0
     state = 0
     for pos, h, c in outt:
@@ -35,7 +53,7 @@ def canonicalize(instr):
             ostr.append("%04x: |%s| |%s|" % (ppos, outh, outc))
             outh = outc = ''
             state = 0
-        # print pos, eight, sixteen
+        # print(pos, eight, sixteen)
         # if eight and not sixteen:
         # 	outh += ' '
         # 	outc += ' '
@@ -45,10 +63,10 @@ def canonicalize(instr):
         # 	ostr.append("%04x: |%s| |%s|" % (ppos, outh, outc))
         # 	outh = outc = ''
 
-    # print pos, outc, outh
+    # print(pos, outc, outh)
     # if pos==0 or (eight and not sixteen):
     # if len(outc)<0:
-    if len(instr) == 0:
+    if len(data) == 0:
         ostr.append("%04x: |%s| |%s|" % (ppos, ' ' * 33, ' ' * 17))
     elif state == 1:
         ostr.append(
@@ -59,6 +77,13 @@ def canonicalize(instr):
 
 
 def hexscii(s):
+    """
+    Convert hex string to ASCII characters
+    Args:
+        s: hex string (e.g., "48656c6c6f")
+    Returns:
+        decoded string
+    """
     d = ''
     sl = len(s)
     p = 0
@@ -84,8 +109,8 @@ if __name__ == '__main__':
     ]
 
     for s in strs:
-        print "==="
-        print canonicalize(s)
+        print("===")
+        print(canonicalize(s))
 
 
 # vim: ts=4 sw=4 sts=4 expandtab

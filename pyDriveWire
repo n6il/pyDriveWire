@@ -17,11 +17,12 @@ if [ "X$pyenv" != "X" ]; then
 fi
 
 
-python=$(which pypy)
-if [ "X$python"  == "X" ]; then
-	echo "WARNING: pypy was not found.  It is recommended for maximum performance"
-	python=$(which python)
-fi
+#python=$(which pypy)
+#if [ "X$python"  == "X" ]; then
+#	echo "WARNING: pypy was not found.  It is recommended for maximum performance"
+#	python=$(which python)
+#fi
+python="python3"
 if [ "X$python"  == "X" ]; then
 	echo "ERROR: python was not found"
 	exit 1

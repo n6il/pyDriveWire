@@ -1,3 +1,12 @@
+#!/usr/bin/env python3
+"""
+dwssh.py - SSH Connection Support for PyDriveWire
+
+SSH client functionality for secure remote DriveWire connections.
+Enables SSH connections through Virtual Serial Terminals, allowing
+DriveWire terminal programs to make secure remote connections.
+"""
+
 import paramiko
 import threading
 from dwio import DWIO
@@ -37,35 +46,35 @@ class DWSsh(DWIO):
         # self.conn.set_option_negotiation_callback(self._negotiate_echo_on)
 
     def _read(self, count=256):
-        data = ''
+        data = b''
         if not self.isConnected():
             return data
         try:
             # data = self.conn.read_very_eager()
             #data = self.conn.read_some()
-            data = ''
+            data = b''
             # if self.conn.recv_ready():
             data = self.conn.recv(count)
-            if data == '':
+            if data == b'':
                 raise Exception("EOF")
         except Exception as ex:
-            print str(ex)
-            print "ERROR: Connection Closed"
+            print(str(ex))
+            print("ERROR: Connection Closed")
             self._close()
-        if self.debug and data != '':
-            print "tel read:", canonicalize(data)
+        if self.debug and data != b'':
+            print("tel read:", canonicalize(data))
         return data
 
     def _write(self, data):
         if not self.isConnected():
             return 0
-        if self.debug and data != '':
-            print "tel write:", canonicalize(data)
+        if self.debug and data != b'':
+            print("tel write:", canonicalize(data))
         try:
             self.conn.send(data)
         except Exception as ex:
-            print str(ex)
-            print "ERROR: Connection Closed"
+            print(str(ex))
+            print("ERROR: Connection Closed")
             self._close()
         return len(data)
 
@@ -101,7 +110,7 @@ if __name__ == '__main__':
     sock = DWSsh()
 
     def cleanup():
-        # print "main: Closing sockial port."
+        # print("main: Closing socket port.")
         sock.close()
     import atexit
     atexit.register(cleanup)
@@ -109,14 +118,17 @@ if __name__ == '__main__':
     try:
         sock.connect()
         while True:
-            print ">",
-            wdata = raw_input()
-            sock.write(wdata)
+            print(">", end=' ')
+            wdata = input()
+            sock.write(wdata.encode('utf-8'))
             # sock.write("\n> ")
-            # print "main: Wrote %d bytes" % len(wdata)
+            # print("main: Wrote %d bytes" % len(wdata))
             rdata = sock.readline()
-            # print "main: Read %d bytes" % len(rdata)
-            print rdata,
+            # print("main: Read %d bytes" % len(rdata))
+            # Decode bytes for display if needed
+            if isinstance(rdata, bytes):
+                rdata = rdata.decode('utf-8', errors='replace')
+            print(rdata, end='')
     finally:
         cleanup()
 
