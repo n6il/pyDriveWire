@@ -168,6 +168,8 @@ class DWVModem(DWIO):
         self.state = newState
 
     def write(self, data, ifs=('\r', '\n')):
+        if isinstance(data, bytes):
+            data = data.decode('utf-8', errors='replace')  # 'replace' handles bad bytes gracefully
         if self.debug:
             print("ch: write:", canonicalize(data))
         wdata = ''
