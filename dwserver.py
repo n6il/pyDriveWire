@@ -836,8 +836,11 @@ class DWServer:
             err = E_PLAYSOUND
             print("Playsound not enabled. use: -x playsound")
         data = self.conn.read(1, self.timeout)
-        length = unpack(">B", data)[0]
-        name = None
+        if len(data) != 1:
+            length = 0
+        else:
+            length = unpack(">B", data)[0]
+            name = None
         if length > 0:
             name = self.conn.read(length, self.timeout)
         else:
