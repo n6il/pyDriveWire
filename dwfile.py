@@ -104,6 +104,7 @@ class DWFile:
         if fmt:
             self.fmt = fmt
             self.img_sectors -= 1
+            self.dosplus = True
             self.os9Image = False
         if not self.fmt:
             fmt = self._jvcFmt()
