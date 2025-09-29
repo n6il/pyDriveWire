@@ -134,6 +134,8 @@ class DWIO:
                 else:
                     try:
                         d = self.rq.get(True, _t)
+                        if isinstance(d, str):
+                            d = d.encode('latin-1')
                     except Exception as e:
                         if timeout:
                             print(str(e))

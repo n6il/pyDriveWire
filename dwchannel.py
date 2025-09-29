@@ -219,7 +219,7 @@ class DWVModem(DWIO):
         return w
 
     def read(self, rlen=None):
-        d = ''
+        d = b''
         if self._outWaiting() > 0:
             d += DWIO.read(self, rlen)
             if d:
@@ -239,7 +239,7 @@ class DWVModem(DWIO):
         if self.state == DWV_S_CLOSING:
             d = self._outWaiting()
             if d < 0:
-                if self.closingTime > 0:
+                if self.closingTime is not None and self.closingTime > 0:
                     self.closingTime = - 1
                 else:
                     self.state = DWV_S_CLOSED
