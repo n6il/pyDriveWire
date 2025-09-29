@@ -62,7 +62,7 @@ class DWPrinter:
                     self.source_file_name = self._getNextSpoolFile()
                 else:
                     self.source_file_name = tempfile.mktemp(".txt")
-                self.source_file = open(self.source_file_name, "w")
+                self.source_file = open(self.source_file_name, "wb")
                 # print(
                 #    "Printing: opening print buffer: %s" %
                 #    (self.source_file_name))
