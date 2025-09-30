@@ -156,7 +156,7 @@ class DWParser:
 
         atParser = ATParseNode("AT")
         atParser.add(
-            "",
+            "_",
             ParseAction(
                 lambda x: {
                     'msg': 'OK',
@@ -1356,7 +1356,7 @@ class DWParser:
             if t2:
                 tokens.append(t2)
             else:
-                return {'res': "OK", 'cmdClass': 'AT'}
+                tokens.append('_')
         else:
             tokens = data.split(' ')
         p = self.parseTree

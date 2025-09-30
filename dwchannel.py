@@ -91,6 +91,10 @@ class DWVModem(DWIO):
                 elif k == 'msg':
                     msg = v
                 else:
+                    if k=='cmdClass':
+                        self.cmdClass = v
+                    if k=='echo':
+                        self.echo = True
                     if isinstance(v, str):
                         v = "'%s'" % v
                     e = '%s=%s' % (k, v)
@@ -239,7 +243,7 @@ class DWVModem(DWIO):
         if self.state == DWV_S_CLOSING:
             d = self._outWaiting()
             if d < 0:
-                if self.closingTime is not None and self.closingTime > 0:
+                if self.closingTime > 0:
                     self.closingTime = - 1
                 else:
                     self.state = DWV_S_CLOSED
@@ -299,6 +303,8 @@ class DWVModem(DWIO):
             print("%s: ow: d=%d %s" % (self, d, stateMsg))
         if newState:
             self.state = newState
+            if newState == DWV_S_CLOSING:
+                self.closingTime = 1
         return d
 
     def _close(self):
