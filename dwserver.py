@@ -1350,7 +1350,7 @@ class DWServer:
                     eolxlate = False
                 pwd = os.getcwd()
                 os.chdir(self.dirs['dload'])
-                self.open(0, fn, mode='r', offset=0, hdbdos=False, raw=True,
+                self.open(0, fn, mode='rb', offset=0, hdbdos=False, raw=True,
                           eolxlate=eolxlate, proto='dload', dosplus=False)
                 os.chdir(pwd)
                 self.files[0].ftype = ftype
