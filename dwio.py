@@ -104,7 +104,7 @@ class DWIO:
         _t = timeout
         if not _t:
             _t = 1
-        if self.threaded and not self.abort and self.rt and not self.rt.is_alive():
+        if self.threaded and not self.abort and self.rt and not self.rt.is_alive() and self.rb.get() == 0:
             # Start the background reader thread only
             # when someone asks to start reading from it
             self.rt.start()

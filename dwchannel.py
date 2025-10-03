@@ -173,7 +173,7 @@ class DWVModem(DWIO):
 
     def write(self, data, ifs=('\r', '\n')):
         if isinstance(data, bytes):
-            data = data.decode('utf-8', errors='replace')  # 'replace' handles bad bytes gracefully
+            data = data.decode('latin-1')
         if self.debug:
             print("ch: write:", canonicalize(data))
         wdata = ''
@@ -300,11 +300,14 @@ class DWVModem(DWIO):
             stateMsg = "state: %s" % dwvStates[self.state]
             if newState:
                 stateMsg += "==>%s" % dwvStates[newState]
-            print("%s: ow: d=%d %s" % (self, d, stateMsg))
+            print("%s: ow: d=%d closingTime=%s %s" % (self, d, self.closingTime, stateMsg))
         if newState:
             self.state = newState
             if newState == DWV_S_CLOSING:
-                self.closingTime = 1
+                if d > 0 :
+                    self.closingTime = 2
+                else:
+                    self.closingTime = 1
         return d
 
     def _close(self):
