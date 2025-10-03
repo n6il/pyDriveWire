@@ -33,11 +33,11 @@ while True:
     try:
         wdata = re.subn('.\b', '', wdata)[0]
         wdata = re.subn('.\x7f', '', wdata)[0]
-        data = wdata.encode('utf-8')
+        data = wdata.encode('latin-1')
         req = urllib.request.Request(url, data=data)
         req.add_header('Content-Type', 'application/x-www-form-urlencoded')
         with urllib.request.urlopen(req) as conn:
-            result = conn.read().decode('utf-8')
+            result = conn.read().decode('latin-1')
             print(result)
         if cmd:
             break

@@ -968,9 +968,9 @@ class DWParser:
                 os.access(path, os.W_OK),
                 len(data)
             )
-            e += data.encode('utf-8')
+            e += data.encode('latin-1')
             r += [e]
-        return b'\n'.join(r).decode('utf-8')
+        return b'\n'.join(r).decode('latin-1')
 
     def doSetDir(self, data, proto):
         data = os.path.expanduser(data.lstrip().rstrip())

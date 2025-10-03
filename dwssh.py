@@ -120,14 +120,14 @@ if __name__ == '__main__':
         while True:
             print(">", end=' ')
             wdata = input()
-            sock.write(wdata.encode('utf-8'))
+            sock.write(wdata.encode('latin-1'))
             # sock.write("\n> ")
             # print("main: Wrote %d bytes" % len(wdata))
             rdata = sock.readline()
             # print("main: Read %d bytes" % len(rdata))
             # Decode bytes for display if needed
             if isinstance(rdata, bytes):
-                rdata = rdata.decode('utf-8', errors='replace')
+                rdata = rdata.decode('latin-1')
             print(rdata, end='')
     finally:
         cleanup()

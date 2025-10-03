@@ -91,7 +91,7 @@ class DWTelnet(DWIO):
         try:
             # Ensure data is bytes
             if isinstance(data, str):
-                data = data.encode('utf-8')
+                data = data.encode('latin-1')
             
             bytes_sent = self.sock.send(data)
             return bytes_sent
@@ -193,7 +193,7 @@ if __name__ == '__main__':
                 # Check for incoming data
                 data = sock._read()
                 if data:
-                    print(data.decode('utf-8', errors='replace'), end='')
+                    print(data.decode('latin-1'), end='')
                 
                 # Simple input handling (in real usage, this would be event-driven)
                 import sys
