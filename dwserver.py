@@ -845,6 +845,8 @@ class DWServer:
             name = self.conn.read(length, self.timeout)
         else:
             err = E_READ
+        if len(name) != length:
+            err = E_READ
 
         if not err:
             if isinstance(name, bytes):
@@ -950,16 +952,16 @@ class DWServer:
     def cmdEmCeeLoadFile(self, cmd):
         error = 0
         info = self.conn.read(2, self.timeout)
-        if not info:
+        if not info or len(info) != 2:
             print(
                 "cmd=%0x cmdEmCeeLoadFile timout getting command info" %
                 (ord(cmd)))
             error = E_MC_IO  # IO ERROR
         if not error:
-            ftyp = ord(info[0])
-            fnamelen = ord(info[1])
+            ftyp = info[0]
+            fnamelen = info[1]
             fname = self.conn.read(fnamelen, self.timeout)
-            if not fname:
+            if not fname or len(fname) != fnamelen:
                 print(
                     "cmd=%0x cmdEmCeeLoadFile timout getting file name" %
                     (ord(cmd)))
