@@ -5,6 +5,7 @@ import os
 from os import stat
 from struct import *
 import tempfile
+from typing import Protocol
 import urllib.request
 import urllib.parse
 from urllib.parse import urlparse
@@ -27,7 +28,20 @@ formats = {
 }
 
 
+class BaseFile(Protocol):
+    name: str
+
+    def read(self, size: int|None = None) -> bytes: ...
+    def write(self, data: bytes) -> int: ...
+    def flush(self) -> None: ...
+    def seek(self, target: int) -> int: ...
+    def tell(self) -> int: ...
+
+
 class DWFile:
+
+    file: BaseFile
+
     def __init__(self, name, mode='r', typ=None, stream=False, offset=0, raw=False, eolxlate=False, proto='dw', dosplus=False):
         self.name = name
         self.mode = mode
@@ -78,19 +92,20 @@ class DWFile:
             print("Opening %s with file translation" % (fileName))
             fn = tempfile.mktemp(prefix=os.path.basename(fileName))
             print("Temp file: %s" % (fn))
-            self.file = open(fn, 'w+', buffering=0)
-            with open(fileName) as f:
+            self.file = open(fn, "bw+")
+            with open(fileName, "br") as f:
                 fdata = f.read()
-                (new, n) = re.subn('\x0d\x0a', '\x0d',  fdata)
+                (new, n) = re.subn(b'\x0d\x0a', b'\x0d',  fdata)
                 if n:
                     fdata = new
-                (new, n) = re.subn('\x0a', '\x0d',  fdata)
+                (new, n) = re.subn(b'\x0a', b'\x0d',  fdata)
                 if n:
                     fdata = new
             self.file.write(fdata)
+            self.file.flush()
             self.file.seek(0)
         else:
-            self.file = open(fileName, self.mode, buffering=0)
+            self.file = open(fileName, self.mode)
 
 
     def guessMaxLsn(self, data=None):
@@ -396,7 +411,7 @@ class MlFileReader:
         return data
 
 
-class DwHttpStreamingFile:
+class DwHttpStreamingFile(BaseFile):
 
     def __init__(self, url, pos=0, ssize=256):
         self.url = url
@@ -412,10 +427,10 @@ class DwHttpStreamingFile:
         # print("tell", self.name, self.pos)
         return self.pos
 
-    def read(self, count):
+    def read(self, size: int|None = None) -> bytes:
         # print("read", self.name, self.pos, count)
         start = self.pos
-        end = self.pos + count - 1
+        end = self.pos + size - 1
 
         req = Request(self.url)
         req.add_header("Range", "bytes=%d-%d" % (start, end))
