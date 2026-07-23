@@ -20,7 +20,7 @@ s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 addr = '127.0.0.1'
 port = 65504
 cs = socket.create_connection((addr, port))
-print "connection to : %s:%s" % (addr,port)
+print("connection to : %s:%s" % (addr,port))
 
 fn = sys.argv[1]
 cs.send(OP_PLAYSOUND)

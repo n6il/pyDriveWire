@@ -23,13 +23,13 @@ def openChannel(s, channel):
    data += SS_Open
    s.write(data)
    if debug:
-      print "channel %s open" % channel
+      print("channel %s open" % channel)
    channel_open = True
 
 def closeChannel(s, channel):
    # close
    if debug:
-      print "closing channel: %s" % channel
+      print("closing channel: %s" % channel)
    data = OP_SERSETSTAT
    data += chr(channel)
    data += SS_Close
@@ -45,7 +45,7 @@ def getStatus(s, channel):
    s.write(OP_SERREAD)
    r = [ord(c) for c in s.read(2)]
    if debug:
-       print "channel status: %s" % r
+       print("channel status: %s" % r)
    return r
 
 def writeChannel(s, channel, data):
@@ -56,7 +56,7 @@ def writeChannel(s, channel, data):
       dd += c
       s.write(dd)
    if debug:
-      print "write: ch=%d %s" % (channel, data)
+      print("write: ch=%d %s" % (channel, data))
 
 def readChannel(s, channel, wait=False):
    out=""
@@ -85,7 +85,7 @@ s.debug = True
 s.connect()
 channel = 2
 while True:
-   print "dwclient> ",
+   print("dwclient> ", end='')
    command = raw_input()
    if command.startswith('quit'):
       break
@@ -99,7 +99,7 @@ while True:
        openChannel(s, channel)
    getStatus(s, channel)
    writeChannel(s, channel, command+'\r')
-   print readChannel(s, channel, True)
+   print(readChannel(s, channel, True))
    if not channel_open:
        closeChannel(s, channel)
 closeChannel(s, channel)
